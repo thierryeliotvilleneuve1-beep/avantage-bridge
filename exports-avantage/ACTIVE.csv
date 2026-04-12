@@ -1,0 +1,1090 @@
+Numéro d'activité,Description de l'activité (francais),Description de l'activité (anglais),Code interne,Numéro de fournisseur,Numéro de G/L Achat,Montant en com. fournisseur,Montant en B/O
+00001,"Selon plans, devis et addendas Régis Côté",,,,,0.00,0.00
+00002,et firme d'ingéniérie Pluritec,,,,,0.00,0.00
+00050,Services gestion,,,,,0.00,0.00
+00100,Administration,,,,,0.00,0.00
+00101,Services architectes,,,,,0.00,0.00
+00102,Services ingénieurs,,,,,0.00,0.00
+00400,Conditions générales,,,,,0.00,0.00
+00401,Cautionnement et assurances,,,,,0.00,0.00
+00402,MOBILISATION,,,,33200,0.00,0.00
+00403,COVID-19,,,,33200,0.00,0.00
+00501,Allocation no. 1,,,,,0.00,0.00
+00502,Allocation no. 2,,,,,0.00,0.00
+00503,Allocation no. 3,,,,,0.00,0.00
+00610,Inspection structurale,,,,,0.00,0.00
+00650,Inspection étanchéité,,,,,0.00,0.00
+01100,RÉSIDENTIEL,RESIDENTIAL,,,,0.00,0.00
+01110,Construction neuve,New construction,,,,0.00,0.00
+01115,Rénovation,Renovation,,,,0.00,0.00
+01200,"COMMERCIAL, INDUSTRIEL, INSTITUTIONNEL","COMMERCIAL, INDUSTRIAL, INSTITUTIONAL",,,,0.00,0.00
+01202,Construction neuve,New construction,,,,0.00,0.00
+01250,Rénovation,Renovation,,,,0.00,0.00
+01300,TRAVAUX DE GÉNIE CIVIL,ENGINEERING WORK,,,,0.00,0.00
+01310,"Industrie lourde, complexe industriel","heavy industry, industrial complex",,,,0.00,0.00
+01320,Usine de filtration et d'épuration des eaux,Filtration and water purification plant,,,,0.00,0.00
+01330,Conduits souterrains,Underground ducts,,,,0.00,0.00
+01340,Transport d'énergie - lignes aériennes,Energy transport - overhead cables,,,,0.00,0.00
+01350,Métros et tunnels,Subways and tunnels,,,,0.00,0.00
+01360,Oléoducs et pipe-lignes,Pipelines,,,,0.00,0.00
+01370,Ouvrages ferroviaires,Railway works,,,,0.00,0.00
+01380,Ouvrages hydro-électriques,Hydroelectric works,,,,0.00,0.00
+01390,Ponts et viaducs,Bridges and overpass,,,,0.00,0.00
+01400,Routes et travaux d'infrastructure,Roads and infrastructures,,,,0.00,0.00
+01410,Travaux maritimes,Marine structures,,,,0.00,0.00
+01420,Travaux sous-marins,Underwater structures,,,,0.00,0.00
+01430,Déplacement de bâtiments,Building displacements,,,,0.00,0.00
+01800,Nettoyage (conteneur),,,,,0.00,0.00
+02000,TRAVAUX D'EMPLACEMENT,SITE CONSTRUCTION,,,,0.00,34046.26
+02050,Matériaux et méthodes de base,Basic site materials and methods,,,,0.00,0.00
+02055,Sols,Soils,,,,0.00,0.00
+02060,Agrégats,Aggregates (granular matetials),,,,0.00,0.00
+02065,Ciment et béton,Cement and conrete,,,33200,0.00,0.00
+02070,Démolition sélective,Geosynthetic materials,,,,0.00,0.00
+02080,Matériaux de services publics,Utility materials,,,,0.00,0.00
+02090,Matériaux de joint,Joint materials,,,33200,0.00,0.00
+02100,Restauration environnementale de l'emplacem.,Site remediation,,,,0.00,0.00
+02110,Enlèvement et manutention de prod. dangereux,Removal and handling of hazardous materials,,,,0.00,0.00
+02115,Enlèvement de réservoir souterrains,Underground storage tank removal,,,,0.00,0.00
+02120,Transport hors de l'empl. et mise au rebut,Transport out of location and disposal,,,,0.00,0.00
+02125,Manutention de barils,Handling of barrels,,,,0.00,0.00
+02130,Décontamination de l'emplacement,Site decontamination,,,,0.00,0.00
+02140,Construction de décharge et stockage,Dump and stocking construction,,,,0.00,0.00
+02145,Système de traitement de l'eau souterrainne,Underground water treatement system,,,,0.00,0.00
+02150,Processus de récupération de prod. dangereux,Recuperation process for dangerous prod.,,,,0.00,0.00
+02160,Traitement physique,Physical treatment,,,,0.00,0.00
+02170,Traitement chimique,Chemical treatment,,,,0.00,0.00
+02180,Procédés thermiques,Thermal process,,,,0.00,0.00
+02190,Procédés biologiques,Biological process,,,,0.00,0.00
+02195,Restauration par stabilisation du sol,Restoration by soil stabilization,,,,0.00,0.00
+02196,Décontamination et désamiantage,,,,,0.00,0.00
+02200,Préparation de l'emplacement,Site preparation,,,,0.00,0.00
+02210,Reconnaissance du sous-sol,Subsurface investigation,,,,0.00,0.00
+02220,Travaux de démolition,Site demolition,,,,0.00,0.00
+02225,Services géotechnique,,,,,0.00,0.00
+02230,Déblaiement et déboisement de l'emplacement,Site clearing,,,,0.00,0.00
+02240,Assèchement,Dewatering,,,,0.00,0.00
+02250,Étaiement et reprise en sous-oeuvre,Shoring and underpinning,,,,0.00,0.00
+02260,Étançonnement et protection d'excavation,Excavation support and protection,,,,0.00,0.00
+02280,Ajustement du niveau du sol,Soil level ajustment,,,,0.00,0.00
+02285,Reconstruction de petits ouvrages existants,Reconstruction of existing small jobs,,,,0.00,0.00
+02290,Surveillance de l'emplacement,Site surveillance,,,,0.00,0.00
+02300,Terrassement,EARTHWORK,,,33500,0.00,0.00
+02310,Nivellement,Grading,,,33500,1.00,0.00
+02315,Excavation et remplissage,Excavation and fill,,,33500,0.00,42493.28
+02325,Dragage,Dredging,,,33500,0.00,0.00
+02330,Talus,Embankment,,,33500,0.00,0.00
+02335,Sous-fondation et assise de route,Sub-foundation and road foundation,,,33500,0.00,0.00
+02340,Stabilisation du sol,Soil stabilization,,,33500,0.00,0.00
+02360,Traitement du sol,Soil treatment,,,33500,0.00,0.00
+02370,Contrôle de l'érosion et de la sédimentation,Erosion and sedimentation control,,,33500,0.00,0.00
+02380,Protection contre l'affouillement,Protection against wash aways,,,33500,0.00,0.00
+02390,Protection du littoral / struct. de mouillage,Shore protection / moorings structures,,,33500,0.00,0.00
+02400,"Creusage de tunnel, forage et vérinage","Tunnelling, boring and jacking",,,33500,0.00,0.00
+02410,Excavation de tunnel,Tunnel excavation,,,33500,0.00,0.00
+02420,Systèmes de support initial de tunnel,Initial tunnel support system,,,33500,0.00,0.00
+02425,Blindages de tunnel,Tunnel linings,,,33500,0.00,0.00
+02430,Injection de tunnel au coulis,Tunnel grouting,,,33500,0.00,0.00
+02440,Tunnels en tubes coulés et immergés,Submerged tubalar tunnel cast,,,33500,0.00,0.00
+02441,Creusage de microtunnel,Mircotunneling,,,33500,0.00,0.00
+02442,Tunnels en tranchée couverte,Covered trenches tunnels,,,33500,0.00,0.00
+02443,Réparations de fuite dans un tunnel,Tunnel leak repairs,,,33500,0.00,0.00
+02444,Construction de puits verticaux,Vertical well construction,,,33500,0.00,0.00
+02445,Conduits de forage ou de vérinage,Boring or jacking conduits,,,33500,0.00,0.00
+02450,Fondations et éléments portants,Foundation and load-bearing elements,,,33500,0.00,0.00
+02455,Pieux foncés,Driven piles,,,33500,0.00,0.00
+02465,Pieux forés,Bored piles,,,33500,0.00,0.00
+02475,Caissons,Coffers,,,33500,0.00,0.00
+02480,Murs de fondations,Foundation walls,,,33500,0.00,0.00
+02490,Ancrages,Anchoring,,,,0.00,0.00
+02495,Instrumentation et surveillance,Instrumentation and surveillance,,,33500,0.00,0.00
+02500,Services publics,Utility services,,,,0.00,0.00
+02510,Réseau de distribution d'eau,Water distribution network,,,33500,0.00,0.00
+02520,Puits,Well,,,33500,0.00,0.00
+02530,Système d'égout sanitaire,Sanitary sewer system,,,33500,0.00,0.00
+02540,Systèmes de fosse septique,Septic tank systems,,,33500,0.00,0.00
+02550,Canalisations de distribution d'énergie,Energy distribution pipes,,,33500,0.00,0.00
+02570,Structures de distr. de matériaux de procédé,Distribution structures of process materials,,,33500,0.00,0.00
+02580,Structures de réseau électrique et de comm.,Electrical network structures and comm.,,,33500,0.00,0.00
+02590,Mise à la terre d'élément de l'emplacement,Grounding of location elements,,,33500,0.00,0.00
+02600,Drainage et confinement,Draining and confinement,,,33500,0.00,0.00
+02610,Ponceaux tubulaires,Tubular culvert,,,33500,0.00,0.00
+02620,Drainage souterrain,Underground draining,,,33500,0.00,0.00
+02630,Drainage pluvial,Draining rain water,,,33500,0.00,0.00
+02640,Ponceaux et coinstruction usinés,Machined construction and culvert,,,33500,0.00,0.00
+02660,Bassins et réservoirs,Basins and reservoirs,,,33500,0.00,0.00
+02670,Marécages artificiels,Artificial marsh,,,33500,0.00,0.00
+02700,"Couches de base, ballasts, revêtements","Basic layers, ballats, surfaces",,,33500,0.00,0.00
+02720,Couches de bases non liées et ballasts,Non binding basic layers and ballasts,,,,0.00,0.00
+02730,Couche de surface d'agrégats,Agglomerate surface layer,,,,0.00,0.00
+02740,Revêtement de chaussée flexible,Flexible pavement surface,,,33500,0.00,0.00
+02750,Revêtement de chaussée rigide,Rigid surface pavement,,,33500,0.00,0.00
+02755,Accotement en béton de ciment,Cement and concrete shoulder,,,,0.00,0.00
+02760,Accessoires de revêtement de chaussée,Surface and pavement accessories,,,,0.00,0.00
+02770,Bordures et caniveaux,Borders and gutters,,,,0.00,0.00
+02775,Trottoirs,Sidewalks,,,,0.00,0.00
+02780,Pavés usinés,Machined pavement,,,,0.00,0.00
+02785,Enduit de revêtement flex. et micro-surfaçage,Flexible surface coating and micro-surfacing,,,,0.00,0.00
+02790,Surface d'athlétisme et de sport,Athletic and sport surface,,,,0.00,0.00
+02795,Revêtement de chaussée poreux,Porous suface pavement,,,33500,0.00,0.00
+02800,Aménagement ext. et accessoires d'aménagement,Exterior planning and planning accessories,,,,0.00,0.00
+02810,Systèmes d'irrigation,Irrigation systems,,,,0.00,0.00
+02815,Fontaines,Fountains,,,,0.00,0.00
+02820,Clôtures et barrières,Fences and barriers,,,,0.00,0.00
+02830,Murs de soutènement,Retaining wall,,,,0.00,0.00
+02840,"Équipements d'allée, chaussée et stationnemen","Path, pavement and parking equipment",,,,0.00,0.00
+02850,Ponts préfabriqués,Prefabricated bridges,,,,0.00,0.00
+02860,Dispositifs d'écran,Screen device,,,,0.00,0.00
+02870,Ameublement et accessoires d'emplacement,Site furniture and accessories,,,,0.00,0.00
+02875,Abris de rue et d'emplacement,Street and site shelter,,,,0.00,0.00
+02880,Structures et équipement de terrain de sport,Sports field equipment and structures,,,,0.00,0.00
+02890,Signalisation et signaux de circ. routière,Signalling system and road signs,,,,0.00,0.00
+02895,Bornes et monuments,Markers and monuments,,,,0.00,0.00
+02900,Plantations,Plantations,,,,0.00,0.00
+02905,"Plants, plantation et transplantation","Seedlings, plantation and transplantation",,,,0.00,0.00
+02910,Préparation de la plantation,Plantation preparation,,,,0.00,0.00
+02915,Transplantation d'arbres et d'arbustres,Transplantation of trees and shrubs,,,,0.00,0.00
+02920,Pelouses et gazons,Lawns and grass,,,,0.00,0.00
+02930,Plants d'extérieur,Exterior seedlings,,,,0.00,0.00
+02935,Entretien des plants,Seedlings maintenance,,,,0.00,0.00
+02945,Accessoires de plantation,Plantation accessories,,,,0.00,0.00
+02950,Restauration et réhabilitation d'emplacement,Site restoration and rehabilitation,,,,0.00,0.00
+02955,Restauration de canal. et d'él. souterrains,Channeling restoration and underground elem.,,,,0.00,0.00
+02960,Récup. et surfaçage de revêtement flexible,Recuperation and flexible surfacing lining,,,,0.00,0.00
+02965,Recycl. de revêtement bitumineux et flex.,Recyclable bituminous and flexible lining,,,,0.00,0.00
+02975,Renforcement de revêtement flex. et bitum.,Reinforcement of flexible and bitum lining,,,,0.00,0.00
+02980,Réhabilitation de revêtement rigide,Rehabilitation of rigid surface,,,,0.00,0.00
+02990,Déplacement de structure,Moving of structures,,,,0.00,0.00
+03000,BÉTON,CONCRETE,,,,10500.00,121205.35
+03050,Matériaux et méth. de base relatifs au béton,Basic concrete methods and materials,,,,0.00,0.00
+03100,Coffrages et accessoires à béton,Concrete form and accessories,,,,0.00,0.00
+03110,Coffrages de béton structural coulé en place,Structural cast-in-place concrete formwork,,,33500,0.00,0.00
+03120,Coffrages de béton architect. coulé en place,Archit. concrete formwork poured in place,,,33500,0.00,0.00
+03130,Coffrages permanents,Permanent formworks,,,33500,0.00,0.00
+03150,Accessoires à béton,Concrete accessories,,,,0.00,0.00
+03200,Armatures à béton,Concrete Reinforcement,,,,0.00,0.00
+03210,Acier d'armature,Reinforcing steel,,,33500,0.00,0.00
+03220,Treillis soudé,Welded wire fabric,,,,0.00,0.00
+03230,Tendons de mise en tension,Stressing tendons,,,,0.00,0.00
+03240,Renforcement de fibres,Fibre reinforcement,,,,0.00,0.00
+03250,Post-tension,post-tensioning,,,,0.00,0.00
+03300,Béton coulé en place,Cast-in-place concrete,,,,0.00,0.00
+03310,Béton structural,Structural concrete,,,,0.00,0.00
+03330,Béton architectural,Architectural concrete,,,,0.00,0.00
+03340,Béton léger,Low density concrete,,,,0.00,0.00
+03350,Finissage de béton,Concrete  finishing,,,,0.00,0.00
+03360,Finitions de béton,Concrete finishes,,,,0.00,0.00
+03370,Mise en place spéciale de béton,Specially placed  concrete,,,,0.00,0.00
+03380,Béton précontraint par post-tension,Post-tensioned concrete,,,,0.00,0.00
+03390,Mûrissement du béton,Concrete curing,,,,0.00,0.00
+03400,Éléments de béton préfabriqués,Precast concrete,,,,0.00,0.00
+03410,Béton struct. préfabriqué en usine,Plant-precast structural concrete,,,,0.00,0.00
+03420,Béton struct. précontraint préfabr. en usine,Plant-precast struc. post-tensioned concrete,,,,0.00,0.00
+03430,Béton struct. préfabriqué au chantier,On site prefabricated structural concrete,,,,0.00,0.00
+03450,Béton architectural préfabriqué en usine,Plant-precast architectural concrete,,,,0.00,0.00
+03460,Béton architectural préfabriqué au chantier,On site prefabricated architectural concrete,,,,0.00,0.00
+03470,Él. de béton préfabr.mis en place par relèv.,Prefab. concr. put in place by superelevation,,,,0.00,0.00
+03480,Éléments particuliers de béton préfabriqués,Precast concrete specialties,,,,0.00,0.00
+03490,Béton préfabriqué renforcé de fibre de verre,Glass-fiber-reinforced precast concrete,,,,0.00,0.00
+03500,Platelages et sous-finition cimentaire,Cementitious decks and underlayment,,,,0.00,0.00
+03510,Platelage de toiture cimentaire,Cementitious roof decking,,,,0.00,0.00
+03520,Béton léger d'isolation de toit,Lightweight concrete roof  insulation,,,,0.00,0.00
+03530,Chape de béton,Concrete topping,,,,0.00,0.00
+03540,Sous-finition cimentaire,Cementitious underlayment,,,,0.00,0.00
+03600,Coulis,Grout,,,,0.00,0.00
+03700,Béton de masse,Mass concrete,,,,0.00,0.00
+03900,Réparation et nettoyage de béton,Concrete restoration and cleaning,,,,0.00,0.00
+03910,Nettoyage de béton,Concrete cleaning,,,,0.00,0.00
+03920,Resurfaçage de béton,Concrete  resurfacing,,,,0.00,0.00
+03930,Réparation de béton,Concrete rehabilitation,,,,0.00,0.00
+04000,MAÇONNERIE,MASONRY,,,33500,6335.00,9669.10
+04050,Matériaux et méthodes de base - maçonnerie,Basic masonry materials and methods,,,,0.00,0.00
+04060,Mortier à maçonnerie,Masonry mortar,,,,0.00,0.00
+04070,Coulis pour maçonnerie,Masonry grout,,,,0.00,0.00
+04080,Armatures et ancrages à maçonnerie,Masonry anchorage and reinforcement,,,33500,0.00,0.00
+04090,Accessoires à maçonnerie,Masonry accessories,,,,0.00,0.00
+04200,Éléments de maçonnerie,Masonry units,,,,0.00,0.00
+04210,Éléments de maçonnerie d'argile,Clay masonry units,,,,0.00,0.00
+04220,Éléments de maçonnerie de béton,Concrete masonry units,,,,0.00,0.00
+04230,Éléments de maçonnerie silico-calcaire,Masonry sand-lime units,,,,0.00,0.00
+04270,Éléments de maçonnerie de verre,Glass masonry units,,,,0.00,0.00
+04290,Éléments de maçonnerie d'adobe,Masonry adobe elements,,,,0.00,0.00
+04400,Pierre,Stone,,,,0.00,0.00
+04410,Matériaux de pierre,Stone materials,,,,0.00,0.00
+04412,Granite,Granite,,,,0.00,0.00
+04413,Calcaire,Limestone,,,,0.00,0.00
+04414,Marbre,Marble,,,,0.00,0.00
+04416,Pierre de taille,Sandstone,,,,0.00,0.00
+04420,Pierre ramassée,Gathered stones,,,,0.00,0.00
+04430,Pierre de carrière,Quarry stone,,,,0.00,0.00
+04500,Maçonnerie réfractaire,Masonry refactories,,,,0.00,0.00
+04550,Boisseaux à fumée,Smoked flue liner,,,,0.00,0.00
+04560,Chambres de combustion,Combustion chamber,,,,0.00,0.00
+04570,Matériaux réfractaires moulables,Refractory forming materials,,,,0.00,0.00
+04580,Brique réfractaire,Refractory brick,,,,0.00,0.00
+04600,Maçonnerie anticorrosion,Corrosion-resistant masonry,,,,0.00,0.00
+04610,Brique anticorrosion,Anticorrosive bricks,,,,0.00,0.00
+04620,Plaques de revêtement d'argile vitrifiée,Plates of surface unglazed loam,,,,0.00,0.00
+04700,Similimaçonnerie,Simulated masonry,,,,0.00,0.00
+04710,Similibrique,Simulated brick,,,,0.00,0.00
+04720,Pierre moulée,Synthetic stone,,,,0.00,0.00
+04730,Pierre artificielle,Simulated stone,,,,0.00,0.00
+04800,Assemblages de maçonnerie,Masonry assemblies,,,,0.00,0.00
+04810,Assemblage d'éléments de maçonnerie,Unit masonry assemblies,,,,0.00,0.00
+04820,Assemblage de maçonnerie d'éléments armés,Reinforced masonry assembly,,,,0.00,0.00
+04830,Assemblage de maçonnerie d'éléments non armés,Non-einforced masonry assembly,,,,0.00,0.00
+04840,Panneaux préfabriqués de maçonnerie,Prefabricated masonry panels,,,,0.00,0.00
+04850,Assemblages de pierre,Stone assembly,,,,0.00,0.00
+04880,Foyers de maçonnerie,Masonry fireplaces,,,,0.00,0.00
+04900,Réfection et nettoyage de maçonnerie,Masonry restoration and cleaning,,,,0.00,0.00
+04910,Restauration d'éléments de maçonnerie,Restoration of masonry elements,,,,0.00,0.00
+04920,Restauration de pierre,Stone restoration,,,,0.00,0.00
+04930,Nettoyage d'éléments de maçonnerie,Cleaning masonry units,,,,0.00,0.00
+04940,Nettoyage de pierre,Stone cleaning,,,,0.00,0.00
+05000,MÉTAL,METAL,,,,340.00,0.00
+05050,Matériaux et méthodes de base - métal,Basic metal materials and methods,,,41100,0.00,0.00
+05060,Matériaux métalliques,Metal materials,,,,0.00,0.00
+05080,Revêtements de métal appliqué en usine,Factory applied metal surfacing,,,,0.00,0.00
+05090,Fixations métalliques,Metal  fastenings,,,,0.00,0.00
+05100,Charpentes métalliques,Structural metal framing,,,,0.00,0.00
+05120,Acier de construction,Structural steel,,,33500,0.00,2380.00
+05140,Aluminium de construction,Structural aluminum,,,,0.00,0.00
+05150,Assemblages à câble,Cable assembly,,,,0.00,0.00
+05160,Systèmes de charpente métallique,Metal framing systems,,,,0.00,0.00
+05200,Poutrelles métalliques,Metal joists,,,,0.00,0.00
+05210,Poutrelles d'acier,Steel joists,,,,0.00,0.00
+05250,Poutrelles d'aluminium,Aluminum joists,,,,0.00,0.00
+05260,Assemblages à solives composites,Composite joist assembly,,,,0.00,0.00
+05300,Platelage métallique,Metal deck,,,,0.00,0.00
+05310,Platelage en acier,Steel deck,,,,0.00,0.00
+05320,Platelage à caniveaux,Chase deck,,,,0.00,0.00
+05330,Platelage en aluminium,Aluminium chase,,,,0.00,0.00
+05340,Platelage métallique acoustique,Acoustic metal decking,,,,0.00,0.00
+05400,Charpentes métal.en éléments profilés à froid,Cold profiled metal framework elements,,,,0.00,0.00
+05410,Montants métalliques portants,Load-bearing metal stub systemes,,,,0.00,0.00
+05420,Solives métalliques écrouies à froid,Cold nutted metal joist,,,,0.00,0.00
+05430,Charpente de profilés à ouvertures ovalisées,Profiled cammed openings framework,,,,0.00,0.00
+05450,Supports métalliques,Metal supports,,,,0.00,0.00
+05500,Métaux ouvrés,Metal fabrications,,,,540.00,101560.48
+05510,Escaliers et paliers métalliques,Metal stairs and labbers,,,,0.00,0.00
+05520,Mains courantes et balustrades,Handrails and railings,,,,0.00,0.00
+05530,Grilles,Gratings,,,,0.00,0.00
+05540,Plaques de plancher,Floor plates,,,,0.00,0.00
+05550,Girons et nez de marches,Stair treads and nosings,,,,0.00,0.00
+05560,Pièces métalliques coulées,Casting metal pieces,,,,0.00,0.00
+05580,Pièces métalliques matricées,Formed metal fabrications,,,,0.00,0.00
+05600,Pièces métalliques d'ouvrage hydraulique,Hydraulic fabrications,,,,0.00,0.00
+05650,Rails de chemin de fer et accessoires,Railroad tracks and accessories,,,,0.00,0.00
+05700,Métal ornemental,Ornemetal metal,,,,0.00,0.00
+05710,Escaliers ornementaux,Ornemental staircases,,,,0.00,0.00
+05715,Escaliers hélicoïdaux fabriqués,Fabricated spiral stairs,,,,0.00,0.00
+05720,Mains courantes et balustrades ornementales,Ornemental handrails and railings,,,,0.00,0.00
+05725,Pièces de fonderie ornementales,Ornamental foundary pieces,,,,0.00,0.00
+05730,Métal ornemental matricé,Ornemental formed metal,,,,0.00,0.00
+05740,Métal ornemental forgé,Forged ornemental metal,,,,0.00,0.00
+05800,Joints de dilatation,Expansion control,,,,0.00,0.00
+05810,Couvre-joints de dilatation,Expansion cover strip,,,,0.00,0.00
+05820,Appuis coulissants,Sliding supports,,,41100,0.00,0.00
+05830,Joints de dilatation de ponts,Bridge expansion bellows,,,,0.00,0.00
+05900,Restauration et nettoyage de métal,Metal restoration and cleaning,,,,0.00,0.00
+06000,BOIS ET PLASTIQUES,WOOD AND PLACTICS,,,,0.00,0.00
+06050,Matériaux et méth. de base- bois et plastique,Basic materials and meth.- wood and plastic,,,,0.00,0.00
+06060,Matériaux de bois,Wood materials,,,33500,0.00,0.00
+06065,Matériaux de plastique,Plastic materials,,,41100,0.00,0.00
+06070,Traitement du bois,Wood treatment,,,41100,0.00,0.00
+06080,Revêtements de bois appliqué en usine,Factory applied wood surfacing,,,41100,0.00,0.00
+06090,Attaches pour le bois et le plastique,Wood and plastic fastenings,,,41100,0.00,0.00
+06100,Charpenterie,Rough carpentry,,,,37050.00,59919.21
+06101,Charpenterie (main-d'oeuvre),,,,,0.00,0.00
+06110,Ossatures de bois,Wood  framing,,,41100,0.00,0.00
+06120,Panneaux structuraux,Structural panels,,,41100,0.00,0.00
+06130,Construction en gros bois d'oeuvre,Heavy timber construction,,,41100,0.00,0.00
+06140,Fondations en bois traité,Treated wood foundations,,,41100,0.00,0.00
+06150,Platelages en bois d'oeuvre,Wood decking,,,41100,0.00,0.00
+06160,Revêtement intermédiaires,Sheathing,,,41100,0.00,0.00
+06170,Bois de charpente préfabriquée,Prefabricated structural wood,,,33200,0.00,0.00
+06180,Construction en lamellé-collé,Glued-laminated construction,,,33200,0.00,0.00
+06200,Menuiserie,Finish carpentry,,,33500,0.00,0.00
+06220,Ouvrages de menuiserie,Millwork,,,33500,0.00,0.00
+06250,Lambris préfinis,Prefinished paneling,,,33200,0.00,0.00
+06260,Lambris de planches,Board paneling,,,41100,0.00,0.00
+06270,Rayonnage en bois de penderie et d'armoire,Wardrobe and cupboard wood shelving,,,41100,0.00,0.00
+06400,Ébénisterie,Architectural woodwork,,,,0.00,77767.37
+06410,Armoires fabriquées sur mesure,Custom cabinets,,,41100,0.00,0.00
+06415,Dessus de comptoir,Flat top cabinet,,,41100,0.00,0.00
+06420,Lambris,Wainscot,,,41100,0.00,0.00
+06430,Escaliers et balustrades en bois,Wooden staircases and banisters,,,41100,0.00,0.00
+06440,Ornementations en bois,Wooden ornements,,,41100,0.00,0.00
+06445,Ornementation de similibois,Wood imitation and ornements,,,41100,0.00,0.00
+06450,Moulures décoratives verticales et horiz.,Horizontal and vertical decorative moulding,,,41100,0.00,0.00
+06455,Moulures de similibois,Wood imitation moulding,,,41100,0.00,0.00
+06460,Cadres de bois,Wooden frames,,,41100,0.00,0.00
+06470,"Écrans, stores et persiennes","Screens, blinds and shutters",,,41100,0.00,0.00
+06500,Éléments structuraux en plastique,Structural plastics,,,41100,0.00,0.00
+06510,Profilés et plaques structuraux de plastique,Shaped and structural plastic plates,,,41100,0.00,0.00
+06520,Assemblages structuraux de plastique,Plastic structural assembly,,,41100,0.00,0.00
+06600,Plastiques ouvrés,Plastic fabrications,,,41100,0.00,0.00
+06900,Restauration et nettoyage de bois & plastique,Wood and plastic restoration and cleaning,,,41100,0.00,0.00
+06910,Restauration et nettoyage de bois,Restoration and cleaning of wood,,,41100,0.00,0.00
+06920,Restauration et nettoyage de plastique,Restoration and cleaning of plastic,,,41100,0.00,0.00
+07000,ISOLATION THERMIQUE ET ÉTANCHÉITÉ,THERMAL AND MOISTURE PROTECTION,,,33500,58413.40,0.00
+07050,Mat.et méth.de base - isol.therm.& étanchéité,Basic therm. & moisture protec. mat. & meth.,,,41100,0.00,0.00
+07100,Hydrofugation et imperméabilisation,Dampproofing and waterproofing,,,41100,0.00,0.00
+07110,Hydrofugation,Dampproofing,,,41100,0.00,0.00
+07120,Imperméabilisation bitumineuse multicouche,Waterproofing multi-ply bituminous,,,41100,0.00,0.00
+07130,Imperméabilisation en feuilles,Sheet waterproofing,,,41100,0.00,0.00
+07140,Imperméabilisation appliquée à l'état liquide,Fuild applied waterproofing,,,41100,0.00,0.00
+07150,Imperméabilisation en tôle métallique,Sheet metal waterprooling,,,41100,0.00,0.00
+07160,Imperméabilisation cimentaire et réactive,Cementitous and reactive waterprooling,,,41100,0.00,0.00
+07170,Imperméabilisation à la bentonite,Clay mineral proofing,,,41100,0.00,0.00
+07180,Enduit d'aire de circulation,Trafic coatings,,,41100,0.00,0.00
+07190,Hydrofuges,Water repellent,,,41100,0.00,0.00
+07200,Isolation thermique,Thermal protection,,,33500,0.00,0.00
+07210,Isolants de bâtiment,Building insulation,,,,0.00,0.00
+07220,Isolants de toiture et de platelage,Roof and deck insulation,,,41100,0.00,0.00
+07240,Syst. d'isolation et de finition ext.,Ext. finish and insulation systems,,,,0.00,0.00
+07260,Pare-vapeurs,Vapour barrier,,,41100,0.00,0.00
+07270,Pare-airs,Air barriers,,,41100,0.00,0.00
+07300,"Bardeaux, tuiles de revêtements de toit","Shingles, roofing tiles and roof coverings",,,41100,0.00,0.00
+07310,Bardeaux,Shingles,,,,828000.00,0.00
+07320,Tuiles de toit,Roof tiles,,,41100,0.00,0.00
+07330,Revêtements de toit,Roof lining,,,,0.00,0.00
+07400,Panneaux de couverture et de revêtement mural,Roofing and siding panels,,,41100,8693.47,0.00
+07410,Panneaux de toit et de mur métalliques,Metal roof and wall panels,,,33500,0.00,0.00
+07420,Panneaux de toit et de mur en plastique,Plastic roof ans wall panels,,,41100,0.00,0.00
+07430,Panneaux composites,Composite panels,,,41100,0.00,0.00
+07440,Panneaux revêtus,Coated panels,,,41100,0.00,0.00
+07450,Panneaux cimentaires renforcés de fibre,Fibre reinforced cement panels,,,41100,0.00,0.00
+07460,Revêtement mural,Siding,,,,14770.40,25106.39
+07469,Enduit acrylique,,,,,0.00,0.00
+07470,Panneaux de toit et de mur en bois,Wooden roof and wall panels,,,41100,0.00,0.00
+07480,Assemblages de mur extérieur,Exterior wall assemblyies,,,41100,0.00,0.00
+07500,Couverture à membrane,Membrane roofing,,,33500,84206.00,0.00
+07510,Couverture bitumineuse multicouche,Built-up bituminous roofing,,,41100,85850.00,0.00
+07520,Couverture bitumineuse appliquée à froid,Cold- applied bituminous roofing,,,41100,0.00,0.00
+07530,Couverture de membrane élastomère,Elastomere roofing membrane,,,33500,0.00,0.00
+07540,Couverture de membrane thermoplastique,Thermoplastic membrane roofing,,,41100,0.00,0.00
+07550,Couverture à membrane de bitume modifié,Modified bituminous membrane roofing,,,41100,0.00,0.00
+07560,Couverture appliquée à l'état liquide,Liquid applied roofing,,,41100,0.00,0.00
+07570,Couverture en mousse revêtue,Foam surfaced roofing,,,41100,0.00,0.00
+07580,Couverture en rouleaux,Roll roofing,,,41100,0.00,0.00
+07590,Entretien et réparation de toit,Roof maintenance and repairs,,,41100,0.00,0.00
+07600,"Solins, contre-solins et métal en feuilles","Flashing, counterflashing and sheet metal",,,,0.00,0.00
+07610,Couverture de tôle,Sheet metal roofing,,,41100,0.00,0.00
+07620,Solins et garnitures de tôle,Sheet metal flashing trim,,,41100,0.00,0.00
+07630,Accessoires de couverture de tôle,Sheet metal roofing specialties,,,41100,0.00,0.00
+07650,Solins souples,Supple flashings,,,41100,0.00,0.00
+07700,Articles spéciaux et accessoires de toit,Roof specialties and accessories,,,41100,0.00,0.00
+07710,Articles spéciaux de toit préfabriqués,Manufactured roof specialties,,,41100,0.00,0.00
+07720,Accessoires de toit,Roof accessories,,,33500,0.00,0.00
+07760,Dallages de toit,Roof pavers,,,41100,0.00,0.00
+07800,Protection contre le feu et la fumée,,,,,0.00,0.00
+07810,IGNIFUGE,,,,33500,0.00,0.00
+07820,Ignifugation en planches,Board fire-proofing,,,33500,0.00,0.00
+07840,Dispositifs coupe-feu,Firestopping,,,41100,0.00,0.00
+07860,Garnitures d'étanchéité à la fumée,Smoke airtightness trimings,,,41100,0.00,0.00
+07870,Barrière de confinement de la fumée,Smoke confining barrier,,,41100,0.00,0.00
+07900,Obturateurs de joint,Joint sealers,,,41100,0.00,0.00
+07910,Joints d'étanchéité préformés,Preformed airtightness joints,,,41100,0.00,0.00
+07920,Mastics de joint,Sealant,,,41100,0.00,0.00
+07950,REVETEMENT EN ROULEAU,,,,,0.00,0.00
+08000,PORTES ET FENETRES,DOORS AND WINDOWS,,,,76082.20,14499.56
+08050,Matériaux et méth.de base - portes & fenêtres,Basic door and windows materials ans methods,,,,0.00,0.00
+08100,Portes et cadres métalliques,Metal doors and frames,,,,0.00,0.00
+08110,Portes et cadres d'acier,Steel doors ans frames,,,,0.00,0.00
+08120,Portes et cadres d'aluminium,Aluminum doors and frames,,,,0.00,0.00
+08130,Portes et cadres d'acier inoxydable,Stainless steel doors and frames,,,,0.00,0.00
+08140,Portes et cadres de bronze,Bronze doors and frames,,,,0.00,0.00
+08150,Ens. de porte et cadre métallique préassemblé,Pre-assemb. kits of metal doors and  frames,,,,0.00,0.00
+08160,Portes et grilles métalliques coulissantes,Metal sliding doors and  bars,,,,0.00,0.00
+08180,Châssis-moustiquaires et contre-portes métal.,Metal screen and storm doors,,,,0.00,0.00
+08190,Restauration de portes métalliques,Metal door restoration,,,41100,0.00,0.00
+08200,Portes de bois et de plastique,Wood and plastic doors,,,41100,0.00,0.00
+08210,Portes de bois,Wood doors,,,41100,0.00,0.00
+08220,Portes de plastique,Plastic doors,,,41100,0.00,0.00
+08250,Ens.de porte et cadre de bois & plast.préass.,Pre-ass. wood & plastic door and frame untis,,,41100,0.00,0.00
+08260,Portes de bois et de plastique coulissantes,Sliding plastic and wood doors,,,41100,0.00,0.00
+08280,Contre-portes et portes moust. bois & plast.,Wood & plastic storm-doors and sc.doors,,,41100,0.00,0.00
+08290,Restauration de portes de bois & plastique,Wood and plastic doors restoration,,,41100,0.00,0.00
+08300,Portes à usage particulier,Specialty doors,,,41100,0.00,0.00
+08310,Portes et panneaux d'accès,Access doors and panels,,,41100,0.00,0.00
+08320,Portes et cadres d'établ. de détention,Detention doors and frames,,,41100,0.00,0.00
+08330,Portes et grilles à enroulement,Coiling doors and grilles,,,41100,0.00,0.00
+08340,Portes à usage spécial,Special function doors,,,41100,0.00,0.00
+08350,Portes et grilles pliantes,Folding doors and grilles,,,41100,0.00,0.00
+08360,Portes basculantes,Toppled doors,,,41100,0.00,0.00
+08370,Portes relevables verticalement,Vertical lift doors,,,41100,0.00,0.00
+08380,Portes battantes,Traffic doors,,,41100,0.00,0.00
+08390,Portes résistant à la pression,Pressure resistant doors,,,41100,0.00,0.00
+08400,Entrées et devantures,Entrances and storefronts,,,41100,0.00,0.00
+08410,Devantures à encadrement métallique,Metalic framing storefronts,,,41100,0.00,0.00
+08450,Entrées et devantures de verre,All-glass entrances and storefronts,,,41100,0.00,0.00
+08460,Portes d'entrée automatiques,Automatic  entrance doors,,,33500,0.00,0.00
+08470,Portes d'entrée tournantes,Revolving entrance doors,,,41100,0.00,0.00
+08480,Portes équilibrées,Balanced entrance doors,,,41100,0.00,0.00
+08490,Devantures coulissantes,Sliding storefronts,,,41100,0.00,0.00
+08500,Fenêtres,Windows,,,,0.00,0.00
+08510,Fenêtres d'acier,Steel windows,,,41100,0.00,0.00
+08520,Fenêtres d'aluminium,Aluminium windows,,,41100,0.00,0.00
+08530,Fenêtres d'acier inoxydable,Stainless steel windows,,,,0.00,0.00
+08540,Fenêtres de bronze,Bronze windows,,,,0.00,0.00
+08550,Fenêtres de bois,Wood windows,,,,0.00,0.00
+08560,Fenêtres de plastique,Plastic windows,,,,0.00,0.00
+08570,Fenêtres composites,Composite windows,,,,0.00,0.00
+08580,Fenêtres à usage spécial,Special function windows,,,,0.00,0.00
+08590,Restauration et remplacement de fenêtre,Window restoration and replacement,,,,0.00,0.00
+08600,Lanterneaux,Skylights,,,,0.00,0.00
+08610,Fenêtres de toit,Roof windows,,,,0.00,0.00
+08620,Lanterneaux préfabriqués,Unit skylights,,,41100,0.00,0.00
+08630,Lanterneaux à encadrement métallique,Metalic framed skylights,,,41100,0.00,0.00
+08700,Quincaillerie,Hardware,,,41100,0.00,0.00
+08710,Quincaillerie de porte,Door hardware,,,,0.00,0.00
+08720,Coupe-brise et joints d'étanchéité,Weatherstripping and seals,,,41100,0.00,0.00
+08740,Quincaillerie électromécanique,Electro-mecanical hardware,,,41100,0.00,0.00
+08750,Quincaillerie de fenêtre,Window hardware,,,41100,0.00,0.00
+08770,Accessoires de porte et fenêtre,Doors and windows accessories,,,41100,0.00,0.00
+08780,Quincaillerie à usage spécial,Special function hardware,,,41100,0.00,0.00
+08790,Restauration de quincaillerie,Hardware restoration,,,41100,0.00,0.00
+08800,Vitrage,Glazing,,,33500,0.00,0.00
+08810,Verre,Glass,,,,0.00,0.00
+08830,Miroirs,Mirrors,,,,0.00,0.00
+08840,Vitrage de plastique,Plastic glazing,,,41100,0.00,0.00
+08850,Acccessoires de vitrage,Glazing accessories,,,41100,0.00,0.00
+08890,Restauration de vitrage,Glazing restoration,,,41100,0.00,0.00
+08900,Murs-rideaux vitrés,Glazed curtain walls,,,33500,0.00,0.00
+08910,Mur-rideau à ossature métallique,Metalic frame curtain wall,,,41100,0.00,0.00
+08950,Assemblages de mur et de toit translucide,Translucent wall and roof assemblies,,,41100,0.00,0.00
+08960,Assemblages à vitrage incliné,Sloped glazing assemblies,,,41100,0.00,0.00
+08970,Murs-rideaux de verre structural,Structural glass curtain wall,,,41100,0.00,0.00
+08990,Restauration de mur-rideau vitré,Restoration glazed curtain wall,,,41100,0.00,0.00
+09000,FINITIONS,FINISHES,,,41100,0.00,0.00
+09050,Matériaux et méthodes de base des finitions,Basic completions materials and methods,,,41100,0.00,0.00
+09100,Assemblages à support métallique,Metal support assemblies,,,41100,0.00,0.00
+09110,Ossature de mur non portant,Non-load bearing wall framing,,,33500,0.00,0.00
+09120,Suspension de plafond,Ceiling suspension,,,41100,0.00,0.00
+09130,Suspension de plafond acoustique,Acoustic  suspension,,,,0.00,0.00
+09190,Restauration d'ossature métallique,Metalic frame restoration,,,41100,0.00,0.00
+09200,Plâtre et plaques de plâtre,Plaster and gypsum board,,,,106900.00,172700.00
+09205,Fourrures et lattis,Furring and lathing,,,41100,0.00,0.00
+09210,Enduits de plâtre,Gypsum plaster,,,33500,0.00,0.00
+09220,Plâtre de ciment Portland,Portland ciment plaster (stucco finishes),,,41100,0.00,0.00
+09230,Éléments de plâtre fabriqués,Plaster fabrications,,,41100,0.00,0.00
+09250,Plaques de plâtre,Gypsum board,,,41100,0.00,0.00
+09260,Assemblages de plaques de plâtre,Gypsum board assemblies,,,41100,0.00,0.00
+09270,Accessoires de plaques de plâtre,Gypsum board accessories,,,41100,0.00,0.00
+09280,Restauration de plâtre,Plaster restoration,,,41100,0.00,0.00
+09300,Carrelages,Tile,,,33500,0.00,0.00
+09305,Matériaux de pose de carreaux et accessoires,Install. materials for gypsum blocks and acc.,,,41100,0.00,0.00
+09310,Carreaux de céramique,Ceramic tile,,,33500,0.00,0.00
+09330,Carreaux de carrière,Quarry tile,,,41100,0.00,0.00
+09340,Carreaux de pavage,Slabbing tile,,,41100,0.00,0.00
+09350,Mosaïques de verre,Glass mosaic,,,41100,0.00,0.00
+09360,Carreaux de plastique,Plastic tile,,,41100,0.00,0.00
+09370,Carreaux métalliques,Metalic tile,,,41100,0.00,0.00
+09380,Carreaux de pierre naturelle coupée,Stone tile naturally cut,,,41100,0.00,0.00
+09390,Restauration de carreaux,Tile restoration,,,41100,0.00,0.00
+09400,Terrazzo,Terrazzo,,,41100,0.00,0.00
+09410,Terrazzo de ciment Portland,Portland ciment terrazzo,,,41100,0.00,0.00
+09420,Terrazzo préfabriqué,Prefabricated terrazzo,,,41100,0.00,0.00
+09430,Terrazzo conducteur,Strand terrazzo,,,41100,0.00,0.00
+09440,Terrazzo à matrice plastique,Plastic matrix terrazzo,,,41100,0.00,0.00
+09490,Restauration de terrazzo,Terrazzo restoration,,,41100,0.00,0.00
+09500,Plafonds,Ceillings,,,33500,0.00,0.00
+09510,Plafonds acoustiques,Acoustical ceillings,,,33500,0.00,0.00
+09545,Plafonds spéciaux,Specialty ceillings,,,41100,0.00,0.00
+09550,Plafonds à panneaux miroirs,Ceilling  mirror panels,,,41100,0.00,0.00
+09560,Plafonds texturés,Textured ceillings,,,41100,0.00,0.00
+09570,Plafond en lames de bois,Wood lats ceilling,,,41100,0.00,0.00
+09580,Treillis suspendus décoratifs,Suspended decorative trellis,,,41100,0.00,0.00
+09590,Restauration d'assemblage de plafond,Restoration of ceilling assembly,,,41100,0.00,0.00
+09600,Revêtements de sol,Flooring,,,33500,140043.02,45.00
+09610,Traitement de plancher,Floor treatment,,,41100,0.00,0.00
+09620,Revêtements de sol spéciaux,Specialty flooring,,,41100,0.00,0.00
+09630,Revêtements de sol en maçonnerie,Masonry flooring,,,41100,0.00,0.00
+09640,Revêtements de sol en bois,Wood flooring,,,41100,0.00,0.00
+09650,Revêtements de sol souples,Resilient flooring,,,33500,0.00,0.00
+09651,REVÊTEMENT EXTÉRIEUR,,,,,0.00,0.00
+09660,Revêtements de sol de contrôle de la statique,Static control  flooring,,,41100,0.00,0.00
+09670,Revêtements de sol d'application liquide,Fluid-applied flooring,,,41100,0.00,0.00
+09680,Tapis-moquettes,Carpet,,,41100,0.00,0.00
+09690,Restauration de revêtements de sol,Floor-covering restoration,,,41100,0.00,0.00
+09700,Finitions de mur,Wall finishes,,,41100,0.00,0.00
+09710,Traitement acoustique de mur,Acoustical wall treatment,,,41100,0.00,0.00
+09720,Revêtements muraux,Wall covering,,,41100,0.00,0.00
+09730,Moquettes murales,Wall carpet,,,41100,0.00,0.00
+09740,Feuilles de bois flexibles,Flexible wood sheets,,,41100,0.00,0.00
+09750,Placage de pierre,Stone facing,,,41100,0.00,0.00
+09760,Blocs de plastique,Plastic blocks,,,41100,0.00,0.00
+09770,Surfaces murales spéciales,Special wall surfaces,,,41100,0.00,0.00
+09790,Restauration de finition murale,Wall finish restoration,,,41100,0.00,0.00
+09800,Traitement acoustique,Acoustical treatment,,,41100,0.00,0.00
+09810,Unités acoustiques spatiales,Acoustical space units,,,41100,0.00,0.00
+09820,Isolants et mastics d'étanchéité acoustiques,Acoustical  insulation and sealants,,,41100,0.00,0.00
+09830,Écrans acoustiques,Acoustical barriers,,,41100,0.00,0.00
+09840,Traitement mural acoustique,Acoustical wall treatment,,,41100,0.00,0.00
+09900,Peintures et enduits,Paint and coatings,,,33500,0.00,0.00
+09910,Peintures,Paint,,,33500,211169.00,8701.00
+09930,Teintures et finitions transparentes,Dyes and transparent finish,,,41100,0.00,0.00
+09940,Finitions décoratives,Decorative finishes,,,41100,0.00,0.00
+09960,Enduits hautes performances,High performance coatings,,,41100,0.00,0.00
+09970,Enduits pour l'acier,Coatings for steel,,,41100,0.00,0.00
+09980,Enduits pour béton et maçonnerie,Coating for concrete and masonry,,,41100,0.00,0.00
+09990,Restauration de peinture,Paint restoration,,,41100,0.00,0.00
+10000,PRODUITS SPÉCIAUX,SPECIALITIES,,,,0.00,0.00
+10100,Tableaux d'affichage,Display board,,,41100,0.00,0.00
+10110,Tableaux à craie,Chalkboards,,,41100,0.00,0.00
+10115,Tableaux à marqueurs,Marker boards,,,41100,0.00,0.00
+10120,Tableaux d'affichage et d'aide visuelle,Tackboards and visual aids,,,41100,0.00,0.00
+10130,Unités de panneaux d'affichage manoeuvrables,Manoeuvrable display panels units,,,41100,0.00,0.00
+10140,Assemblages de panneaux d'affichage sur rail,Display track assemblies,,,41100,0.00,0.00
+10145,Un.de panneaux d'affichage et d'aide visuelle,Display panels units and visual aid,,,41100,0.00,0.00
+10150,Compartiments et isoloirs,Compartments and cubicles,,,41100,0.00,0.00
+10160,Compartiments de toilette métalliques,Metal toilet compartments,,,,0.00,0.00
+10165,Compartiments de toilette en stratifié,Laminated toilet compartments,,,41100,0.00,0.00
+10170,Compartiments de toilette en plastique,Plastic toilet compartments,,,41100,0.00,0.00
+10175,Compartiments de toil. en panneaux de part.,particleboard toilet compartments,,,41100,0.00,0.00
+10180,Compartiments de toilette en pierre,Stone toilet compartments,,,41100,0.00,0.00
+10185,Compartiments de douche et d'habillage,Dressing and shower compartments,,,41100,0.00,0.00
+10190,Isoloirs,Cubicles,,,41100,0.00,0.00
+10200,Persiennes et évents,Louvers and vents,,,41100,0.00,0.00
+10210,Persiennes murales,Metal wall louvers,,,41100,0.00,0.00
+10220,Enceintes d'équipement à persiennes,Louvered equipment  enclosures,,,41100,0.00,0.00
+10225,Persiennes de porte,Door louvers,,,41100,0.00,0.00
+10230,Évents,Vents,,,41100,0.00,0.00
+10240,Grilles et grillages,Grilles and screens,,,41100,0.00,0.00
+10250,Murs de service,Service walls,,,41100,0.00,0.00
+10260,Protecteurs de mur et d'angle,Wall and corner guards,,,,0.00,0.00
+10270,Planchers surélevés,Raised floors,,,41100,0.00,0.00
+10290,Contrôle de la vermine,Pest control,,,41100,0.00,0.00
+10300,Foyers et poêles,Fireplaces and stoves,,,41100,0.00,0.00
+10305,Foyers préfabriqués,Prefabricated fireplaces,,,41100,0.00,0.00
+10310,Articles spéciaux et accessoires de foyer,Fireplace specialties and accessories,,,41100,0.00,0.00
+10320,Poêles,Stoves,,,41100,0.00,0.00
+10330,Restauration de foyer et de poêle,Fireplace and stove restoration,,,41100,0.00,0.00
+10340,Articles spéciaux d'extérieur préfabriqués,Prefabricated special exterior articles,,,41100,0.00,0.00
+10345,Restauration d'articles spéciaux d'extérieur,Restoration of special exterior articles,,,41100,0.00,0.00
+10350,Mâts de drapeau,Flagpoles,,,41100,0.00,0.00
+10400,Dispositifs d'identification,Identification devices,,,41100,0.00,0.00
+10410,Répertoires,Directories,,,41100,0.00,0.00
+10420,Plaques,Plates,,,41100,0.00,0.00
+10430,Identification visuelle extérieure,Exterior signage,,,41100,0.00,0.00
+10440,Identification visuelle intérieure,Interior signage,,,41100,0.00,0.00
+10450,Dispositif de contrôle de la circul. piétonne,Pedestrian control devices,,,41100,0.00,0.00
+10500,Casiers,Lockers,,,41100,0.00,0.00
+10520,Matériel de lutte contre l'incendie,Firefighting material,,,41100,0.00,0.00
+10530,Abris divers,Various shelters,,,41100,0.00,0.00
+10550,Matériel de service postal,Postal specialities,,,41100,0.00,0.00
+10600,Cloisons,Partitions,,,,0.00,0.00
+10605,Cloisons grillagées,Wire mesh partitions,,,41100,0.00,0.00
+10610,Barrières pliantes,Folding gates,,,41100,0.00,0.00
+10615,Cloisons amovibles,Demountable partitions,,,41100,0.00,0.00
+10630,"Cloisons, écrans et panneaux déplaçables","Portable partitions, screens and panels",,,41100,0.00,0.00
+10650,Cloisons mobiles,Operable partitions,,,41100,0.00,0.00
+10670,Rayonnages d'entreposage,Storage shelving,,,41100,0.00,0.00
+10700,Dispositifs de protection extérieure,Exterior protection devices,,,41100,0.00,0.00
+10705,Dispositifs extérieurs pare-soleil,Exterior sun control  devices,,,41100,0.00,0.00
+10710,Volets extérieurs,Exterior shutters,,,41100,0.00,0.00
+10715,Panneaux de tempête,Storm panels,,,41100,0.00,0.00
+10720,Persiennes extérieures,Exterior louvers,,,41100,0.00,0.00
+10750,Articles spéciaux de téléphone,Telephone specialties,,,41100,0.00,0.00
+10800,"Accessoires de toilette, bain et buanderie","Toilet, bath and laundry accessories",,,33200,0.00,0.00
+10810,Accessoires de toilette,Toilet and accessories,,,33200,0.00,0.00
+10820,Accessoires de bain,Bath accessories,,,41100,0.00,0.00
+10830,Accessoires de buanderie,Laundry room accessories,,,41100,0.00,0.00
+10880,Balances,Scales,,,41100,0.00,0.00
+10900,Accessoires de garde-robe et de placard,Closet and wardrobe accessories,,,41100,0.00,0.00
+10901,REMISE,,,,,0.00,0.00
+11000,ÉQUIPEMENT,EQUIPMENT,,,41100,0.00,0.00
+11010,Matériel d'entretien,Maintenance equipment,,,33500,0.00,0.00
+11020,Équipement de sécurité et de chambre forte,Security and vault equipment,,,41100,0.00,0.00
+11030,Équipement de caissier de de service,Tellers and service equipment,,,41100,0.00,0.00
+11040,Équipement liturgique,Ecclesiastical equipment,,,41100,0.00,0.00
+11050,Équipement de bibliothèque,Library equipment,,,41100,0.00,0.00
+11060,Équipement de scène et de théâtre,Stage and theatre equipment,,,41100,0.00,0.00
+11070,Équipement de musique,Music equipment,,,41100,0.00,0.00
+11080,Équipement de réception et d'inscription,Registration equipment,,,41100,0.00,0.00
+11090,Équipement de consigne,Checkroom equipment,,,41100,0.00,0.00
+11100,Équipement commercial,Mercantile equipment,,,41100,0.00,0.00
+11110,Éq. commercial de buanderie et nett. à sec,Commercial laundry and dry cleaning equ.,,,41100,0.00,0.00
+11130,Équipement audiovisuel,Audio-visual equipment,,,41100,0.00,0.00
+11140,Équipements de station-service,Vehicle service equipment,,,41100,0.00,0.00
+11150,Équipement de parc de stationnement,Parking control equipment,,,41100,0.00,0.00
+11160,Équipement de quai de chargement,Loading dock equipment,,,33500,0.00,0.00
+11170,Équipement de manutention des déchets solides,Solid waste handling equipment,,,41100,0.00,0.00
+11190,Équipement de détention,Detention equipment,,,41100,0.00,0.00
+11200,Éq. d'alimentation et de traitement d'eau,Water supply and treatment equipment,,,41100,0.00,0.00
+11210,Pompes d'alimentation et de traitement,Supply and treatment pumps,,,41100,0.00,0.00
+11220,Mélangeurs et floculateurs,Mixers and flocculators,,,41100,0.00,0.00
+11225,Clarificateurs,Clarifiers,,,41100,0.00,0.00
+11230,Équipement d'aération de l'eau,Water aeration equipment,,,41100,0.00,0.00
+11240,Équipement de dosage en produits chimiques,Chemical feeding equipment,,,41100,0.00,0.00
+11250,Équipement d'adoucissement de l'eau,Water softening equipment,,,41100,0.00,0.00
+11260,Équipement de dosage en désinfectants,Desinfectant proportioning equipment,,,41100,0.00,0.00
+11270,Équipement de fluoration,Fluoridation equipment,,,41100,0.00,0.00
+11280,Vannes et robinetterie hydrauliques,Hydraulic gates and valves,,,41100,0.00,0.00
+11285,Vannes hydrauliques,Hydraulic valves,,,41100,0.00,0.00
+11295,Robinetterie hydraulique,Hydraulic valves,,,41100,0.00,0.00
+11300,Éq. d'évacuation et traitement des eaux usées,Fluid waste treatment and disposal equipment,,,41100,0.00,0.00
+11310,Pompes de boues et d'eaux usées,Mud pump and sewers,,,41100,0.00,0.00
+11320,Équipement de collection de sables,Sand collection equipment,,,41100,0.00,0.00
+11330,Équipement de tamisage et de déchiquetage,Screening and shredding equipment,,,41100,0.00,0.00
+11335,Équipement de décantation,Decantation equipment,,,41100,0.00,0.00
+11340,Équipement de raclage d'écume,Scum raking equipment,,,41100,0.00,0.00
+11345,Équipement d'alimentation en produits chim.,Chemical equipment,,,41100,0.00,0.00
+11350,Éq. de manutention et de traitement des boues,Sludge handling and treatment equipment,,,41100,0.00,0.00
+11360,Équipement de filtres-presses,Filter press equipment,,,41100,0.00,0.00
+11365,Équipements de filtre bactérien,Bacterial flter equipment,,,41100,0.00,0.00
+11370,Compresseurs,Compressors,,,41100,0.00,0.00
+11375,Équipement d'aération de l'eau,Water aeration equipment,,,41100,0.00,0.00
+11380,Équipement de digestion des boues,Sludge digestion equipment,,,41100,0.00,0.00
+11385,Équipement de mélange de digesteurs,Mixing digester equipment,,,41100,0.00,0.00
+11390,Postes de traitement monoblocs des eaux usées,Monoblock and sewage treatment plant,,,41100,0.00,0.00
+11400,Équipement de service alimentaire,Food service equipment,,,41100,0.00,0.00
+11405,Équipement de stockage des aliments,Food storage equipment,,,41100,0.00,0.00
+11410,Équipement de préparation des aliments,Food preparation equipment,,,41100,0.00,0.00
+11415,Chariots et transporteurs de dist. des alim.,Food distribution carts and conveyors,,,41100,0.00,0.00
+11420,Équipement de cuisson des aliments,Food cooking equipment,,,41100,0.00,0.00
+11425,Hotte et équipement d'évacuation d'air,Hood and ventilation systems,,,41100,0.00,0.00
+11430,Équipement de distribution des aliments,Food dispensing equipment,,,41100,0.00,0.00
+11435,Machines à glace,Ice machines,,,41100,0.00,0.00
+11440,Éq. de nettoyage et d'élimination des déchets,Cleaning and waste elimination equipment,,,41100,0.00,0.00
+11450,Équipement résidentiel,Residential equipment,,,41100,0.00,0.00
+11460,Unités combinées de cuisine,Combined kitchen units,,,41100,0.00,0.00
+11470,Équipement de chambre noire,Dark room equipment,,,41100,0.00,0.00
+11480,"Éq. de sport, de loisirs et de thérapie","Sport, leisure and therapy equipment",,,41100,0.00,0.00
+11500,Équipement industriel et de procédé,Industrial and process equipment,,,41100,0.00,0.00
+11600,Équipement de laboratoire,Laboratory equipment,,,41100,0.00,0.00
+11650,Équipement de planétarium,Planetarium equipment,,,41100,0.00,0.00
+11660,Équipement d'observatoire,Observatory equipment,,,41100,0.00,0.00
+11680,Équipement de bureau,Office equipment,,,41100,0.00,0.00
+11700,Équipement médical,Medical equipment,,,41100,0.00,0.00
+11710,Équipement de stérilisation médicale,Medical sterilisation equipment,,,41100,0.00,0.00
+11720,Équipement d'examen et de traitement,Exam and treatment equipment,,,41100,0.00,0.00
+11730,Équipement de soins aux patients,Patients care equipment,,,41100,0.00,0.00
+11740,Équipement de soins dentaires,Dental care equipment,,,41100,0.00,0.00
+11750,Équipement de soins des yeux,Eye care equipment,,,41100,0.00,0.00
+11760,Équipement de salle d'opération,Operating room equipment,,,41100,0.00,0.00
+11770,Équipement de radiologie,Radiology equipment,,,41100,0.00,0.00
+11780,Équipement de morgue,Morgue equipment,,,41100,0.00,0.00
+11850,Équipement de navigation,Navigation equipment,,,41100,0.00,0.00
+11870,Équipement agricole,Agriculture equipment,,,41100,0.00,0.00
+11900,Équipement d'exposition,Exhibition equipment,,,41100,0.00,0.00
+12000,AMEUBLEMENT ET DÉCORATION,FURNISHINGS,,,41100,0.00,0.00
+12050,Tissus,Fabrics,,,41100,0.00,0.00
+12100,Objets d'art,Art objects,,,41100,0.00,0.00
+12110,Murales,Murals,,,41100,0.00,0.00
+12120,Décorations murales,Mural decorations,,,41100,0.00,0.00
+12140,Sculptures,Sculptures,,,41100,0.00,0.00
+12170,Verre d'art,Art glass,,,41100,0.00,0.00
+12190,Art ecclésiastique,Ecclesiastic art,,,41100,0.00,0.00
+12300,Armoires et comptoirs usinés,Manufactured wood casework,,,41100,0.00,0.00
+12310,Armoires et comptoirs de métal usinés,Machined metal cupboards and counter tops,,,41100,0.00,0.00
+12320,Armoires et comptoirs de bois usinés,Machined wooden cupboards and counter tops,,,41100,0.00,0.00
+12350,Armoires et comptoirs à usage spécial,Special use cupboards and counter tops,,,41100,0.00,0.00
+12400,"Ameublements, décoration et accessoires","Furnitures, decorations and accessories",,,41100,0.00,0.00
+12410,Accessoires de bureau,Office accessories,,,41100,0.00,0.00
+12420,Accessoires de table,Table accessories,,,41100,0.00,0.00
+12430,Lampes transportables,Transportable lamps,,,41100,0.00,0.00
+12440,Accessoires de décoration de salle de bain,Bathroom decoration and accessories,,,41100,0.00,0.00
+12450,Acc. de décoration de chambre à coucher,Bedroom decoration accessories,,,41100,0.00,0.00
+12460,Accessoires d'ameublement et de décoration,Furniture decoration accessories,,,41100,0.00,0.00
+12480,Carpettes et paillassons,Carpets and mats,,,41100,0.00,0.00
+12490,Garnitures de fenêtre,Window treatments,,,41100,0.00,0.00
+12500,Mobilier,Furniture,,,33500,0.00,0.00
+12510,Mobilier de bureau,Office furniture,,,41100,0.00,0.00
+12520,Sièges,Seating,,,41100,0.00,0.00
+12540,Mobilier d'hébergement,Hospitality furniture,,,41100,0.00,0.00
+12560,Mobilier institutionnel,Institutional furniture,,,41100,0.00,0.00
+12580,Mobilier de résidence,Residence furniture,,,41100,0.00,0.00
+12600,Sièges multiples,Multiple seating,,,41100,0.00,0.00
+12610,Chaises d'auditorium fixes,Fixed audience seating,,,41100,0.00,0.00
+12620,Chaises d'auditorium transportables,Portable audience seating,,,41100,0.00,0.00
+12630,Sièges de stade et de centre sportif,Stadium and arena seating,,,41100,0.00,0.00
+12640,Banquettes et tables,Seats and tables,,,41100,0.00,0.00
+12650,Sièges fixes à usage multiple,Multiple use fixed seating,,,41100,0.00,0.00
+12660,Gradins escamotables,Telescoping stands,,,33200,0.00,0.00
+12670,Bancs d'église et banquettes,Pews and benches,,,41100,0.00,0.00
+12680,Ensembles de table et de chaises,Seat and table assemblies,,,41100,0.00,0.00
+12700,Mobilier de systèmes,Systems furniture,,,33500,0.00,0.00
+12710,Mobilier de système à él. suspendu au panneau,System furniture with supended panel elem.,,,41100,0.00,0.00
+12720,Mobilier de système d'élément sur pieds,Standing systeme furniture,,,41100,0.00,0.00
+12730,Mobilier de système à poutres,Beam furniture systems,,,41100,0.00,0.00
+12740,Mobilier de système de bureau,Office system furniture,,,41100,0.00,0.00
+12800,Plantes d'intérieur et jardinières,Interior plants and planter,,,41100,0.00,0.00
+12810,Plantes d'intérieur naturelles,Natural interior plants,,,41100,0.00,0.00
+12820,Plantes d'intérieur artificielles,Artificial interior plants,,,41100,0.00,0.00
+12830,Jardinières d'intérieur,Interior gardens,,,41100,0.00,0.00
+12840,Accessoires d'aménagement paysager intérieur,Interior landscaping accessories,,,41100,0.00,0.00
+12850,Entretien de plantes d'intérieur,Interior plant maintenance,,,41100,0.00,0.00
+12900,Restaur. et rép. d'ameublement et d'access.,"Furniture restoration, repairs and access.",,,41100,0.00,0.00
+13000,INSTALLATIONS SPÉCIALES,SPECIAL CONSTRUCTION,,,41100,0.00,0.00
+13010,Structures gonfables,Air-supported structures,,,41100,0.00,0.00
+13020,Modules de batiment,Building modules,,,41100,0.00,0.00
+13030,Pièces à usage spécial,Special use rooms,,,41100,0.00,0.00
+13080,"Protection contre bruit, vibration et séismes","Protection against noise, vibrat. and seism",,,41100,0.00,0.00
+13090,Protection contre les radiations,Radiations protection,,,41100,0.00,0.00
+13100,Protection contre la foudre,Protection against lightning,,,41100,0.00,0.00
+13110,Protection cathodique,Cathodic protection,,,41100,0.00,0.00
+13120,Constructions précalculées,Pre-engineered structures,,,41100,0.00,0.00
+13150,Piscines,Swimming pools,,,41100,0.00,0.00
+13160,Aquariums,Aquariums,,,41100,0.00,0.00
+13165,Équipement de parc aquatique,Aquatic parc equipment,,,41100,0.00,0.00
+13170,Bains et piscines,Tubs and pools,,,41100,0.00,0.00
+13175,Patinoires,Ice rinks,,,41100,0.00,0.00
+13185,Chenils et abris pour animaux,Kennels and animal shelters,,,41100,0.00,0.00
+13190,Incinérateurs construits sur place,Site-constructed incinerators,,,41100,0.00,0.00
+13200,Réservoirs de stockage,Storage tanks,,,41100,0.00,0.00
+13220,Drains et matériaux filtrants,Filter underdrains and media,,,41100,0.00,0.00
+13230,Couvercles et accessoires de digesteur,Digester covers and appurtenances,,,41100,0.00,0.00
+13240,Systèmes d'oxygénation,Oxygenation systems,,,41100,0.00,0.00
+13260,Systèmes de conditionnement des boues,Sludge conditionning systems,,,41100,0.00,0.00
+13280,Élimination de produits dangereux,Hazardous material remediation,,,41100,0.00,0.00
+13400,Instrumentation de mesure et de contrôle,Measuring and control instrumentation,,,33500,0.00,0.00
+13410,Matér. et méth. de base - mesure et commande,Basic mater. and meth. - measure and control,,,33500,0.00,0.00
+13420,Instruments,Instruments,,,41100,0.00,0.00
+13430,"Boîtiers, panneaux et centres de commande","Cases, panels control centers",,,41100,0.00,0.00
+13440,"Indicateurs, enregistreurs et régulateurs","Indicators, recorders and regulators",,,41100,0.00,0.00
+13450,Contrôle centralisé,Central control,,,41100,0.00,0.00
+13480,Listes d'instruments et rapports,Lists of reports and instrumens,,,41100,0.00,0.00
+13490,Mise en serv. du mesurage et de la régulation,Putting into service of measurement and regul,,,41100,0.00,0.00
+13500,Instruments enregistreurs,Recording instrumentation,,,41100,0.00,0.00
+13510,Enregistreurs de contraintes,Stress recorders,,,41100,0.00,0.00
+13520,Enregistreurs de secousses sismiques,Seismic shock recorders,,,41100,0.00,0.00
+13530,Enregistreurs de mesures météorologiques,Meteorological measurment recorders,,,41100,0.00,0.00
+13550,Instrum. de commande de moyen de transport,Transportation control instrumentation,,,41100,0.00,0.00
+13560,Instrumentation de commande d'aéroport,Airport instrumentation control,,,41100,0.00,0.00
+13570,Instrumentation de commande de chemin de fer,Railroad instrumentation control,,,41100,0.00,0.00
+13580,Instrumentation de commande de métro,Subway instrumentation control,,,41100,0.00,0.00
+13590,Instrum. de commande de véhicule de transit,Transit vehicle instrumentation control,,,41100,0.00,0.00
+13600,Équipement d'énergie solaire et éolienne,Solar and wind energy equipment,,,41100,0.00,0.00
+13610,Capteurs solaires à plaques planes,Flat plate solar collectors,,,41100,0.00,0.00
+13620,Capteurs solaires à concentration,Concentrated solar collectors,,,41100,0.00,0.00
+13625,Capteurs solaires à tubes sous vide,Vacuumed tubular solar collectors,,,41100,0.00,0.00
+13630,Éléments de capteurs solaires,Solar collectors elements,,,41100,0.00,0.00
+13640,Équipement solaire monobloc,Monoblock solar equipment,,,41100,0.00,0.00
+13650,Capteurs photovoltaïques,Photovoltaics collectors,,,41100,0.00,0.00
+13660,Équipement d'énergie éolienne,Wind generator equipment,,,41100,0.00,0.00
+13700,Accès et surveillance de sécurité,Security access and surveillance,,,41100,0.00,0.00
+13800,Commande et automation de bâtiment,Building automation and control,,,33500,-3238.20,3238.20
+13850,Détection et alarme,Detection and alarm,,,33500,0.00,0.00
+13900,Extinction d'incendie,Fire suppression and supervisory systems,,,41100,0.00,0.00
+13910,Matér. et méth. de base de protect. incendie,Fire protection basic materials and methods,,,33500,0.00,0.00
+13920,Pompes d'incendie,Fire pumps,,,41100,0.00,0.00
+13930,Réseau de gicleurs sous eau,Wet pipe fire suppression sprinklers,,,33500,5349.37,382.50
+13935,Réseau de gicleurs à air comprimé,Dry-pipe fire suppression sprinklers,,,41100,0.00,0.00
+13940,Réseau de gicleurs à préaction,Pre-action fire suppression sprinklers,,,41100,0.00,0.00
+13945,Réseau de gicleurs combinés air/préaction,Comb. dry-pipe and pre-action fire supp. spr.,,,41100,0.00,0.00
+13950,Réseau de gicleurs de type déluge,Deluge fire suppression sprinklers,,,41100,0.00,0.00
+13955,Extinction d'incendie à mousse,Foam fire extinguishing,,,41100,0.00,0.00
+13960,Extinction d'incendie au dioxyde de carbone,Carbon dyoxide fire extinguishing,,,41100,0.00,0.00
+13965,Systèmes alternatifs d'extinction d'incendie,Alternative fire extinguishing systems,,,41100,0.00,0.00
+13970,Ext. d'incendie à produits chimiques secs,Dry chemical fire extinguishing,,,41100,0.00,0.00
+13975,Colonnes montantes et robinets armés,Standpipes and hoses,,,41100,0.00,0.00
+14000,SYSTEMES TRANSPORTEURS,CONVEYING SYSTEMS,,,41100,0.00,0.00
+14100,Monte-Plats,Dumbwaiter,,,41100,0.00,0.00
+14110,Monte-plats manuels,Manuel dumbwaiter,,,41100,0.00,0.00
+14120,Monte-plats électriques,Electric dumbwaiter,,,41100,0.00,0.00
+14140,Monte-plats hydrauliques,Hydraulic dumbwaiter,,,41100,0.00,0.00
+14200,Ascenseurs et monte-charge,Elevators,,,33500,139000.00,0.00
+14210,Ascenseurs et monte-charge à traction élec.,Electric traction freight elev. and elevators,,,41100,0.00,0.00
+14240,Ascenseurs et monte-charge hydrauliques,Hydraulic elevators and freight-elevators,,,33500,0.00,0.00
+14270,Cabines d'ascenseurs fabriqué sur commande,Custom made elevator stalls,,,41100,0.00,0.00
+14280,Équipement et commandes d'ascenseur,Elevator control equipment,,,33500,0.00,0.00
+14290,Rénovation d'ascenseur et de monte-charge,Elevator and freight-elevator renovation,,,41100,0.00,0.00
+14300,Escaliers et trottoirs mobiles,Escalators and moving walkways,,,41100,0.00,0.00
+14400,Appareils élévateurs,Elevator apparatus,,,41100,0.00,0.00
+14410,Soulève-personne,Lift-person,,,41100,0.00,0.00
+14420,Appareils élévateurs pour fauteuil roulant,Elevator apparatus for wheel chairs,,,41100,0.00,0.00
+14430,Plates-formes élévatrices,Elevator platforms,,,41100,0.00,0.00
+14440,Monte-charge de trottoir,Sidewalk elevator,,,41100,0.00,0.00
+14450,Appareils élévateurs de véhicule,Elevator apparatus for vehicle,,,41100,0.00,0.00
+14500,Manutention de matériau,Material handling,,,41100,0.00,0.00
+14510,Transport de matériau,Material transport,,,33500,0.00,0.00
+14530,Transport de courrier,Mail transport,,,41100,0.00,0.00
+14540,Transport et distribution de bagages,Luggage transport and distribution,,,41100,0.00,0.00
+14550,Transporteurs,Conveyors,,,41100,0.00,0.00
+14560,Goulottes,Spouts,,,41100,0.00,0.00
+14570,Distributeurs,Distributors,,,41100,0.00,0.00
+14580,Systèmes à tube pneumatique,Pneumatic pipeline systems,,,41100,0.00,0.00
+14600,Palans et grues,Hoists and cranes,,,41100,0.00,0.00
+14605,Rails d'appareil élévateur,Crane rails,,,41100,0.00,0.00
+14610,Palans fixes,Fixed hoist,,,41100,0.00,0.00
+14620,Chariots-palans,Trolly hoists,,,41100,0.00,0.00
+14630,Ponts grues,Bridge cranes,,,41100,0.00,0.00
+14640,Grues à portique,Gantry cranes,,,41100,0.00,0.00
+14650,Grues à flèche,Jib cranes,,,41100,0.00,0.00
+14670,Grues à tour,Tower cranes,,,41100,0.00,0.00
+14680,Grues mobiles,Mobile cranes,,,41100,0.00,0.00
+14690,Derricks,Derricks,,,41100,0.00,0.00
+14700,Plaques tournantes,Turning plates,,,41100,0.00,0.00
+14800,Échafaudages,Scaffolding,,,41100,0.00,0.00
+14810,Échafaudages suspendus,Suspended scaffolding,,,41100,0.00,0.00
+14820,Grimpeurs à corde,Rope climber,,,41100,0.00,0.00
+14830,Plates-formes télescopiques,Telescopic platforms,,,41100,0.00,0.00
+14840,Échafaudages motorisés,Motorized scaffolding,,,41100,0.00,0.00
+14900,Moyens de transport,Transportation,,,41100,0.00,0.00
+14910,Transporteurs de personne,People carriers,,,41100,0.00,0.00
+14920,Monorails,Monorails,,,41100,0.00,0.00
+14930,Funiculaires,Funiculars,,,41100,0.00,0.00
+14940,Tramways aériens,Airial tramways,,,41100,0.00,0.00
+14950,Transbordeurs de passagers d'avion,Airplane passenger ferry,,,41100,0.00,0.00
+15000,MÉCANIQUE,MECHANICAL,,,33500,0.00,0.00
+15001,Ventilation,,,,,1037855.00,226476.21
+15002,Démantèlement plomberie/vent./calor.,,,,33500,0.00,0.00
+15050,Matériaux et méthodes de base - mécanique,Basic mechanical methods and materials,,,41100,0.00,0.00
+15060,Étriers et supports,Joist hangers and suports,,,41100,0.00,0.00
+15070,"Isolation contre bruit, vibrations et séismes","Mechanical sound, vibrat. and seismic control",,,41100,0.00,0.00
+15075,Identification des installations de mécanique,Identification of mechanical installations,,,41100,0.00,0.00
+15080,Calorifugeage de mécanique,Mechanical insulation,,,33500,0.00,0.00
+15090,Restauration et modernisation de mécanique,Mechanical restoration and modernisation,,,33500,105410.00,0.00
+15100,Tuyauterie de services du bâtiment,Building services piping,,,33500,0.00,0.00
+15105,Tuyaux et tubes,Pipes and tubes,,,41100,0.00,0.00
+15110,Robinetterie,Valves,,,41100,0.00,0.00
+15120,Accessoires spéciaux pour tuyauterie,Piping specialties,,,41100,0.00,0.00
+15130,Pompes,Pumps,,,41100,0.00,0.00
+15140,Tuyauterie d'eau domestique,Domestic water piping,,,41100,0.00,0.00
+15150,Tuyauterie de drainage et d'évent sanitaire,Sanitary waste and vent piping,,,41100,0.00,0.00
+15160,Tuyauterie de drainage pluvial,Storm drainage piping,,,41100,0.00,0.00
+15170,Tuyauterie de piscine et de fontaine,Swiming pool and fountain piping,,,41100,0.00,0.00
+15180,Tuyauterie de chauffage et de refroidissement,Heating and cooling piping,,,41100,0.00,0.00
+15190,Tuyauterie de combustible,Fuel piping,,,41100,0.00,0.00
+15200,Tuyauterie de procédé,Process piping,,,41100,0.00,0.00
+15210,Tuyauterie de procédé à air et à gaz,Process air and gas piping,,,33500,0.00,0.00
+15220,Tuyauterie de procédé à eaux et d'eaux-vannes,Process water and waste piping,,,33500,0.00,0.00
+15230,Tuyauterie de procédé industriel,Industrial process piping,,,33500,0.00,0.00
+15260,Calorifuge,,,,33500,9100.00,0.00
+15300,Tuyauterie de protection incendie,Fire protection piping,,,33500,0.00,3392.00
+15400,Appareils et équipement de plomberie,Plumbing fixtures and equipment,,,33500,305800.00,0.00
+15401,Plomberie,,,,,5468.02,223344.12
+15410,Appareils sanitaires,Plumbing fixtures,,,33500,0.00,0.00
+15440,Pompes de plomberie,Plumbing pumps,,,41100,0.00,0.00
+15450,Réservoirs de stockage d'eau potable,Potable water storage tanks,,,41100,0.00,0.00
+15460,Équip. de conditionnement d'eau domestique,Domestic water conditionning equipment,,,33500,0.00,0.00
+15470,Équipement de filtration d'eau domestique,Domestic water filtration equipment,,,41100,0.00,0.00
+15480,Chauffe-eau domestiques,Domestic water heaters,,,41100,0.00,0.00
+15490,Équipement de piscine et de fontaine,Pool and fountain equipment,,,41100,0.00,0.00
+15500,Générateurs de chaleur,Heat-generation equipment,,,41100,0.00,0.00
+15510,Chaudières et acc. de production d'eau chaude,Heating and boiler accessories,,,41100,0.00,0.00
+15520,Équipement d'alimentation en eau,Feedwater equipment,,,41100,0.00,0.00
+15530,Générateurs d'air chaud,Furnaces,,,41100,0.00,0.00
+15540,Aérothermes à combustible,Fuel-fired heaters,,,41100,0.00,0.00
+15550,"Carneaux, cheminées et conduits de fumée","Breechings, chimneys and stacks",,,41100,0.00,0.00
+15600,Équipement de réfrigération,Refrigerant equipment,,,41100,0.00,0.00
+15610,Compresseurs frigorifiques,Refrigeration compressors,,,41100,0.00,0.00
+15620,Refroidisseurs d'eau monoblocs,Packaged water chillers,,,41100,0.00,0.00
+15630,Systèmes de surveillance frigorifique,Refrigeration surveillance systems,,,41100,0.00,0.00
+15640,Tours de refroidissement monoblocs,Packaged cooling towers,,,41100,0.00,0.00
+15650,Tours de refroidissement montées sur place,In place cooling towers,,,41100,0.00,0.00
+15660,Refroidisseurs de liq. et cond. évaporatifs,Liquid coolers and evaporative condensers,,,41100,0.00,0.00
+15670,Groupes de compresseur-condensateur frigor.,Refrigerant condensing units,,,41100,0.00,0.00
+15700,"Éq. de chauffage, ventilation, et cond. d'air","Heating, ventilating and air conditioning",,,33500,1440.00,0.00
+15710,Échangeurs de chaleur,Heat exchangers,,,41100,0.00,0.00
+15720,Groupes de traitement de l'air,Air handling units,,,41100,0.00,0.00
+15730,Appareils de climatisation autonomes,Unitary air conditioning equipment,,,41100,0.00,0.00
+15740,Pompes à chaleur,Heat pumps,,,41100,0.00,0.00
+15750,Équipement de contrôle de l'humidité,Humidity control equipment,,,33500,0.00,0.00
+15760,Appareils de chauffage et de refroidissement,Terminal heating and cooling units,,,41100,0.00,0.00
+15770,Éq. de plancher chauffant et fonte de neige,Floor-heating and snow-melting equipment,,,41100,0.00,0.00
+15780,Équipement de récupération d'énergie,Energy recuperation equipment,,,41100,0.00,0.00
+15800,Distribution d'air,Air distribution,,,33500,0.00,0.00
+15810,Gaines,Ducts,,,41100,0.00,0.00
+15820,Accessoires de gaine,Ducts accessories,,,41100,0.00,0.00
+15830,Ventilateurs,Ventilators,,,41100,0.00,0.00
+15840,Unités terminales d'air,Air terminal (curtain) units,,,41100,0.00,0.00
+15850,Sorties et entrées d'air,Air outlets and inlets,,,41100,0.00,0.00
+15860,Dispositifs de nettoyage d'air,Air cleaning devices,,,41100,0.00,0.00
+15900,Instrumentation et régulation de CVCA,HVAC instrumentation and controls,,,33500,0.00,166165.00
+15905,Instrumentation de CVCA,HVAC instrumentation,,,33500,0.00,0.00
+15910,Commandes numériques directes,Direct digital controls,,,41100,0.00,0.00
+15915,Commandes électroniques et électriques,Electric and electronic control,,,41100,0.00,0.00
+15920,Commandes pneumatiques,Pneumatic controls,,,41100,0.00,0.00
+15925,Commandes pneumatiques et électriques,Pneumatic and electrical controls,,,41100,0.00,0.00
+15930,Commandes autonomes,Stand-alone controls,,,41100,0.00,0.00
+15935,Commandes de systèmes de bâtiment,Building systems controls,,,33500,0.00,0.00
+15940,Séquence de fonctionnement,Sequence of operation,,,41100,0.00,0.00
+15950,"Essai, réglage et équilibrage","Testing, adjusting and balancing",,,33500,10550.00,8516.32
+16000,ÉLECTRICITÉ,ELECTRICAL,,,33500,408835.00,5827.44
+16001,Démentèlement électricité,,,,,0.00,0.00
+16050,Matériaux et méthodes de base en électricité,Basic electrical materials and methods,,,41100,0.00,0.00
+16060,Mise à terre et continuité des masses,Grounding and mass continuity,,,41100,0.00,0.00
+16070,Étriers et supports,Joist hangers and suports,,,41100,0.00,0.00
+16075,Identification des installations électriques,Identification of electrical installations,,,41100,0.00,0.00
+16080,Essais électriques,Electrical testing,,,33500,0.00,0.00
+16090,Restauration et réparation,Restoration and repairs,,,41100,0.00,0.00
+16100,Méthodes de câblage,Wiring methods,,,41100,0.00,0.00
+16120,Conducteurs et câbles,Cable conductors,,,41100,0.00,0.00
+16130,Chemins de câbles et boîtiers,Raceways and boxes,,,33500,0.00,0.00
+16140,Dispositifs de câblage,Wiring devices,,,41100,0.00,0.00
+16150,Raccords de câblage,Cable connectors,,,33500,0.00,0.00
+16200,Énergie électrique,Electrical power,,,41100,0.00,0.00
+16210,Service,,,,,0.00,0.00
+16220,Moteurs et génératrices,Motors and generators,,,33500,0.00,0.00
+16230,Composantes de génératrice,Generator assemblies,,,41100,0.00,0.00
+16240,Équipement de batterie,Battery equipment,,,41100,0.00,0.00
+16260,Convertisseurs de puissance statiques,Static power convertors,,,41100,0.00,0.00
+16270,Transformateurs,Transformers,,,41100,0.00,0.00
+16280,Filtres et conditionneurs de puissance,Filters and power conditionners,,,41100,0.00,0.00
+16300,Réseau de transport et de distribution,Transmission and distribution,,,33500,0.00,0.00
+16310,Acc. de réseau de transport et distribution,Transmission and distribution network acc.,,,33500,0.00,0.00
+16320,Commutation et protection haute tension,High voltage switching and protection,,,41100,0.00,0.00
+16330,Commutation et protection basse tension,Medium-voltage switching and protection,,,41100,0.00,0.00
+16340,Disp. de commutation et protec. basse tension,Low tension switching and protection devices,,,41100,0.00,0.00
+16360,Postes électriques préfabriqués,Prefrabricated electric plant,,,41100,0.00,0.00
+16400,Réseaux de distribution très basse tension,Low-voltage distribution,,,41100,0.00,0.00
+16410,Interrupteurs et disjoncteurs sous coffret,Switchbox and circuit-breakers,,,41100,0.00,0.00
+16420,Commandes sous coffret,Control box,,,41100,0.00,0.00
+16430,Disp.de commutation à disj.très basse tension,Low tension circuit-brackers switching,,,41100,0.00,0.00
+16440,Tableaux et centre de commande,"Switchboards, panelboards and control centres",,,41100,0.00,0.00
+16450,Jeux de barres omnibus sous coffret,Bus bar sets,,,33500,0.00,0.00
+16460,Transformateurs très basse tension,Low-voltage transformers,,,33500,0.00,0.00
+16470,Coffrets de distribution électrique,Electrical distribution boxes,,,33500,0.00,0.00
+16490,Éléments et accessoires,Accessories and elements,,,33500,0.00,0.00
+16500,Éclairage,Lighting,,,33500,0.00,0.00
+16510,Appareils d'éclairage intérieur,Interior Luminaires,,,33500,0.00,0.00
+16520,Appareils d'éclairage extérieur,Exterior Luminaires,,,33500,0.00,0.00
+16530,Éclairage de secours,Emergency lighting,,,33500,0.00,0.00
+16540,Éclairage des lieux classés comme dangereux,Dangerous places lighting,,,33500,0.00,0.00
+16550,Éclairage pour un usage spécial,Special-purpose lighting,,,33500,0.00,0.00
+16560,Éclairage de balisage,Signal lighting,,,33500,0.00,0.00
+16570,Contrôleur d'atténuation d'éclairage,Dimming lighting control,,,33500,0.00,0.00
+16580,Accessoires d'éclairage,Lighting accessories,,,33500,0.00,0.00
+16590,Restauration et réparation d'éclairage,Lighting restoration and repairs,,,33500,0.00,0.00
+16700,Communications,Communications,,,33500,0.00,0.00
+16710,Circuits de communications,Communication circuits,,,33500,0.00,0.00
+16720,Éq. de téléphonie et d'intercommunication,Telephone and intercommunication equipment,,,33500,0.00,0.00
+16740,Éq. de transmission de voix et de données,Communication and data processing equipment,,,33500,0.00,0.00
+16770,Éq. de transmission et de réception par câble,Cable transmission and reception equipment,,,33500,0.00,0.00
+16780,Éq. de transm.de réception par diffusion,Broadcast transmission and reception equ.,,,33500,0.00,0.00
+16790,Éq. de transm.et de réception par micro-ondes,Microwave transmission and reception equ.,,,,0.00,0.00
+16800,Son et vidéo,Sound and video,,,33500,0.00,0.00
+16810,Circuits audio et vidéo,Sound and video circuits,,,,0.00,0.00
+16820,Amplification sonore,Sound reinforcement,,,,0.00,0.00
+16830,Équipement de studio de diffusion audio,Studio equipment and sound diffusion,,,,0.00,0.00
+16840,Équipement de studio de diffusion vidéo,Studio equipment and video diffusion,,,,0.00,0.00
+16850,Équipement de télévision,Television equipment,,,,0.00,0.00
+16880,Équipement multimédia,Multimedia equipment,,,,0.00,0.00
+25001,Avis de changement # 1,,,,,49290.80,2553.77
+25002,Avis de changement # 2,,,,,0.00,0.00
+25003,Avis de changement # 3,,,,,0.00,0.00
+25004,Avis de changement # 4,,,,,0.00,0.00
+25005,Avis de changement # 5,,,,,0.00,0.00
+25006,Avis de changement # 6,,,,,0.00,0.00
+25007,Avis de changement # 7,,,,,0.00,0.00
+25008,Avis de changement # 8,,,,,0.00,0.00
+25009,Avis de changement # 9,,,,,0.00,0.00
+25010,Avis de changement # 10,,,,,0.00,0.00
+25011,Avis de changement # 11,,,,,-162.52,0.00
+25012,Avis de changement # 12,,,,,0.00,0.00
+25013,Avis de changement # 13,,,,,0.00,0.00
+25014,Avis de changement # 14,,,,,0.00,0.00
+25015,Avis de changement # 15,,,,,0.00,0.00
+25016,Avis de changement # 16,,,,,0.00,0.00
+25017,Avis de changement # 17,,,,,0.00,0.00
+25018,Avis de changement # 18,,,,,0.00,0.00
+25019,Avis de changement # 19,,,,,0.00,0.00
+25020,Avis de changement # 20,,,,,0.00,0.00
+25021,Avis de changement # 21,,,,,0.00,0.00
+25022,Avis de changement # 22,,,,,0.00,0.00
+25023,Avis de changement # 23,,,,,0.00,0.00
+25024,Avis de changement # 24,,,,,0.00,0.00
+25025,Avis de changement # 25,,,,,0.00,0.00
+25026,Avis de changement # 26,,,,,0.00,0.00
+25027,Avis de changement # 27,,,,,0.00,0.00
+25028,Avis de changement # 28,,,,,0.00,0.00
+25029,Avis de changement # 29,,,,,0.00,0.00
+25030,Avis de changement # 30,,,,,0.00,0.00
+25031,Avis de changement # 31,,,,,0.00,0.00
+25032,Avis de changement no. 32,,,,,0.00,0.00
+25033,Avis de changement no. 33,,,,,0.00,0.00
+25034,Avis de changement no. 34,,,,,0.00,0.00
+25035,Avis de changement no. 35,,,,,0.00,0.00
+25036,Avis de changement no. 36,,,,,0.00,0.00
+25037,Avis de changement no. 37,,,,,0.00,0.00
+25038,Avis de changement no. 38,,,,,0.00,0.00
+25039,Avis de changement no. 39,,,,,0.00,0.00
+25040,Avis de changement no. 40,,,,,0.00,0.00
+25041,Avis de changement no. 41,,,,,0.00,0.00
+25042,Avis de changement no. 42,,,,,0.00,0.00
+25043,Avis de changement no. 43,,,,,0.00,0.00
+25044,Avis de changement no. 44,,,,,0.00,0.00
+25045,Avis de changement no. 45,,,,,0.00,0.00
+25046,Avis de changement no .46,,,,,0.00,0.00
+25047,Avis de changement no. 47,,,,,0.00,0.00
+25048,Avis de changement no  48,,,,,0.00,0.00
+25049,Avis de changement no. 49,,,,,0.00,0.00
+25050,Avis de changement no. 50,,,,,0.00,0.00
+25051,Avis de changement no. 51,,,,,0.00,0.00
+25052,Avis de changement no. 52,,,,,0.00,0.00
+25053,Avis de changement no. 53,,,,,0.00,0.00
+25054,Avis de changement no. 54,,,,,0.00,0.00
+25055,Avis de changement no. 55,,,,,0.00,0.00
+25056,Avis de changement no. 56,,,,,0.00,0.00
+25057,Avis de changement no. 57,,,,,0.00,0.00
+25058,Avis de changement no. 58,,,,,0.00,0.00
+25059,Avis de changement no. 59,,,,,0.00,0.00
+25060,Avis de changement no. 60,,,,,0.00,0.00
+25061,Avis de changement no. 61,,,,,0.00,0.00
+25062,Avis de changement no. 62,,,,,0.00,0.00
+25063,Avis de changement no. 63,,,,,0.00,0.00
+25064,Avis de changement no. 64,,,,,0.00,0.00
+25065,Avis de changement no. 65,,,,,0.00,0.00
+25066,Avis de changement no. 66,,,,,0.00,0.00
+25067,Avis de changement no  67,,,,,0.00,0.00
+25068,Avis de changement no. 68,,,,,0.00,0.00
+25069,Avis de changement no. 69,,,,,0.00,0.00
+25070,Avis de changement no. 70,,,,,0.00,0.00
+25071,Avis de changement no. 71,,,,,0.00,0.00
+25072,Avis de changement no. 72,,,,,0.00,0.00
+25073,Avis de changement no. 73,,,,,0.00,0.00
+25074,Avis de changement no. 74,,,,,0.00,0.00
+25075,Avis de changement no. 75,,,,,0.00,0.00
+25076,Avis de changement no. 76,,,,,0.00,0.00
+25077,Avis de changement no .77,,,,,0.00,0.00
+25078,Avis de changement no. 78,,,,,0.00,0.00
+25079,Avis de changement no. 79,,,,,0.00,0.00
+25080,Avis de changement no. 80,,,,,0.00,0.00
+25081,Avis de changement no. 81,,,,,0.00,0.00
+25082,Avis de changement no. 82,,,,,0.00,0.00
+25083,Avis de changement no. 83,,,,,0.00,0.00
+25084,Avis de changement no. 84,,,,,0.00,0.00
+25085,Avis de changement no. 85,,,,,0.00,0.00
+25086,Avis de changement no. 86,,,,,0.00,0.00
+25087,Avis de changement no. 87,,,,,0.00,0.00
+25100,Avis de changement no.100,,,,,0.00,388.68
+26001,Avis de chang. mécanique 01,,,,,0.00,0.00
+26002,Avis de chang. mécanique # 2,,,,,0.00,0.00
+26003,Avis de chang. mécanique # 3,,,,,0.00,0.00
+26004,Avis de chang. mécanique # 4,,,,,0.00,0.00
+26005,Avis de chang. mécanique # 5,,,,,0.00,0.00
+26006,Avis de chang. mécanique # 6,,,,,0.00,0.00
+27001,Avis de chang. électrique # 1,,,,,0.00,0.00
+27002,Avis de chang. électrique # 2,,,,,0.00,0.00
+27003,Avis de chang. électrique # 3,,,,,0.00,0.00
+27004,Avis de chang. électrique # 4,,,,,0.00,0.00
+27005,Avis de chang. électrique # 5,,,,,0.00,0.00
+27006,Avis de chang. électricité # 6,,,,,0.00,0.00
+27007,Avis de chang. électricité # 7,,,,,0.00,0.00
+27008,Avis de chang. électricité # 8,,,,,0.00,0.00
+27009,Avis de chang. électricité # 9,,,,,0.00,0.00
+27010,Avis de chang. électrique # 10,,,,,0.00,0.00
+27011,Avis de chang. électrique # 11,,,,,0.00,0.00
+28001,Avis de chang. structure # 1,,,,,0.00,0.00
+28002,Avis de chang. structure # 2,,,,,0.00,0.00
+28003,Avis de chang. structure # 3,,,,,0.00,0.00
+28004,Avis de chang. structure # 4,,,,,0.00,0.00
+28005,Avis de chang. structure # 5,,,,,0.00,0.00
+28006,Avis de chang. structure # 6,,,,,0.00,0.00
+28007,Avis de chang. structure # 7,,,,,0.00,0.00
+28008,Avis de chang. structure # 8,,,,,0.00,0.00
+28009,Avis de chang. structure # 9,,,,,0.00,0.00
+28010,Avis de chang. structure # 10,,,,,0.00,0.00
+28011,Avis de chang. structure # 11,,,,,0.00,0.00
+28012,Avis de chang. structure # 12,,,,,0.00,0.00
+28013,Avis de chang. structure # 13,,,,,0.00,0.00
+28014,Avis de chang. structure # 14,,,,,0.00,0.00
+29001,Avis de chang. génie civil # 1,,,,,0.00,0.00
+29002,Avis de chang. génie civil # 2,,,,,0.00,0.00
+29003,Avis de chang. génie civil # 3,,,,,0.00,0.00
+29004,Avis de chang. génie civil # 4,,,,,0.00,0.00
+29005,Avis de chang. génie civil # 5,,,,,0.00,0.00
+99999,Divers,,,,,0.00,0.00

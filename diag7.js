@@ -1,0 +1,11 @@
+const fs = require('fs');
+const { parse } = require('csv-parse/sync');
+const content = fs.readFileSync('./exports-avantage/COMITE.csv', 'latin1');
+const rows = parse(content, { columns: false, skip_empty_lines: true, trim: true });
+console.log('Header col[16]:', rows[0][16]);
+console.log('Header col[20]:', rows[0][20]);
+console.log('Toutes les colonnes header:');
+rows[0].forEach((h, i) => { if (h) console.log('  col[' + i + ']:', h); });
+const p = rows.slice(1).filter(r => JSON.stringify(r).includes('23020'));
+console.log('Lignes P23020:', p.length);
+p.slice(0, 3).forEach(r => console.log('cmd[16]:', r[16], 'act[20]:', r[20]));

@@ -1,0 +1,20 @@
+﻿const XLSX = require('xlsx');
+const wb = XLSX.readFile('./exports-avantage/export.xlsx');
+const ws = wb.Sheets['COMITE'];
+const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+const p = rows.filter(r => JSON.stringify(r).includes('23020'));
+const keys = Object.keys(p[0] || {});
+const kCommande = keys.find(k => k.toLowerCase().includes('quentiel de commande'));
+const kActivite = keys.find(k => k.toLowerCase().includes('activit'));
+const kFournisseur = keys.find(k => k.toLowerCase().includes('fournisseur') && !k.toLowerCase().includes('associ'));
+console.log('kCommande:', kCommande);
+console.log('kActivite:', kActivite);
+console.log('kFournisseur:', kFournisseur);
+const map = {};
+p.forEach(r => {
+  const cmd = (r[kCommande]||'').toString().trim();
+  const act = (r[kActivite]||'').toString().trim();
+  const four = (r[kFournisseur]||'').toString().trim();
+  if (cmd && act) map[cmd] = { activite: act, fournisseur: four };
+});
+console.log('Mapping (5 ex):', JSON.stringify(Object.entries(map).slice(0,5)));

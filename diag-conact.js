@@ -1,0 +1,10 @@
+﻿const fs = require('fs');
+const { parse } = require('csv-parse/sync');
+const content = fs.readFileSync('./exports-avantage/CONACT.csv', 'latin1');
+const rows = parse(content, { columns: true, skip_empty_lines: true, trim: true });
+const keys = Object.keys(rows[0]);
+console.log('Colonnes CONACT:', keys);
+const p23020 = rows.filter(r => parseInt((r[keys.find(k=>k.toLowerCase().includes('conum')||k.toLowerCase().includes('projet'))]||'').trim(),10) === 23020);
+const act25100 = p23020.filter(r => (r[keys.find(k=>k.toLowerCase().includes('aanum')||k.toLowerCase().includes('activit'))]||'').trim().replace(/\.00$/,'') === '25100');
+console.log('Lignes 25100 dans CONACT:', act25100.length);
+console.log('Détail:', JSON.stringify(act25100, null, 2));

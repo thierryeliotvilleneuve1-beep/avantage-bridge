@@ -1,0 +1,10 @@
+﻿const XLSX = require('xlsx');
+const wb = XLSX.readFile('./exports-avantage/export.xlsx');
+const ws = wb.Sheets['TRANS'];
+const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+const p23020 = rows.filter(r => parseInt((r['Numéro du projet']||'').trim(), 10) === 23020);
+const act25100 = p23020.filter(r => (r["Code d'activité"]||'').trim() === '25100');
+console.log('Lignes TRANS 25100 P23020:', act25100.length);
+const total = act25100.reduce((s, r) => s + (parseFloat(r['Montant réparti']||0)), 0);
+console.log('Total:', total.toFixed(2));
+console.log('Ex:', JSON.stringify(act25100.slice(0,3), null, 2));

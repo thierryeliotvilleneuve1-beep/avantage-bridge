@@ -1,0 +1,12 @@
+﻿const XLSX = require('xlsx');
+const wb = XLSX.readFile('./exports-avantage/export.xlsx');
+const ws = wb.Sheets['COMITE'];
+const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+const p = rows.filter(r => JSON.stringify(r).includes('23020'));
+const keys = Object.keys(p[0] || {});
+const kCommande = keys.find(k => k.toLowerCase().includes('quentiel de commande'));
+const kActivite = keys.find(k => k.toLowerCase().includes('activit'));
+const cmd06100 = p.filter(r => (r[kActivite]||'').toString().trim() === '06100');
+console.log('Commandes 06100:', cmd06100.length);
+const cmds = [...new Set(cmd06100.map(r => (r[kCommande]||'').toString().trim()))];
+console.log('Numéros commandes uniques:', cmds);
