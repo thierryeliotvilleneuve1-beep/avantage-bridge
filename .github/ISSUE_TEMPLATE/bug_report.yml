@@ -1,0 +1,34 @@
+name: Rapport de bogue
+description: Signaler un problème avec avantage-bridge
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Décrivez le bogue clairement.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes pour reproduire
+      placeholder: |
+        1. Appeler /api/budget avec...
+        2. Observer l'erreur...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportement attendu
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "ex: 7.0.0"

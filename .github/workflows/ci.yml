@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate entry point
+        run: node --check src/index.js
+
+      - name: Check parsers
+        run: |
+          node --check src/parsers/parseActive.js
+          node --check src/parsers/parseConpre.js
+          node --check src/parsers/parseFactma.js
+          node --check src/parsers/parseContra.js
+
+      - name: Check routes
+        run: |
+          node --check src/routes/budget.js
+          node --check src/routes/bc-sync.js
+          node --check src/routes/trans-sync.js
