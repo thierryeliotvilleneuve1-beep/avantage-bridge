@@ -30,8 +30,10 @@ app.get('/api/status', (req, res) => {
 const budgetRouter = require('./routes/budget');
 const bcSyncRouter = require('./routes/bc-sync');
 const transSyncRouter = require('./routes/trans-sync');
+const projetsRouter = require('./routes/projets');
 
 app.use('/api/budget', auth, budgetRouter);
+app.use('/api/projets', auth, projetsRouter);
 app.use('/api/bc', auth, bcSyncRouter);
 app.use('/api/trans', auth, transSyncRouter);
 
