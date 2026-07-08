@@ -2,15 +2,28 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const iconv = require('iconv-lite');
 const { parse } = require('csv-parse/sync');
 const { api, sleep } = require('../writers/base44-writer');
 const { parseActive } = require('../parsers/parseActive');
 
 const EXPORT_DIR = path.resolve(__dirname, '../../exports-avantage');
 const MO_CODES = ['06101'];
+// Encodage des exports Avantage. Si les accents sortent cassés (ex.
+// "Conditions g?n?rales"), mettre CSV_ENCODING=cp850 (ou cp863) dans .env.
+const CSV_ENCODING = process.env.CSV_ENCODING || 'latin1';
+
+function lireCsv(p) {
+  return iconv.decode(fs.readFileSync(p), CSV_ENCODING);
+}
 
 function getKey(keys, ...fragments) {
   return keys.find(k => fragments.some(f => k.toLowerCase().includes(f.toLowerCase())));
+}
+
+// P26010, 26010, 0000026010 → "26010" (comparaison stricte, pas de includes)
+function normaliserCode(c) {
+  return String(c || '').toUpperCase().trim().replace(/^P/, '').replace(/^0+/, '');
 }
 
 router.post('/sync/:code', async (req, res) => {
@@ -20,13 +33,12 @@ router.post('/sync/:code', async (req, res) => {
   const actMap = {};
   const actPath = path.join(EXPORT_DIR, 'ACTIVE.csv');
   if (fs.existsSync(actPath)) {
-    const content = fs.readFileSync(actPath, 'latin1');
-    Object.assign(actMap, parseActive(content));
+    Object.assign(actMap, parseActive(lireCsv(actPath)));
   }
 
   const prePath = path.join(EXPORT_DIR, 'CONPRE.csv');
   if (!fs.existsSync(prePath)) return res.json({ error: 'CONPRE.csv introuvable' });
-  const preContent = fs.readFileSync(prePath, 'latin1');
+  const preContent = lireCsv(prePath);
   const preRows = parse(preContent, { columns: true, skip_empty_lines: true, trim: true });
   if (!preRows.length) return res.json({ error: 'CONPRE.csv vide' });
   const preKeys = Object.keys(preRows[0]);
@@ -43,7 +55,7 @@ router.post('/sync/:code', async (req, res) => {
   const factureMap = {};
   const conactPath = path.join(EXPORT_DIR, 'CONACT.csv');
   if (fs.existsSync(conactPath)) {
-    const conactContent = fs.readFileSync(conactPath, 'latin1');
+    const conactContent = lireCsv(conactPath);
     const conactRows = parse(conactContent, { columns: false, skip_empty_lines: true, trim: true, from_line: 2 });
     conactRows
       .filter(r => parseInt((r[0]||'').trim(), 10) === parseInt(code, 10))
@@ -59,7 +71,7 @@ router.post('/sync/:code', async (req, res) => {
   const transMap = {};
   const transPath = path.join(EXPORT_DIR, 'TRANS.csv');
   if (fs.existsSync(transPath)) {
-    const transContent = fs.readFileSync(transPath, 'latin1');
+    const transContent = lireCsv(transPath);
     const transRows = parse(transContent, { columns: false, skip_empty_lines: true, trim: true, from_line: 2 });
     transRows
       .filter(r => {
@@ -79,7 +91,15 @@ router.post('/sync/:code', async (req, res) => {
     .filter(act => !codesConpre.has(act) && transMap[act] > 0 && act.trim() !== '')
     .map(act => ({ _from_trans: true, _act: act }));
 
-  const allPhases = [...conprePhases, ...phasesExtra];
+  // Dedup intra-execution : un projet present en format padde ET court dans
+  // CONPRE passait deux fois le filtre → chaque division creee en double.
+  const vues = new Set();
+  const allPhases = [...conprePhases, ...phasesExtra].filter(ph => {
+    const act = ph._from_trans ? ph._act : (ph[kActivite] || '').trim().replace(/\.00$/, '');
+    if (!act || vues.has(act)) return false;
+    vues.add(act);
+    return true;
+  });
   if (!allPhases.length) {
     const sample = [...new Set(preRows.slice(0, 5).map(r => r[kProjet]))];
     return res.json({ error: 'Projet ' + code + ' non trouve', sample });
@@ -88,20 +108,39 @@ router.post('/sync/:code', async (req, res) => {
   const pRes = await api('GET', '/entities/Projet?limit=500');
   let projets = [];
   try { const d = JSON.parse(pRes.data); projets = Array.isArray(d) ? d : (d.items || []); } catch (e) {}
-  const projet = projets.find(p => {
-    const cp = (p.code_projet || '').toUpperCase();
-    return cp === 'P' + code || cp.includes(code) || cp === code;
-  });
+  // Match STRICT (l'ancien includes() pouvait rattacher le mauvais projet)
+  const matches = projets.filter(p => normaliserCode(p.code_projet) === normaliserCode(code));
+  const projet = matches[0];
   if (!projet) return res.json({ error: 'Projet ' + code + ' non trouve dans Base44' });
+  const avertissements = [];
+  if (matches.length > 1) {
+    avertissements.push('Fiches Projet en double dans Base44 pour ' + code + ' : '
+      + matches.map(p => p._id || p.id).join(', ') + ' — sync sous la premiere, dedoublonner l\'entite Projet.');
+  }
+  const projetId = projet._id || projet.id;
 
-  const cbRes = await api('GET', '/entities/ControleBudgetaire?limit=500');
+  // Lecture des existants FILTREE par projet (l'ancien GET limit=500 global
+  // ratait les lignes du projet des que l'entite depassait 500 enregistrements,
+  // et tout etait recree en double au sync suivant).
+  const cbRes = await api('GET', '/entities/ControleBudgetaire?projet_id=' + encodeURIComponent(projetId) + '&limit=1000');
   let existing = [];
   try { const d = JSON.parse(cbRes.data); existing = Array.isArray(d) ? d : (d.items || []); } catch (e) {}
+  existing = existing.filter(x => x.projet_id === projetId);
+
+  // Miroir Avantage 1/2 : si des doublons existent deja, garder la premiere
+  // ligne de chaque division et supprimer les autres.
   const existingMap = {};
-  const projetId = projet._id || projet.id;
-  existing.filter(x => x.projet_id === projetId).forEach(x => {
-    existingMap[x.code_division] = x._id || x.id;
-  });
+  let deleted_doublons = 0;
+  for (const x of existing) {
+    const id = x._id || x.id;
+    if (existingMap[x.code_division]) {
+      const r = await api('DELETE', '/entities/ControleBudgetaire/' + id);
+      if (r.status === 200 || r.status === 204) deleted_doublons++;
+      await sleep(100);
+    } else {
+      existingMap[x.code_division] = id;
+    }
+  }
 
   let created = 0, updated = 0, errors = 0;
   for (const ph of allPhases) {
@@ -123,18 +162,41 @@ router.post('/sync/:code', async (req, res) => {
       directives_travaux: 0, travaux_crc: 0, credit_admin: 0, asse_caut: 0, decompte_crc: 0,
     };
     const existingId = existingMap[code_act];
-    let st = 429;
+    let st = 429, data = '';
     while (st === 429) {
       const r = existingId
         ? await api('PUT', '/entities/ControleBudgetaire/' + existingId, div)
         : await api('POST', '/entities/ControleBudgetaire', div);
-      st = r.status;
+      st = r.status; data = r.data;
       if (st === 429) await sleep(1500);
     }
-    if (st === 200 || st === 201) { existingId ? updated++ : created++; } else errors++;
+    if (st === 200 || st === 201) {
+      if (existingId) { updated++; }
+      else {
+        created++;
+        // Enregistrer l'id cree : si la meme division repassait dans la boucle,
+        // elle serait mise a jour au lieu d'etre creee une deuxieme fois.
+        try { existingMap[code_act] = JSON.parse(data)._id || JSON.parse(data).id; } catch (e) { existingMap[code_act] = true; }
+      }
+    } else errors++;
     await sleep(150);
   }
-  res.json({ ok: true, projet: code, projet_id: projetId, phases: allPhases.length, created, updated, errors });
+
+  // Miroir Avantage 2/2 : supprimer les divisions qui n'existent plus dans
+  // l'export (l'objectif est que Base44 reflete exactement Avantage).
+  let deleted_orphelins = 0;
+  for (const [code_div, id] of Object.entries(existingMap)) {
+    if (vues.has(code_div) || typeof id !== 'string') continue;
+    const r = await api('DELETE', '/entities/ControleBudgetaire/' + id);
+    if (r.status === 200 || r.status === 204) deleted_orphelins++;
+    await sleep(100);
+  }
+
+  res.json({
+    ok: true, projet: code, projet_id: projetId, phases: allPhases.length,
+    created, updated, deleted_doublons, deleted_orphelins, errors,
+    ...(avertissements.length ? { avertissements } : {}),
+  });
 });
 
 module.exports = router;
