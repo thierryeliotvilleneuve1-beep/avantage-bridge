@@ -1,7 +1,6 @@
-const { parse } = require('csv-parse/sync');
-
-function parseContra(csvContent) {
-  const records = parse(csvContent, { columns: true, skip_empty_lines: true, trim: true });
+// records : lignes en objets clés par nom de colonne Avantage
+// (fournies par datasources/avantage.js — DB ou CSV)
+function parseContra(records) {
   return records.map(r => ({
     numero_projet: (r.CONUM || '').trim(),
     nom_projet: (r.CONOM || r.CONOMS || '').trim(),

@@ -1,7 +1,6 @@
-const { parse } = require('csv-parse/sync');
-
-function parseFactma(csvContent) {
-  const records = parse(csvContent, { columns: true, skip_empty_lines: true, trim: true });
+// records : lignes en objets clés par nom de colonne Avantage
+// (fournies par datasources/avantage.js — DB ou CSV)
+function parseFactma(records) {
   return records.map(r => ({
     numero_facture: (r.FFNOFACT || '').trim(),
     numero_projet: (r.FFCONT || '').trim(),

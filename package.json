@@ -13,5 +13,8 @@
     "iconv-lite": "^0.7.3",
     "node-cron": "^3.0.3",
     "xlsx": "^0.18.5"
+  },
+  "optionalDependencies": {
+    "odbc": "^2.5.0"
   }
 }

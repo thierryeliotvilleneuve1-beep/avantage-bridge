@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
-const { parse } = require('csv-parse/sync');
 const { api, sleep } = require('../writers/base44-writer');
-
-const EXPORT_DIR = path.resolve(__dirname, '../../exports-avantage');
+const { lireTable } = require('../datasources/avantage');
 
 // GL de taxes a exclure du montant net
 const GL_TAXES = ['21340', '21370', '21310', '21300'];
+
+// P26010, 26010, 0000026010 → "26010" (comparaison stricte)
+function normaliserCode(c) {
+  return String(c || '').toUpperCase().trim().replace(/^P/, '').replace(/^0+/, '');
+}
 
 // Extraire le montant net d'une ligne PYBBIL (exclure taxes)
 // GL paires: col[8]/col[9], col[10]/col[11], ..., col[26]/col[27]
@@ -26,22 +27,16 @@ function getMontantNet(r) {
 // PYBBIL colonnes par position:
 // [0]=Num seq [1]=Date [2]=Num fournisseur [4]=Num facture [5]=Description
 // [6]=Montant total [33]=Num projet [44]=No. de commande [48]=Nom fournisseur
-function readPybbil(code) {
-  const pybbilPath = path.join(EXPORT_DIR, 'PYBBIL.csv');
-  if (!fs.existsSync(pybbilPath)) return [];
-  const content = fs.readFileSync(pybbilPath, 'latin1');
-  const rows = parse(content, { columns: false, skip_empty_lines: true, trim: true, from_line: 2 });
-  return rows.filter(r => parseInt((r[33]||'').trim(), 10) === parseInt(code, 10));
+async function readPybbil(code) {
+  const { lignes } = await lireTable('PYBBIL');
+  return lignes.filter(r => parseInt((r[33]||'').trim(), 10) === parseInt(code, 10));
 }
 
 // COMITE [16]=Num seq commande [17]=Code activite
-function buildCommandeDivisionMap() {
-  const comitePath = path.join(EXPORT_DIR, 'COMITE.csv');
-  if (!fs.existsSync(comitePath)) return {};
-  const content = fs.readFileSync(comitePath, 'latin1');
-  const rows = parse(content, { columns: false, skip_empty_lines: true, trim: true, from_line: 2 });
+async function buildCommandeDivisionMap() {
+  const { lignes } = await lireTable('COMITE');
   const map = {};
-  for (const r of rows) {
+  for (const r of lignes) {
     const cmd = (r[16] || '').trim().padStart(9, '0');
     const act = (r[17] || '').trim().replace(/\.00$/, '');
     if (cmd && cmd !== '000000000' && act && !map[cmd]) map[cmd] = act;
@@ -56,20 +51,20 @@ router.post('/sync-trans/:code', async (req, res) => {
   const pRes = await api('GET', '/entities/Projet?limit=500');
   let projets = [];
   try { const d = JSON.parse(pRes.data); projets = Array.isArray(d) ? d : (d.items || []); } catch (e) {}
-  const projet = projets.find(p => {
-    const cp = (p.code_projet || '').toUpperCase();
-    return cp === 'P' + code || cp.includes(code) || cp === code;
-  });
+  // Match STRICT (includes() pouvait rattacher le mauvais projet)
+  const projet = projets.find(p => normaliserCode(p.code_projet) === normaliserCode(code));
   if (!projet) return res.json({ error: 'Projet ' + code + ' non trouve' });
   const projetId = projet._id || projet.id;
 
-  const cbRes = await api('GET', '/entities/ControleBudgetaire?limit=500');
+  // Lectures filtrées par projet_id (un GET limit=500 global rate des lignes
+  // dès que l'entité dépasse 500 enregistrements → doublons au sync suivant)
+  const cbRes = await api('GET', '/entities/ControleBudgetaire?projet_id=' + encodeURIComponent(projetId) + '&limit=1000');
   let divisions = [];
   try { const d = JSON.parse(cbRes.data); divisions = Array.isArray(d) ? d : (d.items || []); } catch (e) {}
   const divMap = {};
   divisions.filter(x => x.projet_id === projetId).forEach(x => { divMap[x.code_division] = x._id || x.id; });
 
-  const bcRes = await api('GET', '/entities/BonDeCommande?limit=500');
+  const bcRes = await api('GET', '/entities/BonDeCommande?projet_id=' + encodeURIComponent(projetId) + '&limit=1000');
   let bcs = [];
   try { const d = JSON.parse(bcRes.data); bcs = Array.isArray(d) ? d : (d.items || []); } catch (e) {}
   const bcMap = {};
@@ -78,16 +73,16 @@ router.post('/sync-trans/:code', async (req, res) => {
   });
 
   let existingTrans = [];
-  const trRes = await api('GET', '/entities/TransactionAvantage?limit=500');
+  const trRes = await api('GET', '/entities/TransactionAvantage?projet_id=' + encodeURIComponent(projetId) + '&limit=1000');
   try { const d = JSON.parse(trRes.data); const arr = Array.isArray(d) ? d : (d.items || []); existingTrans = arr.filter(x => x.projet_id === projetId); } catch (e) {}
   const existingMap = {};
   existingTrans.forEach(x => { if (x.numero_journal) existingMap[x.numero_journal] = x._id || x.id; });
 
-  const commandeDivMap = buildCommandeDivisionMap();
+  const commandeDivMap = await buildCommandeDivisionMap();
   const toUpsert = [];
 
   // PYBBIL — montant NET (sans taxes)
-  const pybbilRows = readPybbil(code);
+  const pybbilRows = await readPybbil(code);
   console.log('[INFO] PYBBIL P' + code + ':', pybbilRows.length);
   for (const r of pybbilRows) {
     const numSeq = 'P' + (r[0] || '').trim();
@@ -124,10 +119,8 @@ router.post('/sync-trans/:code', async (req, res) => {
   }
 
   // TRANS type E et B
-  const transPath = path.join(EXPORT_DIR, 'TRANS.csv');
-  if (fs.existsSync(transPath)) {
-    const transContent = fs.readFileSync(transPath, 'latin1');
-    const transRows = parse(transContent, { columns: false, skip_empty_lines: true, trim: true, from_line: 2 });
+  {
+    const transRows = (await lireTable('TRANS')).lignes;
     const filtered = transRows.filter(r => {
       if (parseInt((r[0]||'').trim(), 10) !== parseInt(code, 10)) return false;
       const type = (r[3]||'').trim().charAt(0);

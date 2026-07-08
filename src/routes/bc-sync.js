@@ -1,26 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
-const XLSX = require('xlsx');
 const { api, sleep } = require('../writers/base44-writer');
+const { lireTable } = require('../datasources/avantage');
 
-const EXPORT_DIR = path.resolve(__dirname, '../../exports-avantage');
-
-function readComman() {
-  const xlsxPath = path.join(EXPORT_DIR, 'export.xlsx');
-  if (!fs.existsSync(xlsxPath)) return [];
-  const wb = XLSX.readFile(xlsxPath);
-  const ws = wb.Sheets['COMMAN'];
-  if (!ws) return [];
-  return XLSX.utils.sheet_to_json(ws, { defval: '' });
+// P26010, 26010, 0000026010 → "26010" (comparaison stricte)
+function normaliserCode(c) {
+  return String(c || '').toUpperCase().trim().replace(/^P/, '').replace(/^0+/, '');
 }
 
 router.post('/sync-bc/:code', async (req, res) => {
   const code = req.params.code.replace(/^P/i, '').trim();
   const paddedCode = code.padStart(10, '0');
 
-  const commanRows = readComman();
+  const commanRows = (await lireTable('COMMAN')).objets;
   const bcsAvantage = commanRows.filter(r => {
     const keys = Object.keys(r);
     const kProjet = keys.find(k => k.toLowerCase().includes('projet'));
@@ -35,14 +27,12 @@ router.post('/sync-bc/:code', async (req, res) => {
   const pRes = await api('GET', '/entities/Projet?limit=500');
   let projets = [];
   try { const d = JSON.parse(pRes.data); projets = Array.isArray(d) ? d : (d.items || []); } catch (e) {}
-  const projet = projets.find(p => {
-    const cp = (p.code_projet || '').toUpperCase();
-    return cp === 'P' + code || cp.includes(code) || cp === code;
-  });
+  // Match STRICT (includes() pouvait rattacher le mauvais projet)
+  const projet = projets.find(p => normaliserCode(p.code_projet) === normaliserCode(code));
   if (!projet) return res.json({ error: 'Projet ' + code + ' non trouvé dans Base44' });
   const projetId = projet._id || projet.id;
 
-  const bcRes = await api('GET', '/entities/BonDeCommande?limit=500');
+  const bcRes = await api('GET', '/entities/BonDeCommande?projet_id=' + encodeURIComponent(projetId) + '&limit=1000');
   let existing = [];
   try { const d = JSON.parse(bcRes.data); existing = Array.isArray(d) ? d : (d.items || []); } catch (e) {}
   const existingMap = {};

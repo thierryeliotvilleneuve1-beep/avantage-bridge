@@ -1,21 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
-const iconv = require('iconv-lite');
-const { parse } = require('csv-parse/sync');
 const { api, sleep } = require('../writers/base44-writer');
-const { parseActive } = require('../parsers/parseActive');
+const { lireTable } = require('../datasources/avantage');
 
-const EXPORT_DIR = path.resolve(__dirname, '../../exports-avantage');
 const MO_CODES = ['06101'];
-// Encodage des exports Avantage. Si les accents sortent cassés (ex.
-// "Conditions g?n?rales"), mettre CSV_ENCODING=cp850 (ou cp863) dans .env.
-const CSV_ENCODING = process.env.CSV_ENCODING || 'latin1';
-
-function lireCsv(p) {
-  return iconv.decode(fs.readFileSync(p), CSV_ENCODING);
-}
 
 function getKey(keys, ...fragments) {
   return keys.find(k => fragments.some(f => k.toLowerCase().includes(f.toLowerCase())));
@@ -30,18 +18,17 @@ router.post('/sync/:code', async (req, res) => {
   const code = req.params.code.replace(/^P/i, '').trim();
   const paddedCode = code.padStart(10, '0');
 
+  // ACTIVE — [0]=numéro activité [1]=description française
   const actMap = {};
-  const actPath = path.join(EXPORT_DIR, 'ACTIVE.csv');
-  if (fs.existsSync(actPath)) {
-    Object.assign(actMap, parseActive(lireCsv(actPath)));
-  }
+  (await lireTable('ACTIVE')).lignes.forEach(r => {
+    const codeAct = (r[0] || '').replace(/\.00$/, '');
+    if (codeAct) actMap[codeAct] = r[1] || codeAct;
+  });
 
-  const prePath = path.join(EXPORT_DIR, 'CONPRE.csv');
-  if (!fs.existsSync(prePath)) return res.json({ error: 'CONPRE.csv introuvable' });
-  const preContent = lireCsv(prePath);
-  const preRows = parse(preContent, { columns: true, skip_empty_lines: true, trim: true });
-  if (!preRows.length) return res.json({ error: 'CONPRE.csv vide' });
-  const preKeys = Object.keys(preRows[0]);
+  const conpre = await lireTable('CONPRE');
+  if (!conpre.objets.length) return res.json({ error: 'CONPRE vide ou introuvable (source: ' + conpre.source + ')' });
+  const preRows = conpre.objets;
+  const preKeys = conpre.colonnes;
   const kProjet   = getKey(preKeys, 'projet', 'CPCONUM');
   const kActivite = getKey(preKeys, 'activit', 'CPACT');
   const kMontant  = getKey(preKeys, 'visionnel', 'Montant', 'CPMNT');
@@ -53,38 +40,28 @@ router.post('/sync/:code', async (req, res) => {
 
   // CONACT — [0]=projet [1]=activite [2]=pct [3]=depense_a_venir [4]=facture_a_date (revenus client)
   const factureMap = {};
-  const conactPath = path.join(EXPORT_DIR, 'CONACT.csv');
-  if (fs.existsSync(conactPath)) {
-    const conactContent = lireCsv(conactPath);
-    const conactRows = parse(conactContent, { columns: false, skip_empty_lines: true, trim: true, from_line: 2 });
-    conactRows
-      .filter(r => parseInt((r[0]||'').trim(), 10) === parseInt(code, 10))
-      .forEach(r => {
-        const act = (r[1] || '').trim().replace(/\.00$/, '');
-        const facture = parseFloat((r[4] || '0').replace(',', '.')) || 0;
-        if (act) factureMap[act] = (factureMap[act] || 0) + facture;
-      });
-  }
+  (await lireTable('CONACT')).lignes
+    .filter(r => parseInt((r[0]||'').trim(), 10) === parseInt(code, 10))
+    .forEach(r => {
+      const act = (r[1] || '').trim().replace(/\.00$/, '');
+      const facture = parseFloat((r[4] || '0').replace(',', '.')) || 0;
+      if (act) factureMap[act] = (factureMap[act] || 0) + facture;
+    });
 
   // TRANS — source unique des depenses reelles
   // R=comptes-clients (revenus) EXCLU, P/E/B inclus
   const transMap = {};
-  const transPath = path.join(EXPORT_DIR, 'TRANS.csv');
-  if (fs.existsSync(transPath)) {
-    const transContent = lireCsv(transPath);
-    const transRows = parse(transContent, { columns: false, skip_empty_lines: true, trim: true, from_line: 2 });
-    transRows
-      .filter(r => {
-        if (parseInt((r[0]||'').trim(), 10) !== parseInt(code, 10)) return false;
-        const type = (r[3]||'').trim().charAt(0);
-        return type !== 'R';
-      })
-      .forEach(r => {
-        const act = (r[5] || '').trim().replace(/\.00$/, '');
-        const montant = parseFloat((r[4] || '0').replace(',', '.')) || 0;
-        if (act) transMap[act] = (transMap[act] || 0) + montant;
-      });
-  }
+  (await lireTable('TRANS')).lignes
+    .filter(r => {
+      if (parseInt((r[0]||'').trim(), 10) !== parseInt(code, 10)) return false;
+      const type = (r[3]||'').trim().charAt(0);
+      return type !== 'R';
+    })
+    .forEach(r => {
+      const act = (r[5] || '').trim().replace(/\.00$/, '');
+      const montant = parseFloat((r[4] || '0').replace(',', '.')) || 0;
+      if (act) transMap[act] = (transMap[act] || 0) + montant;
+    });
 
   const codesConpre = new Set(conprePhases.map(r => (r[kActivite]||'').trim().replace(/\.00$/, '')));
   const phasesExtra = Object.keys(transMap)

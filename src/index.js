@@ -21,9 +21,27 @@ function auth(req, res, next) {
   next();
 }
 
+const { lireTable, SOURCE, DB_CONFIGUREE } = require('./datasources/avantage');
+
 // Route status — publique
 app.get('/api/status', (req, res) => {
-  res.json({ ok: true, service: 'avantage-bridge', version: '7.0.0', export_dir: EXPORT_DIR });
+  res.json({ ok: true, service: 'avantage-bridge', version: '8.0.0', source_donnees: SOURCE, db_configuree: DB_CONFIGUREE, export_dir: EXPORT_DIR });
+});
+
+// Diagnostic — aperçu d'une table Avantage (colonnes + premières lignes).
+// Sert à valider le mapping des colonnes une fois la connexion DB en place :
+//   GET /api/avantage/apercu/CONPRE?limit=5
+app.get('/api/avantage/apercu/:table', auth, async (req, res) => {
+  try {
+    const t = await lireTable((req.params.table || '').toUpperCase());
+    res.json({
+      source: t.source, table: t.table, colonnes: t.colonnes,
+      total_lignes: t.lignes.length,
+      apercu: t.lignes.slice(0, Math.min(parseInt(req.query.limit, 10) || 5, 50)),
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Routes — protégées
@@ -38,24 +56,24 @@ app.use('/api/trans', auth, transSyncRouter);
 // Cron sync
 let lastSync = null;
 cron.schedule(CRON_SCHEDULE, async () => {
-  console.log('[INFO] Cron déclenché — refresh des données Avantage');
+  console.log('[INFO] Cron déclenché — refresh des données Avantage (source: ' + SOURCE + ')');
   try {
     const { parseContra } = require('./parsers/parseContra');
     const { parseFactma } = require('./parsers/parseFactma');
     const { writeProjets, writeFactures } = require('./writers/base44-writer');
-    const contraPath = path.join(EXPORT_DIR, 'CONTRA.csv');
-    const factmaPath = path.join(EXPORT_DIR, 'FACTMA.csv');
-    if (!fs.existsSync(contraPath)) {
-      console.log('[WARN] CONTRA.csv absent — aucun projet chargé');
+    const contra = await lireTable('CONTRA');
+    if (!contra.objets.length) {
+      console.log('[WARN] CONTRA vide ou introuvable (source: ' + contra.source + ') — aucun projet chargé');
       return;
     }
-    const projets = parseContra(fs.readFileSync(contraPath, 'latin1'));
-    console.log('[INFO] ' + projets.length + ' projets lus depuis CONTRA.csv');
+    const projets = parseContra(contra.objets);
+    console.log('[INFO] ' + projets.length + ' projets lus depuis CONTRA (' + contra.source + ')');
     const pResult = await writeProjets(projets);
     console.log('[INFO] Projets — créés:', pResult.created, 'mis à jour:', pResult.updated, 'erreurs:', pResult.errors);
-    if (fs.existsSync(factmaPath)) {
-      const factures = parseFactma(fs.readFileSync(factmaPath, 'latin1'));
-      console.log('[INFO] ' + factures.length + ' factures lues depuis FACTMA.csv');
+    const factma = await lireTable('FACTMA');
+    if (factma.objets.length) {
+      const factures = parseFactma(factma.objets);
+      console.log('[INFO] ' + factures.length + ' factures lues depuis FACTMA (' + factma.source + ')');
       const fResult = await writeFactures(factures);
       console.log('[INFO] Factures — créées:', fResult.created, 'mises à jour:', fResult.updated, 'erreurs:', fResult.errors);
     }
@@ -67,7 +85,8 @@ cron.schedule(CRON_SCHEDULE, async () => {
 });
 
 app.listen(PORT, () => {
-  console.log('[INFO] Bridge Avantage v7 démarré sur le port ' + PORT);
-  console.log('[INFO] Export dir:', EXPORT_DIR);
+  console.log('[INFO] Bridge Avantage v8 démarré sur le port ' + PORT);
+  console.log('[INFO] Source de données:', SOURCE + (SOURCE === 'db' ? ' (ODBC)' : ' (exports — configurer AVANTAGE_DSN pour lire la DB)'));
+  if (SOURCE === 'csv') console.log('[INFO] Export dir:', EXPORT_DIR);
   console.log('[INFO] Cron:', CRON_SCHEDULE);
 });
