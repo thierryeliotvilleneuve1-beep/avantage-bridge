@@ -6,10 +6,11 @@ const path = require('path');
 const etatResultats = require('../services/etatResultats');
 const source = require('../sources/donneesAvantage');
 const cx = require('../db/connexion');
-const { TABLES } = require('../config/colonnes-avantage');
+const autoMappage = require('../db/autoMappage');
+const { TABLES, estLisibleEnBd } = require('../config/colonnes-avantage');
 
 // Toutes les routes de ce module sont en LECTURE SEULE : aucune n'écrit dans Avantage
-// ni ailleurs. Elles répondent uniquement à des GET.
+// ni ailleurs. Elles ne répondent qu'aux GET.
 
 function validerDate(v, defaut) {
   const s = (v || '').toString().trim();
@@ -22,7 +23,7 @@ function ilYaDesMois(n) {
   return d.toISOString().slice(0, 10);
 }
 
-// Vue interactive — c'est l'écran à ouvrir dans le navigateur.
+// Vue interactive — l'écran à ouvrir dans le navigateur.
 router.get('/vue', (req, res) => {
   const vue = path.join(__dirname, '../views/etat-resultats.html');
   if (!fs.existsSync(vue)) return res.status(500).send('Vue introuvable : ' + vue);
@@ -54,28 +55,26 @@ router.get('/diagnostic', (req, res) => {
   res.json({
     lecture_seule: true,
     ecrit_dans_avantage: false,
+    voie_acces_bd: cx.voie(),
     sources: source.etatSources(),
   });
 });
 
-// Introspection de la base : liste les tables et leurs colonnes réelles.
-// C'est la sortie à reporter dans src/config/colonnes-avantage.js pour passer
-// de la lecture CSV à la lecture directe en base.
+// Introspection de la base : tables et colonnes réellement présentes.
 router.get('/diagnostic-bd', async (req, res) => {
   if (!cx.disponible()) {
     return res.json({
       disponible: false,
       raison: cx.raisonIndisponible(),
       marche_a_suivre: [
-        '1. npm install odbc',
-        '2. Dans .env : AVANTAGE_DSN=<nom du DSN ODBC>, AVANTAGE_BD_ACTIVE=true',
-        '3. Relancer le bridge puis rappeler cette route.',
+        'Dans .env : AVANTAGE_DSN=<nom du DSN ODBC> et AVANTAGE_BD_ACTIVE=true',
+        'Relancer le bridge, puis rappeler cette route.',
+        'Aucune installation n\'est requise : sous Windows, le bridge passe par PowerShell.',
       ],
     });
   }
 
   try {
-    const dialecte = await cx.dialecte();
     const tables = await cx.listerTables();
     const attendues = Object.keys(TABLES);
     const presentes = tables.filter(t => attendues.includes((t.nom || '').toUpperCase()));
@@ -89,11 +88,40 @@ router.get('/diagnostic-bd', async (req, res) => {
     res.json({
       disponible: true,
       lecture_seule: true,
-      dialecte,
+      voie: cx.voie(),
       nb_tables_visibles: tables.length,
       tables_avantage_trouvees: presentes.map(t => t.nom),
       tables_avantage_manquantes: attendues.filter(a => !presentes.some(p => (p.nom || '').toUpperCase() === a)),
       colonnes,
+    });
+  } catch (e) {
+    res.status(500).json({ disponible: false, erreur: e.message });
+  }
+});
+
+// Auto-mappage : déduit les colonnes par position et les valide sur les données réelles.
+// C'est ce qui remplace la transcription manuelle des noms de colonnes.
+router.get('/mappage', async (req, res) => {
+  if (!cx.disponible()) {
+    return res.json({ disponible: false, raison: cx.raisonIndisponible() });
+  }
+  try {
+    const resultats = await source.autoMapper(true);
+    const retenues = resultats.filter(r => r.retenu).map(r => r.table);
+    const refusees = resultats.filter(r => !r.retenu);
+    res.json({
+      disponible: true,
+      voie: cx.voie(),
+      lecture_seule: true,
+      tables_lues_en_bd: Object.keys(TABLES).filter(t => estLisibleEnBd(t)),
+      deduites_et_validees: retenues,
+      non_retenues: refusees.map(r => ({ table: r.table, raison: r.raison, controles: r.controles })),
+      detail: resultats,
+      note: retenues.length
+        ? 'Ces tables sont désormais lues directement dans la base. Les autres continuent de '
+          + 'passer par leur export CSV, sans perte de fonctionnalité.'
+        : 'Aucune table n\'a pu être déduite avec certitude. Le bridge lit les exports CSV. '
+          + 'Voir /api/etat-resultats/diagnostic-bd pour les noms de colonnes réels.',
     });
   } catch (e) {
     res.status(500).json({ disponible: false, erreur: e.message });

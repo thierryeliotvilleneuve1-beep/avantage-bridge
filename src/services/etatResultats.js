@@ -125,6 +125,10 @@ function regrouperRevenus(revenus, projets) {
 async function construire(debut, fin) {
   source.reinitialiser();
 
+  // Si la base est joignable, on déduit d abord les colonnes des tables non nommées.
+  // Une seule fois par démarrage ; les tables non validées restent lues en CSV.
+  await source.autoMapper();
+
   const [revenus, charges, projets, activites, commandeDivisions] = await Promise.all([
     source.chargerRevenus(debut, fin),
     source.chargerCharges(debut, fin),

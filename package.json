@@ -6,7 +6,9 @@
     "start": "node src/index.js",
     "test": "node test/etat-resultats.test.js",
     "test:vue": "node test/vue.test.js",
-    "instantane": "node scripts/instantane.js"
+    "instantane": "node scripts/instantane.js",
+    "test:mappage": "node test/auto-mappage.test.js",
+    "test:tout": "npm test && npm run test:mappage && npm run test:vue"
   },
   "dependencies": {
     "cors": "^2.8.5",

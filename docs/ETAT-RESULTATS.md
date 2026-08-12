@@ -107,37 +107,64 @@ qu'on sache toujours d'où sort un chiffre.
 
 ## Brancher la lecture directe en base
 
-Par défaut le module lit les exports CSV. Pour lire la base :
-
-```bash
-npm install odbc
-```
-
-Dans `.env` :
+Deux lignes dans `.env`, et rien à installer :
 
 ```
 AVANTAGE_DSN=AVA01
 AVANTAGE_BD_ACTIVE=true
 ```
 
-Puis appeler `GET /api/etat-resultats/diagnostic-bd` : la réponse liste les tables et les
-colonnes réellement présentes. Reporter ces noms dans `src/config/colonnes-avantage.js`
-et passer `mappe: true` sur chaque table.
+Relancer le bridge, puis appeler une fois :
 
-`FACTMA` et `CONTRA` sont déjà mappées (leurs noms de colonnes sont connus). `PYBBIL`,
-`TRANS`, `ACTIVE` et `COMITE` restent à confirmer : leurs exports sont positionnels, donc
-les noms de colonnes en base ne sont pas déductibles. Tant qu'une table n'est pas mappée,
-le bridge retombe automatiquement sur son export CSV et le signale.
+```
+GET /api/etat-resultats/mappage?key=VOTRE_CLE_API
+```
 
-Pour identifier le moteur installé, lancer sur le PC :
+### Pourquoi aucune installation
+
+Le module npm `odbc` est une extension native : sous Windows il réclame node-gyp, Python
+et les Build Tools de Visual Studio. Le bridge passe donc par **PowerShell et
+System.Data.Odbc**, livrés avec Windows. Si quelqu'un installe `npm install odbc`, le
+bridge le préfère automatiquement — il est plus rapide sur de gros volumes — mais ce n'est
+jamais nécessaire. `AVANTAGE_BD_VOIE` force une voie si besoin.
+
+Le moteur de base n'a pas à être connu : Actian Zen, SQL Server, Sybase ou autre, c'est le
+pilote ODBC installé qui s'en charge. Seul le DSN change.
+
+### Pourquoi rien à transcrire à la main
+
+Les exports d'Avantage sont positionnels : le bridge lit PYBBIL par index de colonne
+(33 = numéro de projet, 48 = nom du fournisseur…). Ces index reflètent l'ordre des colonnes
+de la table, donc l'index 33 devrait être la 34e colonne. C'est une hypothèse forte, pas une
+certitude — alors le bridge la **vérifie** avant de s'en servir :
+
+1. il interroge le pilote pour obtenir les colonnes réelles ;
+2. il associe chaque champ par position ;
+3. il échantillonne 300 lignes et contrôle que chaque colonne contient bien ce qu'on
+   attend — une date ressemble à une date, un numéro de projet est numérique, un montant
+   est un nombre, un numéro de GL fait quatre ou cinq chiffres ;
+4. le mappage n'est retenu que si **chaque champ obligatoire** passe son contrôle à 85 % ou
+   plus sur l'échantillon.
+
+Une table dont la déduction échoue continue d'être lue dans son export CSV, et la route
+`/mappage` dit précisément quel champ a échoué et pourquoi. **Le bridge ne produit jamais
+de chiffres tirés d'un mappage douteux** — il préfère le CSV et le dit.
+
+`FACTMA` et `CONTRA` n'ont pas besoin de déduction : leurs exports portent des en-têtes,
+donc leurs noms de colonnes sont connus.
+
+Si la déduction échoue et qu'il faut mapper à la main, `GET /api/etat-resultats/diagnostic-bd`
+liste les tables et colonnes réelles, à reporter dans `src/config/colonnes-avantage.js`.
+
+### Identifier le moteur installé
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\decouvrir-bd-avantage.ps1
 ```
 
-Le script n'écrit rien, il inspecte et produit `decouverte-bd-avantage.txt` : pilotes
-ODBC, DSN, services de bases de données, extensions et signatures binaires des fichiers
-de données.
+Le script n'écrit rien : il inspecte pilotes ODBC, DSN, services de bases de données,
+extensions et signatures binaires des fichiers de données, et produit
+`decouverte-bd-avantage.txt`.
 
 ## Compléter le plan comptable
 
@@ -157,16 +184,18 @@ triée par montant : c'est la liste de travail pour affiner le plan comptable.
 ## Tests
 
 ```bash
-npm test
+npm run test:tout
 ```
 
-25 vérifications : refus d'écriture, classification, exclusion des taxes, réconciliation
-du drill-down aux cinq niveaux, exclusion hors période, annualisation.
+64 vérifications en trois harnais :
 
-```bash
-npm run test:vue
-```
+| Harnais | Nombre | Ce qu'il couvre |
+|---|---|---|
+| `npm test` | 25 | Refus d'écriture, classification, exclusion des taxes, réconciliation du drill-down aux cinq niveaux, exclusion hors période, annualisation |
+| `npm run test:mappage` | 19 | Déduction des colonnes par position, et surtout le **refus** d'un mappage faux : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec |
+| `npm run test:vue` | 20 | Dans un vrai navigateur : intégrité de l'arbre, drill-down au clic, réconciliation affichée, simulateur, export CSV, absence d'erreur JavaScript |
 
-20 vérifications de plus, dans un vrai navigateur : intégrité de l'arbre, drill-down au
-clic sur quatre niveaux, réconciliation affichée, simulateur, export CSV, absence d'erreur
-JavaScript. Nécessite Playwright ; sans lui le test se signale comme ignoré.
+Le harnais de vue exige Playwright ; sans lui il se signale comme ignoré au lieu d'échouer.
+Le harnais de mappage simule le pilote ODBC : la base Avantage n'est pas joignable depuis
+un poste de développement, mais ce qui compte — que la validation rejette un mappage
+douteux — se vérifie sans elle.

@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const cx = require('../db/connexion');
+const autoMappage = require('../db/autoMappage');
 const { TABLES, estLisibleEnBd } = require('../config/colonnes-avantage');
 const gl = require('../parsers/parseGrandLivre');
 const { parseActive } = require('../parsers/parseActive');
@@ -24,6 +25,34 @@ let provenances = {};
 function noter(jeu, mode, detail) { provenances[jeu] = { mode, detail }; }
 function reinitialiser() { provenances = {}; }
 function provenance() { return provenances; }
+
+// ── Auto-mappage des colonnes ────────────────────────────────────────────────────
+// Les tables dont les colonnes ne sont pas nommées dans la configuration sont déduites
+// par position puis validées sur les données réelles. Tenté une seule fois par démarrage :
+// inutile de réinterroger le pilote à chaque état des résultats.
+let mappageTente = false;
+let mappageResultats = [];
+
+async function autoMapper(forcer) {
+  if (mappageTente && !forcer) return mappageResultats;
+  mappageTente = true;
+  mappageResultats = [];
+  if (!cx.disponible()) return mappageResultats;
+
+  const aDeduire = Object.keys(TABLES).filter(t => !estLisibleEnBd(t));
+  for (const t of aDeduire) {
+    try {
+      const r = await autoMappage.deduire(t, cx);
+      if (r.retenu) autoMappage.appliquer(r);
+      mappageResultats.push(r);
+      console.log('[INFO] auto-mappage ' + t + ' : ' + (r.retenu ? 'retenu' : 'refusé — ' + r.raison));
+    } catch (e) {
+      mappageResultats.push({ table: t, retenu: false, raison: e.message });
+      console.log('[WARN] auto-mappage ' + t + ' : ' + e.message);
+    }
+  }
+  return mappageResultats;
+}
 
 function cheminCsv(nom) { return path.join(EXPORT_DIR, nom + '.csv'); }
 function csvExiste(nom) { return fs.existsSync(cheminCsv(nom)); }
@@ -264,7 +293,9 @@ function etatSources() {
       raison: cx.raisonIndisponible(),
       dsn_configure: Boolean(process.env.AVANTAGE_DSN),
     },
+    voie_acces_bd: cx.voie(),
     tables_mappees_vers_bd: Object.keys(TABLES).filter(t => estLisibleEnBd(t)),
+    auto_mappage: mappageResultats.map(r => ({ table: r.table, retenu: r.retenu, raison: r.raison })),
     tables_a_mapper: Object.keys(TABLES).filter(t => !estLisibleEnBd(t)),
     fichiers_csv: fichiers,
   };
@@ -272,5 +303,5 @@ function etatSources() {
 
 module.exports = {
   chargerRevenus, chargerCharges, chargerProjets, chargerActivites, chargerCommandeDivisions,
-  etatSources, provenance, reinitialiser, EXPORT_DIR,
+  etatSources, provenance, reinitialiser, autoMapper, EXPORT_DIR,
 };
