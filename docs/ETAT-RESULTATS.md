@@ -150,6 +150,36 @@ sans qu'aucun message ne le signale. Un harnais complet le vérifie
 (`npm run test:grand-livre`) : le jeu d'essai est calibré pour qu'un doublon ou un oubli
 change le résultat net de façon visible.
 
+## Deux vues pour interpréter, pas seulement pour totaliser
+
+Un total ne dit pas où agir. La page en porte deux autres, réconciliées au dollar avec
+l'état des résultats.
+
+### Mois par mois
+
+En construction, le coût s'enregistre quand il est engagé et le revenu quand il est
+facturé. À toute date de coupure il reste des travaux exécutés non facturés : une fenêtre
+de douze mois qui se termine en pleine saison affiche une marge écrasée sans que rien
+n'aille mal. La vue mensuelle tranche entre un décalage de facturation et un vrai problème
+de rentabilité. Sur août 2025 à mars 2026, la marge mensuelle de CRC va de −37 % en février
+à +38 % en janvier : aucun mois pris seul ne dit la rentabilité.
+
+### Marge par chantier
+
+Une marge globale faible peut venir de tous les chantiers un peu justes, ou de deux qui
+saignent pendant que les autres tiennent. Deux problèmes, deux remèdes. Le tableau donne
+revenus, coûts et marge par chantier, les pires en tête.
+
+Deux précautions y sont prises :
+
+- **La structure imputée à un chantier est comptée à part.** Avantage permet d'imputer des
+  salaires d'encadrement à un projet ; l'état des résultats les traite en frais généraux.
+  Les mêler au coût du chantier casserait la réconciliation entre les deux vues.
+- **Les chantiers à cheval sur la période sont signalés, pas notés.** Un chantier facturé
+  d'un côté de la borne et coûté de l'autre affiche une marge absurde — −30 054 % pour l'un,
+  +86 % pour l'autre. Ce ne sont pas des performances, ce sont des effets de bornes. Ils
+  restent listés pour que les totaux se réconcilient, sans pourcentage.
+
 ## Décrire les tables réelles
 
 Les noms de champs varient d'une installation d'Avantage à l'autre. Pour voir ceux du poste :
@@ -313,7 +343,7 @@ triée par montant : c'est la liste de travail pour affiner le plan comptable.
 npm run test:tout
 ```
 
-151 vérifications en six harnais :
+156 vérifications en six harnais :
 
 | Harnais | Nombre | Ce qu'il couvre |
 |---|---|---|
@@ -321,7 +351,7 @@ npm run test:tout
 | `npm run test:dbf` | 29 | Le format `.DBF` sur de vrais fichiers binaires fabriqués pour l'occasion : types de champs, enregistrements supprimés, dates vides, montants négatifs, compteur menteur, lecture par blocs sur 20 000 enregistrements, échantillon réparti sur toute la table, verdict de lisibilité qui distingue une table chiffrée d'une table vide |
 | `npm run test:mappage` | 26 | Résolution des champs, et surtout son **refus** : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec, colonne vide selon la façon dont elle a été retrouvée, champ facultatif absent qui ne condamne pas la table |
 | `npm run test:bout-en-bout` | 27 | Un jeu complet de `.DBF` jusqu'à l'état des résultats : résolution automatique, séparation projet / frais général, exclusion des taxes, notes de crédit, mouvements de bilan, chaque total au dollar |
-| `npm run test:grand-livre` | 13 | La situation réelle de CRC : `FACTMA` chiffrée, revenus lus au grand livre, journaux en doublon écartés, réconciliation du résultat net au dollar |
+| `npm run test:grand-livre` | 18 | La situation réelle de CRC : `FACTMA` chiffrée, revenus lus au grand livre, journaux en doublon écartés, réconciliation du résultat net au dollar, marge par chantier, découpage mensuel |
 | `npm run test:vue` | 20 | Dans un vrai navigateur : drill-down au clic, réconciliation affichée, simulateur, export CSV |
 
 Le harnais de vue exige Playwright ; sans lui il se signale comme ignoré au lieu d'échouer.

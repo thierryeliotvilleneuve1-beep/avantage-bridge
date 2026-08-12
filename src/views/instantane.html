@@ -185,6 +185,12 @@
   }
   .jauge i{position:absolute; top:0; bottom:0; background:var(--vert); border-radius:1px}
   .jauge i.neg{background:var(--rouge)}
+  .pale{color:var(--graphite)}
+  table.mensuel tr.separateur td{
+    background:var(--surface-2); border-bottom:1px solid var(--trait);
+    font-family:var(--sans); font-size:12px; white-space:normal;
+  }
+  table.mensuel tr.pale-ligne td{color:var(--graphite)}
 
   /* profondeur : rail + retrait */
   .rail{display:flex; align-items:flex-start; gap:0}
@@ -353,6 +359,30 @@
           </tr>
         </thead>
         <tbody id="corps-mensuel"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Chantier par chantier : là où la marge se gagne ou se perd. -->
+  <div class="mensuel-bloc" id="bloc-projets">
+    <div class="mensuel-titre">
+      Marge par chantier
+      <span class="mensuel-aide" id="aide-projets">Une marge globale ne dit pas où l'argent
+      se perd. Ici, chaque chantier avec ses revenus facturés et ses coûts imputés.</span>
+    </div>
+    <div class="cadre">
+      <table class="mensuel">
+        <thead>
+          <tr>
+            <th style="width:30%">Chantier</th>
+            <th class="r">Revenus</th>
+            <th class="r">Coûts</th>
+            <th class="r">Marge</th>
+            <th class="r">%</th>
+            <th class="r">Pièces</th>
+          </tr>
+        </thead>
+        <tbody id="corps-projets"></tbody>
       </table>
     </div>
   </div>
@@ -702,6 +732,75 @@ $('#note-manquant').innerHTML =
         'c\'est la moyenne sur la durée qui compte, et la date de fin de période influence ' +
         'fortement le résultat affiché.';
     }
+  }
+})();
+
+// ── Marge par chantier ──────────────────────────────────────────────────────
+// Une marge globale faible peut venir de tous les chantiers un peu justes, ou de deux qui
+// saignent pendant que les autres tiennent. Deux problèmes, deux remèdes. Seule cette vue
+// les distingue.
+(function projets() {
+  const tous = E.marge_projets || [];
+  const corps = $('#corps-projets');
+  if (!tous.length) { $('#bloc-projets').style.display = 'none'; return; }
+
+  const comparables = tous.filter(p => !p.a_cheval);
+  const aCheval = tous.filter(p => p.a_cheval);
+
+  const etiquette = p => {
+    const nom = p.nom || p.client || '';
+    return '<b>' + ech(p.projet) + '</b>' + (nom ? ' <span class="pale">' + ech(nom) + '</span>' : '');
+  };
+
+  const cel = (v, texte) => '<td class="r' + (v < 0 ? ' neg' : '') + '">' +
+    '<div class="cellule">' + (texte === undefined ? arg(v) : texte) + '</div></td>';
+
+  const ligne = p => '<tr>' +
+    '<td class="lib"><div class="cellule">' + etiquette(p) + '</div></td>' +
+    cel(p.revenus) + cel(p.cout) + cel(p.marge) +
+    cel(p.marge_pct === null ? 0 : p.marge_pct, pc(p.marge_pct)) +
+    '<td class="r"><div class="cellule pale">' + p.nb_factures + ' / ' + p.nb_lignes_cout +
+    '</div></td></tr>';
+
+  let html = comparables.map(ligne).join('');
+
+  const somme = (liste, c) => liste.reduce((s, p) => s + (p[c] || 0), 0);
+  const rev = somme(comparables, 'revenus'), cout = somme(comparables, 'cout');
+  html += '<tr class="total">' +
+    '<td class="lib"><div class="cellule">' + comparables.length + ' chantiers comparables</div></td>' +
+    cel(rev) + cel(cout) + cel(rev - cout) +
+    cel(0, pc(rev ? ((rev - cout) / rev) * 100 : null)) +
+    '<td class="r"><div class="cellule"></div></td></tr>';
+
+  // Les chantiers à cheval sur la période sont montrés à part : leur marge n'est pas une
+  // performance, c'est un effet de bornes. Les mélanger fausserait la lecture.
+  if (aCheval.length) {
+    html += '<tr class="separateur"><td colspan="6"><div class="cellule pale">' +
+      aCheval.length + ' chantier' + (aCheval.length > 1 ? 's' : '') +
+      ' à cheval sur la période — facturés d\'un côté de la borne et coûtés de l\'autre. ' +
+      'Leur pourcentage ne veut rien dire ; ils sont listés pour que les totaux se ' +
+      'réconcilient.</div></td></tr>';
+    html += aCheval.map(p => '<tr class="pale-ligne">' +
+      '<td class="lib"><div class="cellule">' + etiquette(p) + '</div></td>' +
+      cel(p.revenus) + cel(p.cout) + cel(p.marge) +
+      '<td class="r"><div class="cellule pale">—</div></td>' +
+      '<td class="r"><div class="cellule pale">' + p.nb_factures + ' / ' + p.nb_lignes_cout +
+      '</div></td></tr>').join('');
+  }
+
+  corps.innerHTML = html;
+
+  // Ce que le tableau dit, dit en français sous le titre.
+  const perdants = comparables.filter(p => p.marge < 0);
+  if (perdants.length) {
+    const perte = perdants.reduce((s, p) => s + p.marge, 0);
+    const pire = perdants[0];
+    $('#aide-projets').innerHTML +=
+      '<br><b>' + perdants.length + ' chantier' + (perdants.length > 1 ? 's' : '') +
+      ' en perte, pour ' + arg(perte) + '</b> — le plus lourd est le ' + ech(pire.projet) +
+      ' à ' + arg(pire.marge) + ' (' + pc(pire.marge_pct) + ').' +
+      ' Les autres dégagent ' + pc(rev ? ((rev - cout) / rev) * 100 : null) +
+      ' au total. Le redressement se joue chantier par chantier, pas sur une moyenne.';
   }
 })();
 

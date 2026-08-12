@@ -121,6 +121,91 @@ function regrouperRevenus(revenus, projets) {
   return liste;
 }
 
+// Marge par projet.
+//
+// POURQUOI C'EST LA VUE QUI COMPTE
+// Une marge brute globale de 2 % ne dit pas où l'argent se perd. Elle peut venir de tous
+// les chantiers un peu justes, ou de deux chantiers qui saignent pendant que les autres
+// tiennent. Ce sont deux problèmes différents, avec deux remèdes différents, et seule la
+// marge chantier par chantier les distingue.
+//
+// Les revenus viennent de la facturation ou du grand livre ; les coûts, des lignes imputées
+// à ce projet. Un coût sans numéro de projet est un frais de structure et n'entre pas ici :
+// il ne se rattache à aucun chantier.
+function margeParProjet(revenus, charges, projets) {
+  const par = {};
+  const seau = cle => par[cle] || (par[cle] = {
+    projet: cle,
+    nom: (projets[cle] && projets[cle].nom) || '',
+    client: (projets[cle] && projets[cle].client) || '',
+    revenus: 0, cout: 0, structure: 0, nbFactures: 0, nbLignesCout: 0,
+    premiere: '', derniere: '',
+  });
+
+  const borner = (p, date) => {
+    if (!date) return;
+    if (!p.premiere || date < p.premiere) p.premiere = date;
+    if (!p.derniere || date > p.derniere) p.derniere = date;
+  };
+
+  for (const f of revenus) {
+    if (!f.numeroProjet) continue;
+    const p = seau(f.numeroProjet);
+    p.revenus += f.montant;
+    p.nbFactures++;
+    if (!p.client && f.client) p.client = f.client;
+    borner(p, f.date);
+  }
+
+  for (const l of charges) {
+    if (!l.estProjet || !l.numeroProjet) continue;
+    // Un mouvement de bilan imputé à un projet n'est pas un coût de chantier.
+    const cl = classer(l.numeroGl, l.fournisseur, l.estProjet);
+    const poste = POSTES[cl.poste] || POSTES.a_classer;
+    const section = Object.values(SECTIONS).find(x => x.id === poste.section);
+    if (section && section.exclu) continue;
+
+    const p = seau(l.numeroProjet);
+    // Certaines charges de structure sont imputées à un chantier dans Avantage — des
+    // salaires d'encadrement, par exemple. L'état des résultats les traite en frais
+    // généraux ; les mêler au coût du chantier empêcherait de réconcilier les deux vues.
+    // On les compte à part, sans les cacher.
+    if (poste.section === 'cout_direct') p.cout += l.montant;
+    else p.structure += l.montant;
+    p.nbLignesCout++;
+    borner(p, l.date);
+  }
+
+  return Object.values(par).map(p => {
+    const revenus = arrondi(p.revenus);
+    const cout = arrondi(p.cout);
+    const marge = arrondi(revenus - cout);
+    const pct = revenus ? arrondi((marge / revenus) * 100) : null;
+
+    // Un chantier n'est comparable aux autres que s'il tient entièrement dans la période.
+    // Sinon on lit une marge absurde : sur août 2025 à mars 2026, le 24020 — facturé
+    // l'année précédente et coûté celle-ci — affichait -30 054 %, et le 23020, facturé
+    // cette année et coûté la précédente, +86 %. Ni l'un ni l'autre n'est une performance
+    // de chantier : ce sont des bornes de période. On les signale au lieu de les faire
+    // passer pour des résultats.
+    //
+    // Les bornes retenues, -200 % et +80 %, sont large ouvertes à dessein : un mauvais
+    // chantier perd 30 ou 50 % et doit rester dans le tableau, c'est justement ce qu'on
+    // cherche. Au-delà, aucune exécution de chantier ne produit ces chiffres.
+    const aCheval = revenus <= 0 || cout <= 0 || pct === null || pct > 80 || pct < -200;
+
+    return {
+      projet: p.projet, nom: p.nom, client: p.client,
+      revenus, cout, marge,
+      marge_pct: pct,
+      cout_structure_impute: arrondi(p.structure),
+      nb_factures: p.nbFactures, nb_lignes_cout: p.nbLignesCout,
+      premiere: p.premiere, derniere: p.derniere,
+      a_cheval: aCheval,
+    };
+  }).sort((a, b) => a.marge - b.marge); // les pires en tête : c'est là qu'on agit
+}
+
 // Construit l'état des résultats complet pour une période.
 // Revenus et coûts mois par mois.
 //
@@ -213,6 +298,7 @@ async function construire(debut, fin) {
   // à partir du nombre de mois affiché et retomber exactement sur nos chiffres.
   const mois = arrondi(moisEntre(debut, fin));
   const mensuel = repartirParMois(revenus, charges, debut, fin);
+  const parProjet = margeParProjet(revenus, charges, projets);
 
   return {
     genere_le: new Date().toISOString(),
@@ -227,6 +313,7 @@ async function construire(debut, fin) {
     },
     sections,
     mensuel,
+    marge_projets: parProjet,
     totaux: {
       revenus: totalRevenus,
       cout_direct: totalCoutDirect,

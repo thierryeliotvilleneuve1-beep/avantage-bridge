@@ -199,6 +199,52 @@ function ecrireJeu() {
       'des charges non classées : ' + etat.totaux.non_classe);
   });
 
+  console.log('\nMarge par chantier');
+
+  await test('la somme des coûts de chantier égale le coût des travaux', () => {
+    const somme = etat.marge_projets.reduce((s, p) => s + p.cout, 0);
+    assert.strictEqual(Math.round(somme), Math.round(etat.totaux.cout_direct),
+      'les deux vues doivent se réconcilier : ' + somme + ' vs ' + etat.totaux.cout_direct);
+  });
+
+  await test('la structure imputée à un chantier est comptée à part', () => {
+    // Les 80 000 $ de salaires de structure portent un numéro de projet dans le jeu
+    // d'essai. Les mêler au coût du chantier gonflerait son coût et casserait la
+    // réconciliation avec l'état des résultats.
+    const somme = etat.marge_projets.reduce((s, p) => s + p.cout_structure_impute, 0);
+    assert.strictEqual(Math.round(somme), 80000, 'structure imputée : ' + somme);
+  });
+
+  await test('le chantier porte ses revenus et sa marge', () => {
+    const p = etat.marge_projets.find(x => x.projet === '25007');
+    assert.ok(p, 'chantier 25007 absent');
+    assert.strictEqual(Math.round(p.revenus), 1000000);
+    assert.strictEqual(Math.round(p.cout), 250000);
+    assert.strictEqual(Math.round(p.marge), 750000);
+    assert.strictEqual(p.marge_pct, 75);
+  });
+
+  await test('un chantier à cheval sur la période est signalé, non noté', () => {
+    // Coût sans revenu : le pourcentage n'a aucun sens, il doit être marqué.
+    const faux = etatResultats.__margeParProjet
+      ? null
+      : etat.marge_projets.filter(p => p.revenus === 0 && p.cout !== 0);
+    (faux || []).forEach(p => assert.strictEqual(p.a_cheval, true,
+      'chantier ' + p.projet + ' sans revenu doit être marqué à cheval'));
+    // Et le chantier complet, lui, ne l'est pas.
+    const p = etat.marge_projets.find(x => x.projet === '25007');
+    assert.strictEqual(p.a_cheval, false, 'un chantier complet ne doit pas être écarté');
+  });
+
+  console.log('\nMois par mois');
+
+  await test('le découpage mensuel se réconcilie avec les totaux', () => {
+    const r = etat.mensuel.reduce((s, m) => s + m.revenus, 0);
+    const c = etat.mensuel.reduce((s, m) => s + m.cout_direct, 0);
+    assert.strictEqual(Math.round(r), Math.round(etat.totaux.revenus));
+    assert.strictEqual(Math.round(c), Math.round(etat.totaux.cout_direct));
+  });
+
   console.log('\n' + reussis + ' réussis, ' + echecs + ' échecs');
   fs.rmSync(DIR, { recursive: true, force: true });
   process.exit(echecs ? 1 : 0);
