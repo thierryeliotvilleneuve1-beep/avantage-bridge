@@ -260,8 +260,18 @@ function inventaire() {
   return { repertoire: repertoire(), tables: dbf.inventaire(repertoire(), TABLES_ATTENDUES) };
 }
 
+// Le contenu de cette table se décode-t-il ? Avantage chiffre certaines tables : les noms
+// de champs restent lisibles, les valeurs non. Sans ce contrôle, l'échec de résolution se
+// présente comme « date incohérente » alors que la vraie cause est le chiffrement, et on
+// cherche un mappage qui n'existe pas.
+function lisibilite(table) {
+  const f = fichier(table);
+  if (!f) return null;
+  try { return dbf.lisibilite(f, meta(table), 200); } catch (e) { return null; }
+}
+
 module.exports = {
   disponible, raisonIndisponible, repertoire, aTable, listerColonnes, echantillonner,
   lireFactures, lireChargesFournisseurs, lireEcritures, lireProjets, lireActivites,
-  lireCommandeDivisions, inventaire, meta, TABLES_ATTENDUES,
+  lireCommandeDivisions, inventaire, lisibilite, meta, TABLES_ATTENDUES,
 };

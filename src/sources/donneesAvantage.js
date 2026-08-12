@@ -66,6 +66,21 @@ async function autoMapper(forcer) {
       const r = await autoMappage.deduire(t, src.depot);
       r.voie = src.nom;
       if (r.retenu) autoMappage.appliquer(r);
+
+      // Un échec de résolution sur une table chiffrée n'est pas un problème de mappage :
+      // aucun nom de colonne ne le corrigera. On nomme la vraie cause, sinon on cherche
+      // longtemps une correspondance qui n'existe pas.
+      if (!r.retenu && src.nom === 'dbf') {
+        const lis = dbfDepot.lisibilite(t);
+        if (lis && lis.verdict === 'illisible') {
+          r.contenu_illisible = lis;
+          r.raison = 'contenu illisible (chiffré par Avantage ou format inconnu) — ' +
+            lis.taux + ' % des dates et nombres se décodent sur ' +
+            lis.valeurs_examinees + ' valeurs. Aucun mappage ne corrigera cela : ' +
+            'il faut une autre source pour cette table.';
+        }
+      }
+
       mappageResultats.push(r);
       console.log('[INFO] mappage ' + t + ' (' + src.nom + ') : ' +
         (r.retenu ? 'retenu' : 'refusé — ' + r.raison));

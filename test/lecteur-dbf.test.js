@@ -314,6 +314,69 @@ test('l\'échantillon réparti écarte les enregistrements supprimés', () => {
     'aucun enregistrement effacé ne doit ressortir');
 });
 
+// ── Lisibilité : distinguer le chiffré du vide ───────────────────────────────────
+// Avantage chiffre le contenu de certaines tables. Les noms de champs restent en clair,
+// donc une résolution de colonnes « réussit » sur une table dont pas une valeur n'est
+// utilisable. Le piège : après conversion, une date illisible ressort en chaîne vide, donc
+// indistinguable d'une date absente — un indicateur calculé après conversion conclut
+// toujours « tout va bien ». Le contrôle doit lire les octets bruts.
+console.log('\nLisibilité du contenu');
+
+const CHAMPS_MIXTES = [
+  { nom: 'CLE', type: 'C', longueur: 10 },
+  { nom: 'QUAND', type: 'D', longueur: 8 },
+  { nom: 'COMBIEN', type: 'N', longueur: 14, decimales: 2 },
+  { nom: 'VRAI', type: 'L', longueur: 1 },
+];
+
+test('une table saine est déclarée lisible', () => {
+  const lignes = [];
+  for (let i = 0; i < 40; i++) {
+    lignes.push({ CLE: 'F' + i, QUAND: '2026030' + (i % 9 + 1),
+      COMBIEN: String(1000 + i) + '.00', VRAI: i % 2 ? 'T' : 'F' });
+  }
+  const f = ecrireDbf('SAINE.DBF', CHAMPS_MIXTES, lignes);
+  const l = dbf.lisibilite(f);
+  assert.strictEqual(l.verdict, 'lisible', JSON.stringify(l));
+  assert.strictEqual(l.taux, 100);
+});
+
+test('une table chiffrée est déclarée illisible, pas vide', () => {
+  // Des octets quelconques dans des champs déclarés date, nombre et booléen : c'est ce
+  // que donne à lire une table protégée par Avantage.
+  const lignes = [];
+  for (let k = 0; k < 40; k++) {
+    lignes.push({
+      CLE: Buffer.from(Array.from({ length: 10 }, (_, i) => 33 + (i * 13 + k * 7) % 90)),
+      QUAND: Buffer.from(Array.from({ length: 8 }, (_, i) => 200 + (i + k) % 50)),
+      COMBIEN: Buffer.from(Array.from({ length: 14 }, (_, i) => 190 + (i * 3 + k) % 60)),
+      VRAI: Buffer.from([160 + k % 90]),
+    });
+  }
+  const f = ecrireDbf('CHIFFREE.DBF', CHAMPS_MIXTES, lignes);
+  const l = dbf.lisibilite(f);
+  assert.strictEqual(l.verdict, 'illisible', JSON.stringify(l));
+  assert.ok(l.valeurs_examinees > 0, 'les valeurs illisibles doivent être COMPTÉES, pas écartées');
+  assert.ok(l.taux <= 20, 'taux : ' + l.taux);
+});
+
+test('une colonne légitimement vide ne fait pas croire au chiffrement', () => {
+  const lignes = [];
+  for (let i = 0; i < 20; i++) {
+    // Date, montant et booléen laissés en blanc, comme dans un enregistrement ancien.
+    lignes.push({ CLE: 'F' + i });
+  }
+  const f = ecrireDbf('VIDES.DBF', CHAMPS_MIXTES, lignes);
+  const l = dbf.lisibilite(f);
+  assert.strictEqual(l.verdict, 'vide', JSON.stringify(l));
+  assert.strictEqual(l.taux, null);
+});
+
+test('le drapeau de chiffrement de l\'en-tête est remonté', () => {
+  const meta = dbf.lireEnTete(fPybbil);
+  assert.strictEqual(typeof meta.drapeauChiffrement, 'number');
+});
+
 // ── Repérage et inventaire ──────────────────────────────────────────────────────
 console.log('\nRepérage des fichiers');
 

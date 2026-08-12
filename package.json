@@ -11,7 +11,8 @@
     "test:tout": "npm test && npm run test:dbf && npm run test:mappage && npm run test:bout-en-bout && npm run test:vue",
     "test:dbf": "node test/lecteur-dbf.test.js",
     "test:bout-en-bout": "node test/bout-en-bout-dbf.test.js",
-    "inventaire": "node scripts/inventaire-dbf.js"
+    "inventaire": "node scripts/inventaire-dbf.js",
+    "diagnostic": "node scripts/diagnostic-avantage.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

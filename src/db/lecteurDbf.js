@@ -61,6 +61,10 @@ function lireEnTete(chemin) {
     const longueurEnTete = tete.readUInt16LE(8);
     const longueurEnregistrement = tete.readUInt16LE(10);
     const codePage = tete[29];
+    // Octet 15 : drapeau de chiffrement dBASE. Avantage protège certaines tables — les
+    // noms de champs restent en clair dans l'en-tête, le contenu non. On le remonte pour
+    // pouvoir le dire, jamais pour tenter de déchiffrer.
+    const drapeauChiffrement = tete[15];
 
     if (longueurEnTete < 33 || longueurEnregistrement < 1) {
       throw new Error('en-tête .DBF incohérent (en-tête ' + longueurEnTete +
@@ -100,6 +104,7 @@ function lireEnTete(chemin) {
       version,
       versionLibelle: VERSIONS[version] || ('inconnue (0x' + version.toString(16) + ')'),
       codePage,
+      drapeauChiffrement,
       nbEnregistrementsAnnonce: nbEnregistrements,
       nbEnregistrements: Math.min(nbEnregistrements, calcule) || calcule,
       longueurEnTete,
@@ -286,6 +291,68 @@ function echantillonReparti(chemin, n, metaFournie) {
   return sorties;
 }
 
+// Une table est-elle réellement exploitable ?
+//
+// Avantage chiffre le contenu de certaines tables. Les noms de champs restent lisibles
+// dans l'en-tête, si bien qu'une résolution de colonnes « réussit » sur une table dont
+// pas une valeur n'est utilisable. Le seul juge fiable est le contenu.
+//
+// Le test se fait sur les OCTETS BRUTS, et c'est essentiel : après conversion, une date
+// illisible ressort en chaîne vide et un nombre illisible en null — donc indistinguables
+// d'un champ légitimement vide. Un indicateur calculé après conversion écarte du
+// dénominateur exactement les valeurs qu'il devrait compter comme des échecs, et conclut
+// toujours « tout va bien ». On lit donc les enregistrements tels qu'ils sont sur le
+// disque : un champ déclaré date dont les huit octets ne sont ni blancs ni AAAAMMJJ est un
+// échec, et il est compté comme tel.
+//
+// Aucune tentative de déchiffrement : on constate, on ne contourne rien.
+function lisibilite(chemin, metaFournie, n) {
+  const meta = metaFournie || lireEnTete(chemin);
+  const testes = meta.champs.filter(c => ['D', 'N', 'F', 'L'].includes(c.type));
+  if (!testes.length) return { verdict: 'indeterminee', champs_testes: 0, taux: null };
+
+  const voulu = Math.max(1, n || 200);
+  const total = meta.nbEnregistrements;
+  if (!total) return { verdict: 'vide', champs_testes: testes.length, taux: null };
+  const pas = Math.max(1, Math.floor(total / voulu));
+
+  const fd = fs.openSync(chemin, 'r');
+  let remplis = 0, decodes = 0, examines = 0;
+  try {
+    const tampon = Buffer.alloc(meta.longueurEnregistrement);
+    for (let i = 0; i < total && examines < voulu; i += pas) {
+      const position = meta.longueurEnTete + i * meta.longueurEnregistrement;
+      if (fs.readSync(fd, tampon, 0, meta.longueurEnregistrement, position) <= 0) break;
+      if (tampon[0] === SUPPRIME) continue;
+      examines++;
+
+      for (const c of testes) {
+        const brut = tampon.slice(c.decalage, c.decalage + c.longueur).toString('latin1');
+        const s = brut.replace(/\0/g, '').trim();
+        // Un champ vide ou à zéro est un état normal, pas un échec de lecture.
+        if (!s || /^0+$/.test(s)) continue;
+        remplis++;
+        if (c.type === 'D') { if (/^\d{8}$/.test(s)) decodes++; }
+        else if (c.type === 'L') { if (/^[TFYN01?]$/i.test(s)) decodes++; }
+        else if (/^[-+]?[\d.,\s]+$/.test(s) && Number.isFinite(parseFloat(s.replace(',', '.')))) decodes++;
+      }
+    }
+  } finally {
+    fs.closeSync(fd);
+  }
+
+  if (!remplis) return { verdict: 'vide', champs_testes: testes.length, taux: null };
+  const taux = decodes / remplis;
+  return {
+    champs_testes: testes.length,
+    enregistrements_examines: examines,
+    valeurs_examinees: remplis,
+    taux: Math.round(taux * 100),
+    verdict: taux >= 0.85 ? 'lisible' : (taux <= 0.2 ? 'illisible' : 'douteuse'),
+  };
+}
+
 module.exports = {
-  lireEnTete, lireTable, echantillonReparti, trouverFichier, inventaire, convertir, VERSIONS,
+  lireEnTete, lireTable, echantillonReparti, trouverFichier, inventaire, convertir,
+  lisibilite, VERSIONS,
 };

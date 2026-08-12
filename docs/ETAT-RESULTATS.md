@@ -92,6 +92,36 @@ un tel fichier serait pire qu'aucun fichier, parce qu'il circulerait.
 Le message indique alors quel champ de `FACTMA` a échoué, à quel taux, et liste les
 colonnes réelles de la table — de quoi corriger la résolution sans deviner.
 
+## Tables chiffrées par Avantage
+
+Avantage protège le contenu de certaines tables. Leur en-tête reste lisible — d'où des noms
+de champs parfaitement corrects — mais les valeurs, non : un champ déclaré date livre huit
+octets qui ne sont pas une date, un champ numérique des octets qui ne sont pas un nombre.
+Certaines de ces tables portent d'ailleurs un champ nommé `CRYPTED`.
+
+Le bridge **le constate et le nomme**, sans jamais tenter de déchiffrer :
+
+```bash
+npm run diagnostic                          # les douze derniers mois
+npm run diagnostic -- 2025-08-01 2026-07-31
+```
+
+Le rapport donne, table par table : nombre d'enregistrements, version du format, drapeau de
+chiffrement de l'en-tête, et un verdict de lisibilité — `LISIBLE`, `DOUTEUSE`, `ILLISIBLE`
+ou `VIDE` — avec le pourcentage de dates et de nombres qui se décodent réellement.
+
+Le verdict se calcule sur les **octets bruts**, et c'est indispensable : après conversion,
+une date illisible ressort en chaîne vide et un nombre illisible en `null`, donc
+indistinguables d'un champ légitimement vide. Un indicateur calculé après conversion écarte
+du dénominateur exactement les valeurs qu'il devrait compter comme des échecs, et conclut
+toujours que tout va bien.
+
+Quand une table est illisible, le message de mappage le dit franchement — « contenu
+illisible (chiffré par Avantage ou format inconnu) » — au lieu d'accuser un champ date.
+Aucun nom de colonne ne corrige un chiffrement : il faut une autre source. Pour les revenus,
+le rapport sonde le grand livre `TRANS` et liste les types de journaux et les comptes avec
+leurs montants, ce qui montre si les produits y sont et rend `FACTMA` inutile.
+
 ## Décrire les tables réelles
 
 Les noms de champs varient d'une installation d'Avantage à l'autre. Pour voir ceux du poste :
@@ -255,12 +285,12 @@ triée par montant : c'est la liste de travail pour affiner le plan comptable.
 npm run test:tout
 ```
 
-134 vérifications en cinq harnais :
+138 vérifications en cinq harnais :
 
 | Harnais | Nombre | Ce qu'il couvre |
 |---|---|---|
 | `npm test` | 36 | Refus d'écriture, classification, normalisation des numéros de projet (un sous-projet `3006-1` ne se confond pas avec son parent `3006`), lecture des fiches CONTRA, exclusion des taxes, réconciliation du drill-down, annualisation |
-| `npm run test:dbf` | 25 | Le format `.DBF` sur de vrais fichiers binaires fabriqués pour l'occasion : types de champs, enregistrements supprimés, dates vides, montants négatifs, compteur menteur, lecture par blocs sur 20 000 enregistrements, échantillon réparti sur toute la table |
+| `npm run test:dbf` | 29 | Le format `.DBF` sur de vrais fichiers binaires fabriqués pour l'occasion : types de champs, enregistrements supprimés, dates vides, montants négatifs, compteur menteur, lecture par blocs sur 20 000 enregistrements, échantillon réparti sur toute la table, verdict de lisibilité qui distingue une table chiffrée d'une table vide |
 | `npm run test:mappage` | 26 | Résolution des champs, et surtout son **refus** : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec, colonne vide selon la façon dont elle a été retrouvée, champ facultatif absent qui ne condamne pas la table |
 | `npm run test:bout-en-bout` | 27 | Un jeu complet de `.DBF` jusqu'à l'état des résultats : résolution automatique, séparation projet / frais général, exclusion des taxes, notes de crédit, mouvements de bilan, chaque total au dollar |
 | `npm run test:vue` | 20 | Dans un vrai navigateur : drill-down au clic, réconciliation affichée, simulateur, export CSV |
