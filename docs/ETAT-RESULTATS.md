@@ -124,9 +124,13 @@ GET /api/etat-resultats/mappage?key=VOTRE_CLE_API
 
 Le module npm `odbc` est une extension native : sous Windows il réclame node-gyp, Python
 et les Build Tools de Visual Studio. Le bridge passe donc par **PowerShell et
-System.Data.Odbc**, livrés avec Windows. Si quelqu'un installe `npm install odbc`, le
-bridge le préfère automatiquement — il est plus rapide sur de gros volumes — mais ce n'est
-jamais nécessaire. `AVANTAGE_BD_VOIE` force une voie si besoin.
+System.Data.Odbc**, livrés avec Windows.
+
+Ce module ne figure volontairement pas dans les dépendances, même optionnelles : sa
+compilation échouerait bruyamment à chaque `npm install` sans rien apporter. Qui veut le
+gain de vitesse sur de gros volumes l'installe à la main avec `npm install odbc` — le
+bridge le détecte et le préfère alors automatiquement. `AVANTAGE_BD_VOIE` force une voie
+si besoin.
 
 Le moteur de base n'a pas à être connu : Actian Zen, SQL Server, Sybase ou autre, c'est le
 pilote ODBC installé qui s'en charge. Seul le DSN change.
