@@ -11,7 +11,11 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY || 'CHANGE_MOI_CLE_SECRETE_LONGUE';
-const EXPORT_DIR = path.resolve(__dirname, '../exports-avantage');
+// Même résolution que src/sources/donneesAvantage.js, pour que /api/status annonce
+// le répertoire réellement lu.
+const EXPORT_DIR = process.env.AVANTAGE_EXPORT_DIR
+  ? path.resolve(process.env.AVANTAGE_EXPORT_DIR)
+  : path.resolve(__dirname, '../exports-avantage');
 const CRON_SCHEDULE = process.env.CRON_SCHEDULE || '*/15 * * * *';
 
 // Auth middleware
@@ -30,10 +34,13 @@ app.get('/api/status', (req, res) => {
 const budgetRouter = require('./routes/budget');
 const bcSyncRouter = require('./routes/bc-sync');
 const transSyncRouter = require('./routes/trans-sync');
+const etatResultatsRouter = require('./routes/etat-resultats');
 
 app.use('/api/budget', auth, budgetRouter);
 app.use('/api/bc', auth, bcSyncRouter);
 app.use('/api/trans', auth, transSyncRouter);
+// État des résultats — lecture seule dans Avantage, n'écrit rien.
+app.use('/api/etat-resultats', auth, etatResultatsRouter);
 
 // Cron sync
 let lastSync = null;

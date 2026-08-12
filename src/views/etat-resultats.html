@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>État des résultats — CRC</title>
+<!-- Favicon en ligne : évite une requête 404 vers /favicon.ico. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23DD101B' d='M0 0h27l5 5v27H5L0 27z'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-size='13' font-weight='bold' fill='%23fff' text-anchor='middle'%3ECRC%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --rouge:#8D0005; --rouge-vif:#DD101B; --noir:#0A0A0A; --gris:#828182;
+    --gris-clair:#C4C4C4; --fond:#fff; --fond-alt:#FAFAFA; --vert:#0A6B2F;
+    --ligne:#E4E4E4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--fond);color:var(--noir);
+    font-family:"Montserrat",Calibri,"Segoe UI",system-ui,sans-serif;
+    font-weight:300;font-size:14px;line-height:1.45;
+  }
+  .bandeau{background:var(--noir);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .sigle{width:38px;height:38px;background:var(--rouge-vif);display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:14px;flex:none;clip-path:polygon(0 0,85% 0,100% 15%,100% 100%,15% 100%,0 85%)}
+  .bandeau h1{font-size:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin:0}
+  .bandeau .st{font-size:11px;color:var(--gris-clair);font-weight:300;letter-spacing:.8px}
+  .badge{margin-left:auto;font-size:11px;border:1px solid var(--vert);color:#7BE3A4;padding:3px 9px;border-radius:2px;
+    text-transform:uppercase;letter-spacing:1px;font-weight:500}
+  .zone{max-width:1240px;margin:0 auto;padding:18px 20px 60px}
+
+  .barre{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:14px 16px;border:1px solid var(--gris-clair);
+    border-top:3px solid var(--rouge);margin-bottom:18px;background:var(--fond-alt)}
+  .champ{display:flex;flex-direction:column;gap:3px}
+  .champ label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--gris);font-weight:500}
+  .champ input,.champ select{font-family:inherit;font-size:13px;padding:5px 7px;border:1px solid var(--gris-clair);background:#fff;color:var(--noir)}
+  button{font-family:inherit;font-size:13px;font-weight:500;padding:6px 14px;border:none;background:var(--rouge);color:#fff;cursor:pointer}
+  button:hover{background:var(--rouge-vif)}
+  button.sec{background:#fff;color:var(--noir);border:1px solid var(--gris-clair)}
+  button.sec:hover{background:#F0F0F0}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-bottom:18px}
+  .kpi{border:1px solid var(--gris-clair);border-top:3px solid var(--rouge);padding:10px 12px;background:#fff}
+  .kpi .v{font-size:19px;font-weight:800;letter-spacing:-.4px;font-variant-numeric:tabular-nums}
+  .kpi .l{font-size:9.5px;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;line-height:1.3}
+  .kpi.neg .v{color:var(--rouge)} .kpi.pos .v{color:var(--vert)}
+  .kpi .sim{font-size:10.5px;color:var(--vert);font-weight:500;margin-top:3px;font-variant-numeric:tabular-nums}
+
+  h2{font-size:13px;font-weight:800;text-transform:uppercase;color:var(--rouge);letter-spacing:.5px;
+    margin:26px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--rouge)}
+
+  table.pl{width:100%;border-collapse:collapse;font-size:13px}
+  table.pl th{background:var(--noir);color:#fff;font-weight:500;text-align:left;padding:7px 9px;font-size:10px;
+    text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;z-index:2}
+  table.pl th.r,table.pl td.r{text-align:right}
+  table.pl td{padding:5px 9px;border-bottom:1px solid var(--ligne);font-variant-numeric:tabular-nums}
+  table.pl td.lib{font-variant-numeric:normal}
+
+  tr.n0>td{font-weight:800;background:#F2EFEF;border-top:2px solid var(--noir);font-size:13.5px}
+  tr.n1>td{font-weight:500;background:#FBFBFB}
+  tr.n2>td{color:#333}
+  tr.n3>td{color:#444;font-size:12.5px}
+  tr.n4>td{color:var(--gris);font-size:12px;background:var(--fond-alt)}
+  tr.total>td{font-weight:800;background:var(--noir);color:#fff;border:none;font-size:14px}
+  tr.total.marge>td{background:var(--rouge)}
+
+  .pliant{cursor:pointer;user-select:none}
+  .pliant:hover>td{background:#F5EFEF !important}
+  .fleche{display:inline-block;width:11px;color:var(--rouge-vif);font-weight:800;font-size:10px}
+  .indent1{padding-left:22px !important}
+  .indent2{padding-left:42px !important}
+  .indent3{padding-left:62px !important}
+  .indent4{padding-left:82px !important}
+  .cache{display:none}
+
+  .levier{display:inline-block;font-size:9px;text-transform:uppercase;letter-spacing:.6px;padding:1px 6px;
+    border-radius:2px;margin-left:7px;font-weight:600;vertical-align:middle}
+  .lv-negociable{background:#E8F4EC;color:var(--vert)}
+  .lv-structurel{background:#FDF0E6;color:#9A5B00}
+  .lv-fixe{background:#EFEFEF;color:#555}
+  .lv-volume{background:#EAF0F8;color:#1B4E8C}
+  .lv-inconnu{background:#FBE9E9;color:var(--rouge)}
+
+  input.red{width:56px;font-family:inherit;font-size:12px;padding:2px 4px;border:1px solid var(--gris-clair);text-align:right}
+  input.red:focus{outline:2px solid var(--rouge-vif);outline-offset:-1px}
+  .eco{color:var(--vert);font-weight:600;font-variant-numeric:tabular-nums}
+
+  .avis{border:2px solid var(--rouge-vif);background:#FDF4F4;padding:12px 15px;margin:14px 0}
+  .avis .t{font-weight:800;text-transform:uppercase;letter-spacing:.8px;font-size:11.5px;color:var(--rouge);margin-bottom:4px}
+  .avis code{background:#fff;padding:1px 5px;border:1px solid var(--gris-clair);font-size:12px}
+  .info{border-left:4px solid var(--gris-clair);background:var(--fond-alt);padding:10px 14px;margin:12px 0;font-size:12.5px;color:#444}
+  .vide{padding:40px;text-align:center;color:var(--gris)}
+  .prov{font-size:11px;color:var(--gris);margin-top:6px}
+  .prov b{color:var(--noir);font-weight:500}
+  .prov .bd{color:var(--vert);font-weight:600}
+  .prov .csv{color:#9A5B00;font-weight:600}
+  .prov .absent{color:var(--rouge);font-weight:600}
+  .pied{margin-top:34px;padding-top:9px;border-top:2px solid var(--rouge);font-size:10.5px;color:var(--gris);line-height:1.6}
+  .pied b{color:var(--noir);font-weight:500}
+  @media print{.barre button,input.red{display:none}.bandeau{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+
+<div class="bandeau">
+  <div class="sigle">CRC</div>
+  <div>
+    <h1>Construction Richard Champagne</h1>
+    <div class="st">État des résultats — source Avantage</div>
+  </div>
+  <div class="badge" id="badgeLecture">Lecture seule</div>
+</div>
+
+<div class="zone">
+
+  <div class="barre">
+    <div class="champ"><label for="debut">Début de période</label><input type="date" id="debut"></div>
+    <div class="champ"><label for="fin">Fin de période</label><input type="date" id="fin"></div>
+    <div class="champ"><label for="raccourci">Raccourci</label>
+      <select id="raccourci">
+        <option value="">—</option>
+        <option value="12m">12 derniers mois</option>
+        <option value="aec">Année en cours</option>
+        <option value="aprec">Année précédente</option>
+        <option value="t3">3 derniers mois</option>
+      </select>
+    </div>
+    <button id="btnCharger">Charger</button>
+    <button class="sec" id="btnTout">Tout déployer</button>
+    <button class="sec" id="btnPlier">Tout replier</button>
+    <button class="sec" id="btnRaz">Effacer les réductions</button>
+    <button class="sec" id="btnCsv">Exporter CSV</button>
+    <button class="sec" id="btnImprimer">Imprimer</button>
+  </div>
+
+  <div id="contenu"><div class="vide">Choisir une période puis cliquer sur « Charger ».</div></div>
+
+  <div class="pied">
+    <b>Construction Richard Champagne inc.</b> &nbsp;|&nbsp; Saint-Tite, Québec<br>
+    RBQ : 8231-1127-01 &nbsp;|&nbsp; NEQ : 1180040314 &nbsp;|&nbsp; info@c-rc.ca &nbsp;|&nbsp; 418 365-7973<br>
+    Données lues en <b>lecture seule</b> dans Avantage. Le bridge n'écrit jamais dans la comptabilité.
+  </div>
+</div>
+
+<script>
+const CLE = new URLSearchParams(location.search).get('key') || '';
+let ETAT = null;
+const REDUCTIONS = {};   // idPoste -> pourcentage
+
+const $ = s => document.querySelector(s);
+const argent = n => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString('fr-CA') + ' $';
+const pct = n => (n === null || n === undefined) ? '—' : n.toFixed(1) + ' %';
+const echap = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// ---------- Période ----------
+function iso(d){ return d.toISOString().slice(0,10); }
+function appliquerRaccourci(v){
+  const auj = new Date();
+  let d, f;
+  if (v === '12m'){ f = auj; d = new Date(auj); d.setMonth(d.getMonth()-12); }
+  else if (v === 'aec'){ d = new Date(auj.getFullYear(),0,1); f = auj; }
+  else if (v === 'aprec'){ d = new Date(auj.getFullYear()-1,0,1); f = new Date(auj.getFullYear()-1,11,31); }
+  else if (v === 't3'){ f = auj; d = new Date(auj); d.setMonth(d.getMonth()-3); }
+  else return;
+  $('#debut').value = iso(d); $('#fin').value = iso(f);
+}
+
+// ---------- Chargement ----------
+async function charger(){
+  const debut = $('#debut').value, fin = $('#fin').value;
+  if (!debut || !fin){ alert('Indiquer une date de début et une date de fin.'); return; }
+  $('#contenu').innerHTML = '<div class="vide">Lecture des données Avantage…</div>';
+  try{
+    const url = '/api/etat-resultats?debut=' + debut + '&fin=' + fin + (CLE ? '&key=' + encodeURIComponent(CLE) : '');
+    const r = await fetch(url);
+    const j = await r.json();
+    if (!r.ok || j.erreur){ $('#contenu').innerHTML = '<div class="avis"><div class="t">Erreur</div>' + echap(j.erreur || ('HTTP ' + r.status)) + '</div>'; return; }
+    ETAT = j;
+    rendre();
+  }catch(e){
+    $('#contenu').innerHTML = '<div class="avis"><div class="t">Erreur de communication</div>' + echap(e.message) + '</div>';
+  }
+}
+
+// ---------- Simulateur ----------
+// Retourne l'économie annuelle simulée sur les frais généraux.
+function economieSimulee(){
+  if (!ETAT) return 0;
+  let eco = 0;
+  for (const s of ETAT.sections){
+    if (s.id !== 'frais_general' && s.id !== 'non_classe') continue;
+    for (const p of s.postes){
+      const r = REDUCTIONS[p.id];
+      if (r) eco += p.total * (r / 100);
+    }
+  }
+  return eco;
+}
+function moisPeriode(){ return (ETAT && ETAT.periode.mois) ? ETAT.periode.mois : 0; }
+
+function majSimulation(){
+  const eco = economieSimulee();
+  const t = ETAT.totaux;
+  const resSim = t.resultat_net + eco;
+  const fgSim = t.frais_generaux + t.non_classe - eco;
+  const tauxMarge = t.revenus ? (t.marge_brute / t.revenus) : 0;
+  const seuilSim = tauxMarge > 0 ? fgSim / tauxMarge : null;
+
+  const mois = moisPeriode();
+  const ecoAn = mois > 0 ? eco / mois * 12 : eco;
+
+  maj('#simResultat', eco ? 'simulé ' + argent(resSim) : '');
+  maj('#simFrais', eco ? 'simulé ' + argent(fgSim) : '');
+  maj('#simSeuil', (eco && seuilSim !== null) ? 'simulé ' + argent(seuilSim) : '');
+  maj('#simEco', eco ? argent(eco) + (mois > 0 ? '  ·  ' + argent(ecoAn) + '/an' : '') : '—');
+
+  // Colonnes « après réduction » de chaque poste
+  document.querySelectorAll('[data-apres]').forEach(el => {
+    const id = el.getAttribute('data-apres');
+    const p = trouverPoste(id);
+    if (!p) return;
+    const r = REDUCTIONS[id] || 0;
+    el.textContent = r ? argent(p.total * (1 - r / 100)) : '';
+  });
+  document.querySelectorAll('[data-eco]').forEach(el => {
+    const id = el.getAttribute('data-eco');
+    const p = trouverPoste(id);
+    if (!p) return;
+    const r = REDUCTIONS[id] || 0;
+    el.textContent = r ? '−' + argent(p.total * (r / 100)).replace('−','') : '';
+  });
+}
+function maj(sel, txt){ const e = $(sel); if (e) e.textContent = txt; }
+function trouverPoste(id){
+  for (const s of ETAT.sections){ const p = s.postes.find(x => x.id === id); if (p) return p; }
+  return null;
+}
+
+// ---------- Rendu ----------
+function rendre(){
+  const t = ETAT.totaux, q = ETAT.qualite;
+  let h = '';
+
+  // Avis de qualité des données
+  if (q.pct_non_classe > 2){
+    h += '<div class="avis"><div class="t">' + pct(q.pct_non_classe) + ' des charges ne sont pas classées</div>' +
+      argent(q.montant_non_classe) + ' sur ' + q.lignes_non_classees + ' lignes portent un numéro de GL absent du plan comptable. ' +
+      'Ils apparaissent dans la section « À classer » ci-dessous et sont bien inclus dans le résultat net. ' +
+      'Pour les ventiler, ajouter leur GL dans <code>src/config/plan-comptable.js</code>.' +
+      (q.gl_a_mapper.length ? '<div style="margin-top:7px;font-size:12px">GL à mapper, du plus lourd au plus léger : ' +
+        q.gl_a_mapper.slice(0,12).map(g => '<code>' + echap(g.gl) + '</code> ' + argent(g.montant)).join(' &nbsp; ') + '</div>' : '') +
+      '</div>';
+  }
+
+  // Provenance des données
+  h += '<div class="prov">Provenance : ' + Object.entries(ETAT.provenance).map(([k,v]) =>
+    '<b>' + echap(k) + '</b> <span class="' + (v.mode === 'bd' ? 'bd' : v.mode === 'csv' ? 'csv' : 'absent') + '">' +
+    echap(v.mode.toUpperCase()) + '</span>').join(' &nbsp;·&nbsp; ') + '</div>';
+
+  // Indicateurs
+  h += '<div class="kpis">' +
+    kpi(argent(t.revenus), 'Revenus facturés', '') +
+    kpi(argent(t.cout_direct), 'Coût des travaux', '') +
+    kpi(argent(t.marge_brute) + '<span style="font-size:12px;color:#828182"> · ' + pct(t.marge_brute_pct) + '</span>',
+        'Marge brute', '', t.marge_brute >= 0 ? 'pos' : 'neg') +
+    kpi(argent(t.frais_generaux + t.non_classe),
+        t.non_classe ? 'Frais généraux<br>+ à classer' : 'Frais généraux',
+        '<span class="sim" id="simFrais"></span>') +
+    kpi(argent(t.resultat_net) + '<span style="font-size:12px;color:#828182"> · ' + pct(t.resultat_net_pct) + '</span>',
+        'Résultat net', '<span class="sim" id="simResultat"></span>', t.resultat_net >= 0 ? 'pos' : 'neg') +
+    kpi(t.seuil_rentabilite !== null ? argent(t.seuil_rentabilite) : '—', 'Seuil de rentabilité',
+        '<span class="sim" id="simSeuil"></span>') +
+    kpi('<span id="simEco">—</span>', 'Économie simulée', '') +
+    '</div>';
+
+  h += '<div class="info">Période du <b>' + echap(ETAT.periode.debut) + '</b> au <b>' + echap(ETAT.periode.fin) +
+    '</b> (' + ETAT.periode.mois.toFixed(1) + ' mois) · ' + q.lignes_de_charge.toLocaleString('fr-CA') +
+    ' lignes de charge lues. Cliquer une ligne pour descendre : poste → compte GL → fournisseur → facture. ' +
+    'Saisir un pourcentage dans la colonne « Réd. % » pour simuler une coupe.</div>';
+
+  // Tableau principal
+  h += '<h2>État des résultats</h2>';
+  h += '<table class="pl"><thead><tr>' +
+    '<th style="width:44%">Poste</th>' +
+    '<th class="r" style="width:12%">Montant</th>' +
+    '<th class="r" style="width:8%">% rev.</th>' +
+    '<th class="r" style="width:8%">Réd. %</th>' +
+    '<th class="r" style="width:12%">Après réd.</th>' +
+    '<th class="r" style="width:12%">Économie</th>' +
+    '</tr></thead><tbody>';
+
+  // --- Revenus
+  h += ligne(0, 'REVENUS FACTURÉS', t.revenus, t.revenus, null, 'rev', false);
+  ETAT.revenus.projets.forEach((p, i) => {
+    const lib = (p.projet === '(sans projet)' ? 'Sans projet' : 'P' + p.projet) + (p.nom ? ' — ' + p.nom : '') +
+      (p.client ? ' <span style="color:#828182">· ' + echap(p.client) + '</span>' : '');
+    h += ligneBrute(1, 'rev-' + i, lib, p.total, t.revenus, true, p.nb + ' fact.');
+    p.factures.forEach(f => {
+      h += '<tr class="n4 cache" data-parent="rev-' + i + '"><td class="lib indent2">' +
+        echap(f.date) + ' &nbsp; no ' + echap(f.numeroFacture) +
+        (f.soldeOuvert ? ' <span style="color:#8D0005">· ouvert ' + argent(f.soldeOuvert) + '</span>' : '') +
+        '</td><td class="r">' + argent(f.montant) + '</td><td></td><td></td><td></td><td></td></tr>';
+    });
+  });
+
+  // --- Sections de charges. Les sections hors résultat (mouvements de bilan) sont
+  // rendues après la ligne RÉSULTAT NET, pour ne pas laisser croire qu'elles y entrent.
+  const sectionsResultat = ETAT.sections.filter(s => !s.exclu);
+  const sectionsHors = ETAT.sections.filter(s => s.exclu);
+
+  for (const s of sectionsResultat){
+    const simulable = (s.id === 'frais_general' || s.id === 'non_classe');
+    h += ligne(0, s.libelle.toUpperCase(), s.total, t.revenus, null, 's-' + s.id, true);
+
+    s.postes.forEach((p, pi) => {
+      const cle = 's-' + s.id + '-p' + pi;
+      h += '<tr class="n1 pliant" data-cle="' + cle + '" data-parent="s-' + s.id + '">' +
+        '<td class="lib indent1"><span class="fleche">▸</span> ' + echap(p.libelle) +
+          '<span class="levier lv-' + echap(p.levier) + '">' + echap(p.levier) + '</span></td>' +
+        '<td class="r">' + argent(p.total) + '</td>' +
+        '<td class="r">' + (t.revenus ? pct(p.total / t.revenus * 100) : '—') + '</td>' +
+        '<td class="r">' + (simulable
+            ? '<input class="red" type="number" min="0" max="100" step="5" data-poste="' + echap(p.id) + '" placeholder="0">'
+            : '') + '</td>' +
+        '<td class="r" data-apres="' + echap(p.id) + '"></td>' +
+        '<td class="r eco" data-eco="' + echap(p.id) + '"></td></tr>';
+
+      p.comptes.forEach((c, ci) => {
+        const cleC = cle + '-c' + ci;
+        h += '<tr class="n2 pliant cache" data-cle="' + cleC + '" data-parent="' + cle + '">' +
+          '<td class="lib indent2"><span class="fleche">▸</span> ' + echap(c.gl) + ' — ' + echap(c.libelle) + '</td>' +
+          '<td class="r">' + argent(c.total) + '</td>' +
+          '<td class="r">' + (t.revenus ? pct(c.total / t.revenus * 100) : '—') + '</td>' +
+          '<td></td><td></td><td></td></tr>';
+
+        c.fournisseurs.forEach((f, fi) => {
+          const cleF = cleC + '-f' + fi;
+          h += '<tr class="n3 pliant cache" data-cle="' + cleF + '" data-parent="' + cleC + '">' +
+            '<td class="lib indent3"><span class="fleche">▸</span> ' + echap(f.nom) +
+              ' <span style="color:#828182;font-size:11px">· ' + f.nb + ' fact.</span></td>' +
+            '<td class="r">' + argent(f.total) + '</td>' +
+            '<td class="r">' + (t.revenus ? pct(f.total / t.revenus * 100) : '—') + '</td>' +
+            '<td></td><td></td><td></td></tr>';
+
+          f.factures.forEach(x => {
+            const det = [echap(x.date), x.numeroFacture ? 'no ' + echap(x.numeroFacture) : '',
+              x.projet ? 'P' + echap(x.projet) : 'frais général',
+              x.division ? echap(x.division) + (x.divisionNom ? ' ' + echap(x.divisionNom) : '') : '',
+              x.description ? echap(x.description) : ''].filter(Boolean).join(' &nbsp;·&nbsp; ');
+            h += '<tr class="n4 cache" data-parent="' + cleF + '">' +
+              '<td class="lib indent4">' + det + '</td>' +
+              '<td class="r">' + argent(x.montant) + '</td>' +
+              '<td></td><td></td><td></td><td></td></tr>';
+          });
+        });
+      });
+    });
+
+    if (s.id === 'cout_direct'){
+      h += '<tr class="total marge"><td>MARGE BRUTE</td><td class="r">' + argent(t.marge_brute) +
+        '</td><td class="r">' + pct(t.marge_brute_pct) + '</td><td></td><td></td><td></td></tr>';
+    }
+  }
+
+  h += '<tr class="total"><td>RÉSULTAT NET</td><td class="r">' + argent(t.resultat_net) +
+    '</td><td class="r">' + pct(t.resultat_net_pct) + '</td><td></td><td></td><td></td></tr>';
+
+  // Sections hors résultat, après le total, sans simulateur.
+  for (const s of sectionsHors){
+    h += ligne(0, s.libelle.toUpperCase(), s.total, t.revenus, null, 's-' + s.id, true);
+    s.postes.forEach((p, pi) => {
+      const cle = 's-' + s.id + '-p' + pi;
+      h += '<tr class="n1 pliant" data-cle="' + cle + '" data-parent="s-' + s.id + '">' +
+        '<td class="lib indent1"><span class="fleche">▸</span> ' + echap(p.libelle) +
+          '<span class="levier lv-inconnu">hors résultat</span></td>' +
+        '<td class="r">' + argent(p.total) + '</td><td class="r">—</td><td></td><td></td><td></td></tr>';
+      p.comptes.forEach((c, ci) => {
+        const cleC = cle + '-c' + ci;
+        h += '<tr class="n2 pliant cache" data-cle="' + cleC + '" data-parent="' + cle + '">' +
+          '<td class="lib indent2"><span class="fleche">▸</span> ' + echap(c.gl) + ' — ' + echap(c.libelle) + '</td>' +
+          '<td class="r">' + argent(c.total) + '</td><td class="r">—</td><td></td><td></td><td></td></tr>';
+        c.fournisseurs.forEach((f, fi) => {
+          const cleF = cleC + '-f' + fi;
+          h += '<tr class="n3 pliant cache" data-cle="' + cleF + '" data-parent="' + cleC + '">' +
+            '<td class="lib indent3"><span class="fleche">▸</span> ' + echap(f.nom) +
+              ' <span style="color:#828182;font-size:11px">· ' + f.nb + ' pièces</span></td>' +
+            '<td class="r">' + argent(f.total) + '</td><td class="r">—</td><td></td><td></td><td></td></tr>';
+          f.factures.forEach(x => {
+            const det = [echap(x.date), x.numeroFacture ? 'no ' + echap(x.numeroFacture) : '',
+              x.projet ? 'P' + echap(x.projet) : 'hors projet',
+              x.description ? echap(x.description) : ''].filter(Boolean).join(' &nbsp;·&nbsp; ');
+            h += '<tr class="n4 cache" data-parent="' + cleF + '">' +
+              '<td class="lib indent4">' + det + '</td><td class="r">' + argent(x.montant) +
+              '</td><td></td><td></td><td></td><td></td></tr>';
+          });
+        });
+      });
+    });
+  }
+
+  h += '</tbody></table>';
+
+  if (sectionsHors.length){
+    let note = 'Les <b>mouvements de bilan</b> ci-dessus (comptes d\'actif 1xxxx et de passif 2xxxx) ' +
+      'sont des virements, remboursements de prêt ou écritures de retenue. Ce ne sont pas des charges : ' +
+      'ils sont affichés pour que rien ne soit caché, mais <b>ils n\'entrent pas dans le résultat net</b>.';
+    // Les primes d'assurance sont portées à un compte d'actif payé d'avance : la dépense
+    // réelle de la période n'apparaît donc pas dans les frais généraux. À signaler, sinon
+    // on croit à tort que CRC n'a presque pas de frais d'assurance.
+    const assur = sectionsHors.flatMap(s => s.postes).find(p => p.id === 'assurances_payees_davance');
+    if (assur){
+      note += ' <b>À noter :</b> les primes d\'assurance sont comptabilisées en actif payé d\'avance ' +
+        '(' + argent(assur.total) + ' sur la période). C\'est le montant réellement déboursé et négociable, ' +
+        'même s\'il ne figure pas dans la ligne « Assurances » des frais généraux.';
+    }
+    h += '<div class="info">' + note + '</div>';
+  }
+
+  if (ETAT.annualise){
+    const a = ETAT.annualise;
+    h += '<h2>Projection sur douze mois</h2><table class="pl"><tbody>' +
+      '<tr class="n1"><td class="lib">Revenus annualisés</td><td class="r">' + argent(a.revenus) + '</td></tr>' +
+      '<tr class="n1"><td class="lib">Coût des travaux annualisé</td><td class="r">' + argent(a.cout_direct) + '</td></tr>' +
+      '<tr class="n1"><td class="lib">Frais généraux annualisés</td><td class="r">' + argent(a.frais_generaux) + '</td></tr>' +
+      '<tr class="total"><td>Résultat net annualisé</td><td class="r">' + argent(a.resultat_net) + '</td></tr>' +
+      '</tbody></table>';
+  }
+
+  $('#contenu').innerHTML = h;
+  brancher();
+  majSimulation();
+}
+
+function kpi(valeur, libelle, sim, classe){
+  return '<div class="kpi ' + (classe || '') + '"><div class="v">' + valeur + '</div>' +
+    '<div class="l">' + libelle + '</div>' + (sim || '') + '</div>';
+}
+// `deploye` indique si les enfants de la ligne sont déjà visibles : la flèche doit
+// refléter l'état réel, sinon on affiche « replié » sur une ligne ouverte.
+function ligne(niveau, libelle, montant, revenus, red, cle, deploye){
+  return '<tr class="n0 pliant" data-cle="' + cle + '"><td class="lib"><span class="fleche">' +
+    (deploye ? '▾' : '▸') + '</span> ' + echap(libelle) +
+    '</td><td class="r">' + argent(montant) + '</td><td class="r">' +
+    (revenus ? pct(montant / revenus * 100) : '—') + '</td><td></td><td></td><td></td></tr>';
+}
+function ligneBrute(niveau, cle, libelleHtml, montant, revenus, pliant, note){
+  return '<tr class="n' + niveau + (pliant ? ' pliant' : '') + ' cache" data-cle="' + cle + '" data-parent="' +
+    cle.split('-').slice(0,1).join('-') + '"><td class="lib indent1">' + (pliant ? '<span class="fleche">▸</span> ' : '') +
+    libelleHtml + (note ? ' <span style="color:#828182;font-size:11px">· ' + echap(note) + '</span>' : '') +
+    '</td><td class="r">' + argent(montant) + '</td><td class="r">' + (revenus ? pct(montant / revenus * 100) : '—') +
+    '</td><td></td><td></td><td></td></tr>';
+}
+
+// ---------- Pliage ----------
+function brancher(){
+  document.querySelectorAll('tr.pliant').forEach(tr => {
+    tr.addEventListener('click', ev => {
+      if (ev.target.tagName === 'INPUT') return;
+      basculer(tr.getAttribute('data-cle'), tr);
+    });
+  });
+  document.querySelectorAll('input.red').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const id = inp.getAttribute('data-poste');
+      const v = parseFloat(inp.value);
+      if (!Number.isFinite(v) || v <= 0) delete REDUCTIONS[id];
+      else REDUCTIONS[id] = Math.min(100, v);
+      majSimulation();
+    });
+    inp.addEventListener('click', e => e.stopPropagation());
+  });
+}
+function basculer(cle, tr){
+  if (!cle) return;
+  const enfants = document.querySelectorAll('[data-parent="' + cle + '"]');
+  if (!enfants.length) return;
+  const ouvert = !enfants[0].classList.contains('cache');
+  enfants.forEach(e => {
+    if (ouvert){ e.classList.add('cache'); replierDescendants(e); } else { e.classList.remove('cache'); }
+  });
+  const f = tr.querySelector('.fleche');
+  if (f) f.textContent = ouvert ? '▸' : '▾';
+}
+function replierDescendants(el){
+  const cle = el.getAttribute('data-cle');
+  if (!cle) return;
+  document.querySelectorAll('[data-parent="' + cle + '"]').forEach(e => {
+    e.classList.add('cache'); replierDescendants(e);
+  });
+  const f = el.querySelector('.fleche');
+  if (f) f.textContent = '▸';
+}
+
+// ---------- Export CSV ----------
+function exporterCsv(){
+  if (!ETAT) return;
+  const l = [['Section','Poste','Compte GL','Fournisseur','Date','No facture','Projet','Division','Description','Montant']];
+  l.push(['REVENUS','','','','','','','','', ETAT.totaux.revenus]);
+  ETAT.revenus.projets.forEach(p => p.factures.forEach(f =>
+    l.push(['Revenus', 'P' + p.projet, '', p.client || '', f.date, f.numeroFacture, p.projet, '', '', f.montant])));
+  ETAT.sections.forEach(s => s.postes.forEach(p => p.comptes.forEach(c => c.fournisseurs.forEach(f => f.factures.forEach(x =>
+    l.push([s.libelle, p.libelle, c.gl, f.nom, x.date, x.numeroFacture, x.projet, x.division, x.description, x.montant]))))));
+  const csv = '﻿' + l.map(r => r.map(v => {
+    const s = String(v == null ? '' : v);
+    return /[";\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'CRC - Etat des resultats - ' + ETAT.periode.debut + ' au ' + ETAT.periode.fin + '.csv';
+  a.click();
+}
+
+// ---------- Branchements ----------
+$('#btnCharger').addEventListener('click', charger);
+$('#raccourci').addEventListener('change', e => { appliquerRaccourci(e.target.value); if (e.target.value) charger(); });
+$('#btnTout').addEventListener('click', () => {
+  document.querySelectorAll('tr.cache').forEach(e => e.classList.remove('cache'));
+  document.querySelectorAll('.fleche').forEach(f => f.textContent = '▾');
+});
+$('#btnPlier').addEventListener('click', () => {
+  document.querySelectorAll('tr[data-parent]').forEach(e => e.classList.add('cache'));
+  document.querySelectorAll('.fleche').forEach(f => f.textContent = '▸');
+});
+$('#btnRaz').addEventListener('click', () => {
+  Object.keys(REDUCTIONS).forEach(k => delete REDUCTIONS[k]);
+  document.querySelectorAll('input.red').forEach(i => i.value = '');
+  majSimulation();
+});
+$('#btnCsv').addEventListener('click', exporterCsv);
+$('#btnImprimer').addEventListener('click', () => window.print());
+
+appliquerRaccourci('12m');
+charger();
+</script>
+</body>
+</html>

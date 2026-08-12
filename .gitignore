@@ -1,0 +1,5 @@
+node_modules/
+exports-avantage/
+.env
+*.log
+decouverte-bd-avantage.txt
