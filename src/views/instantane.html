@@ -277,9 +277,10 @@
 
   <h1>Où va l'argent</h1>
   <p class="chapeau">
-    Chaque dollar des douze derniers mois, du poste jusqu'à la facture. Clique une ligne pour
-    descendre. Saisis un pourcentage dans <b>Réduction</b> et regarde la barre du bas :
-    le résultat net et le seuil de rentabilité se recalculent pendant que tu tapes.
+    Chaque dollar <span id="chapeau-periode">de la période</span>, du poste jusqu'à la
+    facture. Clique une ligne pour descendre. Saisis un pourcentage dans <b>Réduction</b>
+    et regarde la barre du bas : le résultat net et le seuil de rentabilité se recalculent
+    pendant que tu tapes.
   </p>
   <div class="periode" id="periode"></div>
 
@@ -319,6 +320,7 @@
 
   <div class="note attention" id="note-bilan"></div>
   <div class="note" id="note-qualite"></div>
+  <div class="note" id="note-fraicheur"></div>
 
   <div class="pied">
     <b>Construction Richard Champagne inc.</b> · Saint-Tite, Québec<br>
@@ -374,6 +376,20 @@ const posteParId = {};
 E.sections.forEach(s => s.postes.forEach(p => { posteParId[p.id] = p; }));
 
 // ── Période et bande de synthèse ────────────────────────────────────────────
+// Le chapeau annonce la période lue, jamais une durée supposée : un instantané de huit
+// mois qui se présente comme « les douze derniers mois » fausse toute lecture.
+const MOIS_NOMS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+function moisAnnee(iso) {
+  const p = (iso || '').split('-');
+  return p.length < 2 ? iso : MOIS_NOMS[Number(p[1]) - 1] + ' ' + p[0];
+}
+const debutLibelle = moisAnnee(E.periode.debut);
+$('#chapeau-periode').textContent =
+  (/^[aeiouâàéèêîôû]/i.test(debutLibelle) ? 'd\'' : 'de ') + debutLibelle +
+  ' à ' + moisAnnee(E.periode.fin) +
+  ' (' + MOIS.toFixed(1).replace('.', ',') + ' mois)';
+
 $('#periode').textContent =
   'Période du ' + E.periode.debut + ' au ' + E.periode.fin +
   '  ·  ' + MOIS.toFixed(2).replace('.', ',') + ' mois' +
@@ -527,6 +543,29 @@ $('#note-qualite').innerHTML =
   'rattaché à un poste du plan comptable. Les GL de taxes sont exclus et les montants nets ' +
   'reconstruits à partir des paires GL de chaque facture. Un poste égale toujours la somme exacte ' +
   'de ses comptes, chaque compte la somme de ses fournisseurs, chaque fournisseur la somme de ses factures.';
+
+// D'où sortent les chiffres, et de quand datent-ils. Un état des résultats sans sa date
+// de lecture invite à décider sur des données périmées sans le savoir.
+const LIBELLES_JEU = {
+  revenus: 'Revenus', charges_fournisseurs: 'Charges fournisseurs',
+  ecritures: 'Écritures et salaires', projets: 'Noms de projets',
+  activites: 'Divisions', commandes: 'Commandes',
+};
+const MODES = { dbf: 'base Avantage', bd: 'base Avantage (ODBC)', csv: 'export CSV', absent: 'absent' };
+
+if (E.fraicheur && E.fraicheur.length) {
+  const parCsv = E.fraicheur.filter(f => f.mode === 'csv').length;
+  $('#note-fraicheur').innerHTML =
+    'Source des données : ' +
+    E.fraicheur.map(f => (LIBELLES_JEU[f.jeu] || f.jeu) + ' — <b>' +
+      (MODES[f.mode] || f.mode) + '</b>').join(' · ') +
+    (parCsv ? '<br>Lu dans un export, pas dans la base : les chiffres s\'arrêtent à la date ' +
+      'de cet export. Relancer l\'instantané sur le poste qui voit <b>A:\\AVA01</b> pour ' +
+      'lire Avantage à la seconde.' : '') +
+    '<br>' + E.fraicheur.map(f => f.detail).filter(Boolean).join(' · ');
+} else {
+  $('#note-fraicheur').style.display = 'none';
+}
 
 // ── Pliage ──────────────────────────────────────────────────────────────────
 function enfants(cle){ return document.querySelectorAll('[data-parent="' + cle + '"]'); }

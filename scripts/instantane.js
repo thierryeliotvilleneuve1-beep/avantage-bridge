@@ -71,8 +71,12 @@ function argent(n) {
     process.exit(1);
   }
 
-  // La provenance ne sert qu'au diagnostic serveur, elle alourdirait le fichier.
+  // On ne garde de la provenance que ce qui répond à « d'où sortent ces chiffres, et de
+  // quand datent-ils ». Le reste alourdirait le fichier sans rien apprendre au lecteur.
   const charge = Object.assign({}, etat);
+  charge.fraicheur = Object.entries(etat.provenance || {}).map(([jeu, p]) => ({
+    jeu, mode: p.mode, detail: p.detail,
+  }));
   delete charge.provenance;
 
   const gabarit = fs.readFileSync(GABARIT, 'utf8');
@@ -82,12 +86,15 @@ function argent(n) {
     process.exit(1);
   }
 
-  // Le gabarit est un fragment ; on l'enveloppe pour qu'il s'ouvre seul dans un navigateur.
-  const complet = '<!doctype html>\n<html lang="fr-CA">\n<head>\n<meta charset="utf-8">\n'
-    + '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
-    + page.split('</style>')[0] + '</style>\n</head>\n<body>\n'
-    + page.split('</style>').slice(1).join('</style>')
-    + '\n</body>\n</html>\n';
+  // Le gabarit est un fragment. Par défaut on l'enveloppe pour qu'il s'ouvre seul dans un
+  // navigateur ; INSTANTANE_FRAGMENT=1 le laisse nu, pour les hôtes qui fournissent
+  // eux-mêmes l'enveloppe HTML.
+  const complet = process.env.INSTANTANE_FRAGMENT === '1' ? page
+    : '<!doctype html>\n<html lang="fr-CA">\n<head>\n<meta charset="utf-8">\n'
+      + '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+      + page.split('</style>')[0] + '</style>\n</head>\n<body>\n'
+      + page.split('</style>').slice(1).join('</style>')
+      + '\n</body>\n</html>\n';
 
   fs.writeFileSync(sortie, complet, 'utf8');
 

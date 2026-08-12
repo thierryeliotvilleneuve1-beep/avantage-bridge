@@ -231,11 +231,11 @@ triée par montant : c'est la liste de travail pour affiner le plan comptable.
 npm run test:tout
 ```
 
-129 vérifications en cinq harnais :
+132 vérifications en cinq harnais :
 
 | Harnais | Nombre | Ce qu'il couvre |
 |---|---|---|
-| `npm test` | 33 | Refus d'écriture, classification, normalisation des numéros de projet (un sous-projet `3006-1` ne se confond pas avec son parent `3006`), exclusion des taxes, réconciliation du drill-down, annualisation |
+| `npm test` | 36 | Refus d'écriture, classification, normalisation des numéros de projet (un sous-projet `3006-1` ne se confond pas avec son parent `3006`), lecture des fiches CONTRA, exclusion des taxes, réconciliation du drill-down, annualisation |
 | `npm run test:dbf` | 25 | Le format `.DBF` sur de vrais fichiers binaires fabriqués pour l'occasion : types de champs, enregistrements supprimés, dates vides, montants négatifs, compteur menteur, lecture par blocs sur 20 000 enregistrements, échantillon réparti sur toute la table |
 | `npm run test:mappage` | 24 | Résolution des champs, et surtout son **refus** : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec, colonne vide selon la façon dont elle a été retrouvée |
 | `npm run test:bout-en-bout` | 27 | Un jeu complet de `.DBF` jusqu'à l'état des résultats : résolution automatique, séparation projet / frais général, exclusion des taxes, notes de crédit, mouvements de bilan, chaque total au dollar |

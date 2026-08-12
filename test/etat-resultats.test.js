@@ -154,6 +154,35 @@ function ecrireFixtures() {
     assert.notStrictEqual(normaliserProjet('00003006-1'), normaliserProjet('0000003006'));
   });
 
+  // Régression : le parseur cherchait les colonnes CONUM/CONOM, absentes de l'export réel,
+  // qui porte des intitulés français. Résultat : zéro projet nommé, et un drill-down qui
+  // n'affichait que des numéros.
+  console.log('\nFiches de projet (CONTRA)');
+  const { parseContraProjets } = require('../src/parsers/parseGrandLivre');
+
+  await test('lit les intitulés français de l\'export réel', () => {
+    const csv = 'Numéro du projet,Description du projet (1),Description du projet (2),' +
+      'Date de début du projet,Date de fin du projet,Numéro du client\n' +
+      '0000025007,Agrandissement usine,,2025/08/01,,C0042\n' +
+      '0000003006,Service après vente,,2003/01/01,,\n';
+    const m = parseContraProjets(csv);
+    assert.strictEqual(m['25007'].nom, 'Agrandissement usine');
+    assert.strictEqual(m['25007'].client, 'C0042');
+    assert.strictEqual(m['03006'].nom, 'Service après vente');
+  });
+
+  await test('lit encore les anciens exports à codes courts', () => {
+    const csv = 'CONUM,CONOM,COCLINOM\n0000025007,Agrandissement usine,KRUGER\n';
+    const m = parseContraProjets(csv);
+    assert.strictEqual(m['25007'].nom, 'Agrandissement usine');
+    assert.strictEqual(m['25007'].client, 'KRUGER');
+  });
+
+  await test('un export vide ne fait pas planter la lecture', () => {
+    assert.deepStrictEqual(parseContraProjets(''), {});
+    assert.deepStrictEqual(parseContraProjets('Numéro du projet,Description du projet (1)\n'), {});
+  });
+
   console.log('\nClassification');
   await test('sous-traitance de projet reconnue', () => {
     assert.strictEqual(classer('33500', 'GROUPE JLF', true).poste, 'sous_traitance');

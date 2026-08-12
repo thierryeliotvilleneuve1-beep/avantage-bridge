@@ -261,7 +261,53 @@ function parseFactmaRevenus(contenu) {
   return sorties;
 }
 
+// CONTRA : fiches de projet, pour afficher un nom plutôt qu'un numéro dans le drill-down.
+//
+// Même piège que FACTMA : l'export réel porte des intitulés français
+// (« Numéro du projet », « Description du projet (1) ») et non les codes CONUM/CONOM.
+// Cherchés par nom, avec repli sur les positions relevées dans l'export CRC, et prise en
+// charge des anciens exports à codes courts.
+const CONTRA_INTITULES = {
+  numeroProjet: ['numero du projet', 'conum'],
+  nom: ['description du projet (1)', 'conom'],
+  client: ['client - nom', 'numero du client', 'coclinom'],
+};
+const CONTRA_REPLI = { numeroProjet: 0, nom: 1, client: 5 };
+
+function parseContraProjets(contenu) {
+  const toutes = parse(contenu, {
+    columns: false, skip_empty_lines: true, trim: true,
+    relax_column_count: true, relax_quotes: true, bom: true,
+  });
+  if (toutes.length < 2) return {};
+
+  const normalises = toutes[0].map(sansAccents);
+  const c = {};
+  for (const [champ, intitules] of Object.entries(CONTRA_INTITULES)) {
+    let trouve = -1;
+    for (const it of intitules) {
+      const cible = sansAccents(it);
+      trouve = normalises.findIndex(h => h === cible);
+      if (trouve === -1) trouve = normalises.findIndex(h => h.startsWith(cible));
+      if (trouve !== -1) break;
+    }
+    c[champ] = trouve !== -1 ? trouve : CONTRA_REPLI[champ];
+  }
+
+  const map = {};
+  for (let i = 1; i < toutes.length; i++) {
+    const r = toutes[i];
+    const num = normaliserProjet(r[c.numeroProjet]);
+    if (!num) continue;
+    map[num] = {
+      nom: (r[c.nom] || '').toString().trim(),
+      client: (r[c.client] || '').toString().trim(),
+    };
+  }
+  return map;
+}
+
 module.exports = {
-  parsePybbil, parseTrans, parseComiteDivisions, parseFactmaRevenus,
+  parsePybbil, parseTrans, parseComiteDivisions, parseFactmaRevenus, parseContraProjets,
   normaliserDate, normaliserProjet, normaliserActivite, nombre,
 };

@@ -300,15 +300,7 @@ async function chargerProjets() {
   }
 
   if (csvExiste('CONTRA')) {
-    const map = {};
-    const records = parse(lireCsv('CONTRA'), {
-      columns: true, skip_empty_lines: true, trim: true,
-      relax_column_count: true, relax_quotes: true,
-    });
-    records.forEach(r => {
-      const num = gl.normaliserProjet(r.CONUM);
-      if (num) map[num] = { nom: (r.CONOM || '').trim(), client: (r.COCLINOM || r.COCLI || '').trim() };
-    });
+    const map = gl.parseContraProjets(lireCsv('CONTRA'));
     noter('projets', 'csv', 'CONTRA.csv — ' + Object.keys(map).length + ' projets');
     return map;
   }
