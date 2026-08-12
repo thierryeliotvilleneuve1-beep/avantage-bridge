@@ -108,16 +108,31 @@ const TABLES = {
   },
 };
 
+// Champs sans lesquels une table ne sert à rien. Les autres sont des agréments : le nom
+// du client sur une fiche de projet est confortable à l'écran, mais l'état des résultats
+// se calcule sans lui. Cette distinction décide de ce qui condamne une table et de ce qui
+// se contente de manquer.
+const OBLIGATOIRES = {
+  PYBBIL: ['date', 'montantTotal', 'numeroProjet'],
+  TRANS: ['date', 'montant', 'numeroGl', 'journal'],
+  ACTIVE: ['code'],
+  COMITE: ['numeroCommande', 'codeActivite'],
+  FACTMA: ['numeroFacture', 'date', 'montant'],
+  CONTRA: ['numeroProjet'],
+};
+
 // Retourne la liste des tables encore non mappées vers la base.
 function tablesNonMappees() {
   return Object.keys(TABLES).filter(t => !TABLES[t].mappe);
 }
 
-// Une table est lisible en base si elle est mappée et que chaque colonne a un nom.
+// Une table est lisible en base si elle est mappée et que chacun de ses champs
+// OBLIGATOIRES porte un nom de colonne. Un champ facultatif non résolu se lit comme vide.
 function estLisibleEnBd(nomTable) {
   const t = TABLES[nomTable];
   if (!t || !t.mappe) return false;
-  return Object.values(t.colonnes).every(c => c.bd);
+  const requis = OBLIGATOIRES[nomTable] || Object.keys(t.colonnes);
+  return requis.every(champ => t.colonnes[champ] && t.colonnes[champ].bd);
 }
 
-module.exports = { TABLES, tablesNonMappees, estLisibleEnBd };
+module.exports = { TABLES, OBLIGATOIRES, tablesNonMappees, estLisibleEnBd };

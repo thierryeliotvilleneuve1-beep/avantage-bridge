@@ -71,6 +71,38 @@ function argent(n) {
     process.exit(1);
   }
 
+  // Des charges sans revenus ne forment pas un état des résultats : elles forment une
+  // marge brute massivement négative et un résultat catastrophique, entièrement faux.
+  // Écrire ce fichier serait pire que ne rien écrire — il circulerait.
+  if (!etat.revenus.nb_factures && etat.qualite.lignes_de_charge) {
+    console.error('\n' + '='.repeat(70));
+    console.error('REFUS D\'ÉCRIRE — aucune facture client lue, mais ' +
+      etat.qualite.lignes_de_charge.toLocaleString('fr-CA') + ' lignes de charge.');
+    console.error('='.repeat(70));
+    console.error('\nUn état des résultats sans revenus donnerait une marge brute et un');
+    console.error('résultat net entièrement faux. Le fichier n\'est donc pas produit.\n');
+    console.error('Provenance des revenus : ' +
+      ((etat.provenance && etat.provenance.revenus && etat.provenance.revenus.detail) || 'inconnue'));
+
+    const refuses = source.mappagesRefuses().filter(r => r.table === 'FACTMA');
+    for (const r of refuses) {
+      console.error('\nMappage ' + r.table + ' refusé : ' + r.raison);
+      if (r.controles) {
+        console.error('  contrôle par champ :');
+        Object.entries(r.controles).forEach(([champ, d]) => {
+          console.error('    ' + champ.padEnd(16) + (d.colonne + '').padEnd(14) +
+            (d.taux === null ? '   —' : String(d.taux).padStart(4) + ' %') + '  ' + d.verdict);
+        });
+      }
+      if (r.colonnes_reelles) {
+        console.error('  colonnes réelles de la table (' + r.colonnes_reelles.length + ') :');
+        console.error('    ' + r.colonnes_reelles.join(' '));
+      }
+    }
+    console.error('\nEnvoyer ce bloc pour faire corriger la résolution des colonnes.');
+    process.exit(2);
+  }
+
   // On ne garde de la provenance que ce qui répond à « d'où sortent ces chiffres, et de
   // quand datent-ils ». Le reste alourdirait le fichier sans rien apprendre au lecteur.
   const charge = Object.assign({}, etat);

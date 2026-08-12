@@ -10,7 +10,7 @@
 
 const assert = require('assert');
 const auto = require('../src/db/autoMappage');
-const { TABLES } = require('../src/config/colonnes-avantage');
+const { TABLES, estLisibleEnBd } = require('../src/config/colonnes-avantage');
 
 let reussis = 0, echecs = 0;
 async function test(nom, fn) {
@@ -131,11 +131,37 @@ function reinitialiser(nomTable) {
     assert.ok(/numeroProjet/.test(r.raison), r.raison);
   });
 
-  await test('refuse quand la table a moins de colonnes que l\'export', async () => {
+  await test('refuse quand un champ OBLIGATOIRE est hors des colonnes de la table', async () => {
     reinitialiser('PYBBIL');
+    // 20 colonnes : numeroProjet, attendu en 33, n'existe pas.
     const r = await auto.deduire('PYBBIL', depotPybbil({ nbColonnes: 20 }));
     assert.strictEqual(r.retenu, false);
-    assert.ok(/moins de colonnes/.test(r.raison), r.raison);
+    assert.ok(/obligatoire/.test(r.raison), r.raison);
+    assert.ok(/numeroProjet/.test(r.raison), r.raison);
+    assert.ok(Array.isArray(r.colonnes_reelles), 'doit lister les colonnes réelles pour dépanner');
+  });
+
+  // Régression : un champ FACULTATIF introuvable faisait renoncer à toute la table. Sur la
+  // vraie base, CONTRA tombait en entier parce que le nom du client et le statut, deux
+  // colonnes de pur affichage, n'existaient pas — et le drill-down perdait 1 292 projets.
+  await test('un champ facultatif introuvable ne condamne pas la table', async () => {
+    reinitialiser('PYBBIL');
+    // 40 colonnes : numeroCommande (44) et nomFournisseur (48) manquent, tous deux facultatifs.
+    const r = await auto.deduire('PYBBIL', depotPybbil({ nbColonnes: 40 }));
+    assert.strictEqual(r.retenu, true, 'refusé à tort : ' + r.raison);
+    assert.ok(r.champs_facultatifs_absents.length >= 2, JSON.stringify(r.champs_facultatifs_absents));
+    assert.ok(/nomFournisseur/.test(r.champs_facultatifs_absents.join(' ')));
+    assert.strictEqual(r.mappage.nomFournisseur, undefined, 'ne doit pas inventer de colonne');
+  });
+
+  await test('la table reste lisible malgré un champ facultatif manquant', async () => {
+    reinitialiser('PYBBIL');
+    const r = await auto.deduire('PYBBIL', depotPybbil({ nbColonnes: 40 }));
+    assert.strictEqual(auto.appliquer(r), true);
+    assert.strictEqual(estLisibleEnBd('PYBBIL'), true,
+      'les champs obligatoires sont résolus, la table doit être lisible');
+    assert.strictEqual(TABLES.PYBBIL.colonnes.nomFournisseur.bd, null);
+    reinitialiser('PYBBIL');
   });
 
   await test('refuse quand la table est vide — rien à valider', async () => {
@@ -216,7 +242,6 @@ function reinitialiser(nomTable) {
 
   await test('appliquer renseigne la configuration et rend la table lisible', async () => {
     reinitialiser('PYBBIL');
-    const { estLisibleEnBd } = require('../src/config/colonnes-avantage');
     assert.strictEqual(estLisibleEnBd('PYBBIL'), false, 'devrait partir non mappée');
     const r = await auto.deduire('PYBBIL', depotPybbil());
     assert.strictEqual(auto.appliquer(r), true);

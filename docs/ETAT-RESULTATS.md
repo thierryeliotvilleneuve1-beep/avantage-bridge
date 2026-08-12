@@ -82,6 +82,30 @@ Compter environ 900 Ko pour une année complète.
 C'est aussi la façon de faire circuler les chiffres sans donner accès à Avantage :
 le fichier ne contient que le résultat de la lecture, jamais un identifiant.
 
+### Quand l'instantané refuse de s'écrire
+
+Si aucune facture client n'a pu être lue alors que des charges l'ont été, le script
+**n'écrit pas le fichier** et sort en code 2. Un état des résultats sans revenus affiche
+une marge brute massivement négative et un résultat net catastrophique, tous deux faux :
+un tel fichier serait pire qu'aucun fichier, parce qu'il circulerait.
+
+Le message indique alors quel champ de `FACTMA` a échoué, à quel taux, et liste les
+colonnes réelles de la table — de quoi corriger la résolution sans deviner.
+
+## Décrire les tables réelles
+
+Les noms de champs varient d'une installation d'Avantage à l'autre. Pour voir ceux du poste :
+
+```bash
+npm run inventaire                  # toutes les tables attendues
+npm run inventaire -- FACTMA        # une seule
+npm run inventaire -- FACTMA CONTRA
+```
+
+Pour chaque champ : son nom, son type, sa longueur, la proportion d'enregistrements où il
+est rempli, et un exemple de valeur. C'est la sortie à lire quand une résolution de
+colonnes échoue.
+
 ## Les trois voies de lecture
 
 Le bridge essaie dans cet ordre, et annonce toujours celle qu'il a employée :
@@ -231,13 +255,13 @@ triée par montant : c'est la liste de travail pour affiner le plan comptable.
 npm run test:tout
 ```
 
-132 vérifications en cinq harnais :
+134 vérifications en cinq harnais :
 
 | Harnais | Nombre | Ce qu'il couvre |
 |---|---|---|
 | `npm test` | 36 | Refus d'écriture, classification, normalisation des numéros de projet (un sous-projet `3006-1` ne se confond pas avec son parent `3006`), lecture des fiches CONTRA, exclusion des taxes, réconciliation du drill-down, annualisation |
 | `npm run test:dbf` | 25 | Le format `.DBF` sur de vrais fichiers binaires fabriqués pour l'occasion : types de champs, enregistrements supprimés, dates vides, montants négatifs, compteur menteur, lecture par blocs sur 20 000 enregistrements, échantillon réparti sur toute la table |
-| `npm run test:mappage` | 24 | Résolution des champs, et surtout son **refus** : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec, colonne vide selon la façon dont elle a été retrouvée |
+| `npm run test:mappage` | 26 | Résolution des champs, et surtout son **refus** : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec, colonne vide selon la façon dont elle a été retrouvée, champ facultatif absent qui ne condamne pas la table |
 | `npm run test:bout-en-bout` | 27 | Un jeu complet de `.DBF` jusqu'à l'état des résultats : résolution automatique, séparation projet / frais général, exclusion des taxes, notes de crédit, mouvements de bilan, chaque total au dollar |
 | `npm run test:vue` | 20 | Dans un vrai navigateur : drill-down au clic, réconciliation affichée, simulateur, export CSV |
 

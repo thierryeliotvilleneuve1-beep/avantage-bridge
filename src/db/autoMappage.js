@@ -17,7 +17,9 @@
 // retenu que si chaque champ obligatoire passe son contrôle. Sinon on retombe sur le CSV
 // et on dit précisément ce qui a échoué.
 
-const { TABLES } = require('../config/colonnes-avantage');
+// OBLIGATOIRES vit avec la définition des tables : c'est une propriété des données, pas
+// de la déduction. Le même arbitrage sert ici et dans estLisibleEnBd.
+const { TABLES, OBLIGATOIRES } = require('../config/colonnes-avantage');
 
 // Contrôles par nature de champ. Chacun reçoit les valeurs non vides de l'échantillon et
 // retourne la proportion de valeurs plausibles.
@@ -57,17 +59,6 @@ const NATURES = {
     montant: 'montant', soldeOuvert: 'montant', retenue: 'montant', noteCredit: 'texte',
   },
   CONTRA: { numeroProjet: 'projet', nom: 'texte', client: 'texte', statut: 'texte' },
-};
-
-// Champs dont l'échec invalide tout le mappage. Les autres sont tolérés : une description
-// vide ou un numéro de commande absent n'empêchent pas de lire la table.
-const OBLIGATOIRES = {
-  PYBBIL: ['date', 'montantTotal', 'numeroProjet'],
-  TRANS: ['date', 'montant', 'numeroGl', 'journal'],
-  ACTIVE: ['code'],
-  COMITE: ['numeroCommande', 'codeActivite'],
-  FACTMA: ['numeroFacture', 'date', 'montant'],
-  CONTRA: ['numeroProjet'],
 };
 
 // Seuil de tolérance : les exports hérités contiennent des lignes abîmées, on n'exige pas
@@ -119,6 +110,9 @@ function mapperParPosition(nomTable, colonnes) {
   const strategies = {};
   const horsBornes = [];
 
+  const obligatoires = OBLIGATOIRES[nomTable] || [];
+  const facultatifsAbsents = [];
+
   for (const [champ, spec] of Object.entries(def.colonnes)) {
     // 1. par nom
     if (spec.bd && parMinuscule[String(spec.bd).toLowerCase()]) {
@@ -128,11 +122,16 @@ function mapperParPosition(nomTable, colonnes) {
     }
     // 2. par position
     const idx = spec.csv;
+    // Un champ introuvable ne condamne la table que s'il est obligatoire. Le nom du
+    // client sur une fiche de projet est un agrément d'affichage : le perdre ne doit pas
+    // faire renoncer à toute la table — c'était le cas, et CONTRA tombait en entier
+    // à cause de deux colonnes décoratives.
+    const liste = obligatoires.includes(champ) ? horsBornes : facultatifsAbsents;
     if (typeof idx !== 'number') {
-      horsBornes.push(champ + ' (aucun nom trouvé et aucune position connue)');
+      liste.push(champ + ' (aucun nom trouvé et aucune position connue)');
       continue;
     }
-    if (idx >= noms.length) { horsBornes.push(champ + ' (index ' + idx + ')'); continue; }
+    if (idx >= noms.length) { liste.push(champ + ' (index ' + idx + ')'); continue; }
     mappage[champ] = noms[idx];
     strategies[champ] = 'position';
   }
@@ -157,7 +156,7 @@ function mapperParPosition(nomTable, colonnes) {
     }
   }
 
-  return { mappage, paires, strategies, nbColonnes: noms.length, horsBornes };
+  return { mappage, paires, strategies, nbColonnes: noms.length, horsBornes, facultatifsAbsents };
 }
 
 // Valide un mappage sur un échantillon de lignes.
@@ -234,7 +233,8 @@ async function deduire(nomTable, depot, tailleEchantillon) {
   if (pos.horsBornes.length) {
     return {
       table: nomTable, retenu: false, nbColonnes: pos.nbColonnes,
-      raison: 'la table a moins de colonnes que l\'export : ' + pos.horsBornes.join(', ') +
+      colonnes_reelles: colonnes.map(c => c.nom),
+      raison: 'champ obligatoire introuvable : ' + pos.horsBornes.join(', ') +
         '. L\'ordre des colonnes ne correspond pas — mappage manuel requis.',
     };
   }
@@ -262,6 +262,8 @@ async function deduire(nomTable, depot, tailleEchantillon) {
     paires: pos.paires,
     controles: v.details,
     echecs: v.echecs,
+    champs_facultatifs_absents: pos.facultatifsAbsents,
+    colonnes_reelles: v.valide ? undefined : colonnes.map(c => c.nom),
     raison: v.valide ? null : 'validation échouée : ' + v.echecs.join(' | '),
   };
 }

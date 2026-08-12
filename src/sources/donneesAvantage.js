@@ -170,7 +170,8 @@ async function chargerCharges(debut, fin) {
     try {
       const c = TABLES.PYBBIL.colonnes;
       const paires = TABLES.PYBBIL.pairesGl.bd;
-      const champs = Object.values(c).map(x => x.bd).concat(paires.flatMap(p => [p.gl, p.montant]));
+      const champs = Object.values(c).map(x => x.bd).filter(Boolean)
+        .concat(paires.flatMap(p => [p.gl, p.montant]));
       const rows = await cx.interroger('SELECT ' + champs.join(', ') + ' FROM ' + TABLES.PYBBIL.table);
       const { GL_TAXES } = require('../config/plan-comptable');
       for (const r of rows) {
@@ -231,7 +232,7 @@ async function chargerCharges(debut, fin) {
   if (!faitTrans && cx.disponible() && estLisibleEnBd('TRANS')) {
     try {
       const c = TABLES.TRANS.colonnes;
-      const rows = await cx.interroger('SELECT ' + Object.values(c).map(x => x.bd).join(', ') +
+      const rows = await cx.interroger('SELECT ' + Object.values(c).map(x => x.bd).filter(Boolean).join(', ') +
         ' FROM ' + TABLES.TRANS.table);
       for (const r of rows) {
         const journal = String(r[c.journal.bd] || '').trim();
@@ -287,7 +288,7 @@ async function chargerProjets() {
   if (cx.disponible() && estLisibleEnBd('CONTRA')) {
     try {
       const c = TABLES.CONTRA.colonnes;
-      const rows = await cx.interroger('SELECT ' + Object.values(c).map(x => x.bd).join(', ') +
+      const rows = await cx.interroger('SELECT ' + Object.values(c).map(x => x.bd).filter(Boolean).join(', ') +
         ' FROM ' + TABLES.CONTRA.table);
       const map = {};
       rows.forEach(r => {
@@ -393,7 +394,13 @@ function etatSources() {
   };
 }
 
+// Le détail des mappages refusés, avec les noms de colonnes réels de la table. C'est ce
+// qu'il faut lire pour corriger une résolution qui échoue sur une vraie installation.
+function mappagesRefuses() {
+  return mappageResultats.filter(r => !r.retenu);
+}
+
 module.exports = {
   chargerRevenus, chargerCharges, chargerProjets, chargerActivites, chargerCommandeDivisions,
-  etatSources, provenance, reinitialiser, autoMapper, EXPORT_DIR,
+  etatSources, provenance, reinitialiser, autoMapper, mappagesRefuses, EXPORT_DIR,
 };
