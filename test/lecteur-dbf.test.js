@@ -262,6 +262,58 @@ test('lit un gros fichier par blocs sans tout charger', () => {
   assert.strictEqual(somme, (nb - 1) * nb / 2, 'somme sur tout le fichier');
 });
 
+// ── Échantillon réparti ─────────────────────────────────────────────────────────
+// Régression : l'échantillonnage lisait les 300 PREMIERS enregistrements. Sur le vrai
+// PYBBIL, la tête du fichier est l'année 2003, où le numéro de projet n'existait pas
+// encore : le mappage était refusé à tort et le bridge basculait sur un CSV inexistant,
+// donc sur aucune charge du tout, en silence.
+console.log('\nÉchantillon réparti sur toute la table');
+
+// 3 000 enregistrements : les 500 premiers ont un projet vide, comme les vieilles années.
+const fEtale = (() => {
+  const lignes = [];
+  for (let i = 0; i < 3000; i++) {
+    lignes.push({
+      SEQ: String(i).padStart(9, '0'),
+      PROJ: i < 500 ? '' : String(25000 + i).padStart(10, '0'),
+      MT: String(i) + '.00',
+    });
+  }
+  return ecrireDbf('ETALE.DBF', [
+    { nom: 'SEQ', type: 'C', longueur: 9 },
+    { nom: 'PROJ', type: 'C', longueur: 10 },
+    { nom: 'MT', type: 'N', longueur: 12, decimales: 2 },
+  ], lignes);
+})();
+
+test('l\'échantillon couvre toute la table, pas seulement la tête', () => {
+  const ech = dbf.echantillonReparti(fEtale, 300);
+  assert.strictEqual(ech.length, 300);
+  const derniers = ech.filter(l => Number(l.SEQ) > 2000).length;
+  // Le dernier tiers du fichier doit peser environ un tiers de l'échantillon.
+  assert.ok(derniers > 90, 'devrait piocher aussi dans la fin du fichier : ' + derniers);
+  const avecProjet = ech.filter(l => l.PROJ !== '').length;
+  assert.ok(avecProjet / ech.length > 0.8,
+    'le projet doit être renseigné sur la nette majorité de l\'échantillon : ' + avecProjet);
+});
+
+test('les 300 premiers enregistrements auraient donné un échantillon trompeur', () => {
+  const tete = dbf.lireTable(fEtale, { limite: 300 });
+  assert.strictEqual(tete.filter(l => l.PROJ !== '').length, 0,
+    'la tête du fichier n\'a aucun projet — c\'est bien le piège qu\'on évite');
+});
+
+test('une table plus petite que l\'échantillon est retournée en entier', () => {
+  const ech = dbf.echantillonReparti(fPybbil, 300);
+  assert.strictEqual(ech.length, 5, 'les 5 enregistrements actifs de PYBBIL de test');
+});
+
+test('l\'échantillon réparti écarte les enregistrements supprimés', () => {
+  const ech = dbf.echantillonReparti(fPybbil, 300);
+  assert.ok(!ech.some(l => l.PBFACT === 'ANNULE'),
+    'aucun enregistrement effacé ne doit ressortir');
+});
+
 // ── Repérage et inventaire ──────────────────────────────────────────────────────
 console.log('\nRepérage des fichiers');
 

@@ -132,6 +132,28 @@ function ecrireFixtures() {
     });
   }
 
+  // Régression : le suffixe de sous-projet doit survivre à la normalisation.
+  // Sans lui, « 00003006-1 » et « 0000003006 » se confondaient et les revenus de deux
+  // projets distincts s'additionnaient sur une seule ligne, sans aucun signe visible.
+  console.log('\nNormalisation des numéros de projet');
+  const { normaliserProjet } = require('../src/parsers/parseGrandLivre');
+  for (const [entree, attendu] of [
+    ['0000025007', '25007'],
+    ['00003006-1', '03006-1'],
+    ['0000003006', '03006'],
+    ['25007', '25007'],
+    ['', ''],
+    ['0000000000', ''],
+    ['   ', ''],
+  ]) {
+    await test('« ' + entree + ' » → « ' + attendu + ' »', () => {
+      assert.strictEqual(normaliserProjet(entree), attendu);
+    });
+  }
+  await test('un sous-projet ne se confond pas avec son projet parent', () => {
+    assert.notStrictEqual(normaliserProjet('00003006-1'), normaliserProjet('0000003006'));
+  });
+
   console.log('\nClassification');
   await test('sous-traitance de projet reconnue', () => {
     assert.strictEqual(classer('33500', 'GROUPE JLF', true).poste, 'sous_traitance');

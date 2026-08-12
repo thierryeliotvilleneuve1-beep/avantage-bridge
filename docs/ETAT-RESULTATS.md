@@ -172,11 +172,23 @@ certitude — alors le bridge la **vérifie** avant de s'en servir :
 
 1. il interroge le pilote pour obtenir les colonnes réelles ;
 2. il associe chaque champ par position ;
-3. il échantillonne 300 lignes et contrôle que chaque colonne contient bien ce qu'on
-   attend — une date ressemble à une date, un numéro de projet est numérique, un montant
-   est un nombre, un numéro de GL fait quatre ou cinq chiffres ;
+3. il échantillonne 300 lignes **réparties sur toute la table** et contrôle que chaque
+   colonne contient bien ce qu'on attend — une date ressemble à une date, un numéro de
+   projet est numérique, un montant est un nombre, un numéro de GL fait quatre ou cinq
+   chiffres ;
 4. le mappage n'est retenu que si **chaque champ obligatoire** passe son contrôle à 85 % ou
    plus sur l'échantillon.
+
+L'échantillon est prélevé à intervalle régulier, et non en tête de fichier : les premiers
+enregistrements de `PYBBIL` datent de 2003, une époque où le numéro de projet n'était pas
+saisi. Valider le mappage là-dessus le faisait refuser à tort.
+
+Une colonne **entièrement vide** sur l'échantillon est indécidable, ce qui n'est pas la
+même chose qu'incohérent. Si la colonne a été retrouvée par son **nom**, son identité n'est
+pas en doute : un champ légitimement inutilisé est accepté quand sa nature tolère le vide
+(numéro de projet absent = frais général, GL absent = à classer). Si elle a été retrouvée
+par **position**, le vide est justement le seul indice qu'on pourrait viser à côté — le
+mappage est refusé et le CSV reprend la main.
 
 Une table dont la déduction échoue continue d'être lue dans son export CSV, et la route
 `/mappage` dit précisément quel champ a échoué et pourquoi. **Le bridge ne produit jamais
@@ -219,13 +231,13 @@ triée par montant : c'est la liste de travail pour affiner le plan comptable.
 npm run test:tout
 ```
 
-112 vérifications en cinq harnais :
+129 vérifications en cinq harnais :
 
 | Harnais | Nombre | Ce qu'il couvre |
 |---|---|---|
-| `npm test` | 25 | Refus d'écriture, classification, exclusion des taxes, réconciliation du drill-down, annualisation |
-| `npm run test:dbf` | 21 | Le format `.DBF` sur de vrais fichiers binaires fabriqués pour l'occasion : types de champs, enregistrements supprimés, dates vides, montants négatifs, compteur menteur, lecture par blocs sur 20 000 enregistrements |
-| `npm run test:mappage` | 19 | Résolution des champs, et surtout son **refus** : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec |
+| `npm test` | 33 | Refus d'écriture, classification, normalisation des numéros de projet (un sous-projet `3006-1` ne se confond pas avec son parent `3006`), exclusion des taxes, réconciliation du drill-down, annualisation |
+| `npm run test:dbf` | 25 | Le format `.DBF` sur de vrais fichiers binaires fabriqués pour l'occasion : types de champs, enregistrements supprimés, dates vides, montants négatifs, compteur menteur, lecture par blocs sur 20 000 enregistrements, échantillon réparti sur toute la table |
+| `npm run test:mappage` | 24 | Résolution des champs, et surtout son **refus** : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec, colonne vide selon la façon dont elle a été retrouvée |
 | `npm run test:bout-en-bout` | 27 | Un jeu complet de `.DBF` jusqu'à l'état des résultats : résolution automatique, séparation projet / frais général, exclusion des taxes, notes de crédit, mouvements de bilan, chaque total au dollar |
 | `npm run test:vue` | 20 | Dans un vrai navigateur : drill-down au clic, réconciliation affichée, simulateur, export CSV |
 

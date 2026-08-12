@@ -171,6 +171,47 @@ function reinitialiser(nomTable) {
     assert.strictEqual(r.retenu, true, 'refusé alors que les champs obligatoires tiennent : ' + r.raison);
   });
 
+  console.log('\nColonne entièrement vide : indécidable, pas incohérent');
+
+  // Régression : une colonne vide sur tout l'échantillon était comptée comme un échec,
+  // au même titre qu'une colonne au contenu franchement faux. Un champ légitimement
+  // inutilisé faisait donc refuser le mappage de toute la table.
+  const vides = [{ P: '' }, { P: '' }, { P: '   ' }];
+
+  await test('colonne vide acceptée quand elle a été trouvée par son nom', async () => {
+    const v = auto.valider('PYBBIL', { numeroProjet: 'P' }, null, vides,
+      { numeroProjet: 'nom' });
+    assert.strictEqual(v.valide, true, v.echecs.join(' | '));
+    assert.ok(/accept/.test(v.details.numeroProjet.verdict),
+      'le verdict doit dire que le vide est accepté : ' + v.details.numeroProjet.verdict);
+  });
+
+  await test('colonne vide toujours refusée quand elle vient d\'une position', async () => {
+    // Ici le vide est le seul indice qu'on pourrait viser la mauvaise colonne.
+    const v = auto.valider('PYBBIL', { numeroProjet: 'P' }, null, vides,
+      { numeroProjet: 'position' });
+    assert.strictEqual(v.valide, false, 'le vide positionnel doit rester un échec');
+  });
+
+  await test('une date vide reste un échec même trouvée par son nom', async () => {
+    // La nature « date » ne tolère pas le vide : sans date, aucune période n'est calculable.
+    const v = auto.valider('PYBBIL', { date: 'P', montantTotal: 'M' },
+      null, [{ P: '', M: '100' }, { P: '', M: '200' }], { date: 'nom', montantTotal: 'nom' });
+    assert.strictEqual(v.valide, false);
+    assert.ok(/date/.test(v.echecs.join(' ')), v.echecs.join(' '));
+  });
+
+  await test('sans stratégies fournies, le contrôle reste le plus strict', async () => {
+    const v = auto.valider('PYBBIL', { numeroProjet: 'P' }, null, vides);
+    assert.strictEqual(v.valide, false);
+  });
+
+  await test('une colonne vide ne masque pas un contenu incohérent ailleurs', async () => {
+    reinitialiser('PYBBIL');
+    const r = await auto.deduire('PYBBIL', depotPybbil({ datesCassees: true }));
+    assert.strictEqual(r.retenu, false, 'une date fausse doit toujours faire échouer');
+  });
+
   console.log('\nApplication du mappage retenu');
 
   await test('appliquer renseigne la configuration et rend la table lisible', async () => {

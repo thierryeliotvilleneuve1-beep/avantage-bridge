@@ -46,12 +46,24 @@ function normaliserDate(v) {
   return m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
 }
 
+// Normalise un numéro de projet Avantage. Les numéros sont stockés complétés de zéros
+// (« 0000025007 »), parfois avec un suffixe de sous-projet (« 00003006-1 »).
+//
+// Le suffixe DOIT être conservé : sans lui, « 00003006-1 » et « 0000003006 » se
+// normalisaient tous deux en « 03006 » et les revenus de deux projets distincts se
+// retrouvaient additionnés sur une seule ligne, en silence.
 function normaliserProjet(v) {
   const s = (v || '').toString().trim();
   if (!s) return '';
-  const n = parseInt(s, 10);
-  if (!Number.isFinite(n) || n === 0) return '';
-  return String(n).padStart(5, '0');
+
+  const m = s.match(/^0*(\d+)(.*)$/);
+  if (!m) return '';
+  const base = m[1];
+  const suffixe = (m[2] || '').trim();
+  if (/^0+$/.test(base) && !suffixe) return '';
+  if (parseInt(base, 10) === 0 && !suffixe) return '';
+
+  return String(parseInt(base, 10)).padStart(5, '0') + suffixe;
 }
 
 function normaliserActivite(v) {

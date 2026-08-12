@@ -59,8 +59,10 @@ async function listerColonnes(table) {
   }));
 }
 
+// Échantillon réparti sur toute la table : la tête de PYBBIL ne contient que des
+// enregistrements de 2003, non représentatifs.
 async function echantillonner(table, n) {
-  return dbf.lireTable(fichier(table), { meta: meta(table), limite: n || 300 });
+  return dbf.echantillonReparti(fichier(table), n || 300, meta(table));
 }
 
 // ── Lectures de haut niveau, alignées sur la sortie des parsers CSV ─────────────

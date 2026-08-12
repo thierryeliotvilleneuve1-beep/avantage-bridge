@@ -82,6 +82,23 @@ function proportionValide(valeurs, nature) {
   return bons / utiles.length;
 }
 
+// Natures dont le contrôle accepte explicitement la valeur vide : un numéro de projet
+// absent signifie « frais général », un GL absent « à classer ». Ce sont des états
+// normaux, pas des anomalies.
+const VIDE_TOLERE = ['projet', 'gl'];
+
+// Une colonne entièrement vide sur l'échantillon est indécidable, et l'indécidable ne
+// vaut pas l'incohérent. Deux cas à distinguer :
+//
+//   - colonne trouvée par son NOM : son identité n'est pas en doute. Si sa nature tolère
+//     le vide, une colonne vide est une colonne vide — on l'accepte. Refuser ici bloquait
+//     tout le mappage d'une table à cause d'un champ légitimement inutilisé.
+//   - colonne trouvée par POSITION : le vide est justement le seul indice qu'on pourrait
+//     viser à côté. On continue de refuser, et le CSV reprend la main.
+function videAcceptable(nature, strategie) {
+  return VIDE_TOLERE.includes(nature) && strategie === 'nom';
+}
+
 // Construit le mappage d'une table à partir de ses colonnes réelles.
 //
 // Deux stratégies, dans cet ordre :
@@ -144,9 +161,12 @@ function mapperParPosition(nomTable, colonnes) {
 }
 
 // Valide un mappage sur un échantillon de lignes.
-function valider(nomTable, mappage, paires, echantillon) {
+// `strategies` dit comment chaque champ a été résolu ('nom' ou 'position') ; sans elle,
+// on suppose la position, c'est-à-dire le contrôle le plus strict.
+function valider(nomTable, mappage, paires, echantillon, strategies) {
   const natures = NATURES[nomTable] || {};
   const obligatoires = OBLIGATOIRES[nomTable] || [];
+  const strat = strategies || {};
   const details = {};
   const echecs = [];
 
@@ -154,15 +174,23 @@ function valider(nomTable, mappage, paires, echantillon) {
     const nature = natures[champ] || 'texte';
     const valeurs = echantillon.map(l => l[colonne]);
     const prop = proportionValide(valeurs, nature);
+    const vide = prop === null;
+    const tolere = vide && videAcceptable(nature, strat[champ]);
+
+    let verdict;
+    if (tolere) verdict = 'colonne vide, accepté (colonne trouvée par son nom)';
+    else if (vide) verdict = 'colonne vide sur l\'échantillon';
+    else verdict = prop >= SEUIL ? 'ok' : 'incohérent';
+
     details[champ] = {
       colonne,
       nature,
-      taux: prop === null ? null : Math.round(prop * 100),
-      verdict: prop === null ? 'colonne vide sur l\'échantillon' : (prop >= SEUIL ? 'ok' : 'incohérent'),
+      taux: vide ? null : Math.round(prop * 100),
+      verdict,
     };
-    if (obligatoires.includes(champ) && (prop === null || prop < SEUIL)) {
-      echecs.push(champ + ' → ' + colonne + ' : ' + details[champ].verdict +
-        (prop === null ? '' : ' (' + Math.round(prop * 100) + ' % de valeurs plausibles)'));
+    if (obligatoires.includes(champ) && !tolere && (vide || prop < SEUIL)) {
+      echecs.push(champ + ' → ' + colonne + ' : ' + verdict +
+        (vide ? '' : ' (' + Math.round(prop * 100) + ' % de valeurs plausibles)'));
     }
   }
 
@@ -223,7 +251,7 @@ async function deduire(nomTable, depot, tailleEchantillon) {
              raison: 'la table est vide — rien à valider' };
   }
 
-  const v = valider(nomTable, pos.mappage, pos.paires, echantillon);
+  const v = valider(nomTable, pos.mappage, pos.paires, echantillon, pos.strategies);
   return {
     table: nomTable,
     retenu: v.valide,
@@ -252,4 +280,7 @@ function appliquer(resultat) {
   return true;
 }
 
-module.exports = { deduire, appliquer, mapperParPosition, valider, CONTROLES, NATURES, OBLIGATOIRES, SEUIL };
+module.exports = {
+  deduire, appliquer, mapperParPosition, valider, videAcceptable,
+  CONTROLES, NATURES, OBLIGATOIRES, SEUIL, VIDE_TOLERE,
+};

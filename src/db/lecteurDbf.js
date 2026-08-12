@@ -253,4 +253,39 @@ function inventaire(repertoire, tables) {
   return res;
 }
 
-module.exports = { lireEnTete, lireTable, trouverFichier, inventaire, convertir, VERSIONS };
+// Échantillonne des enregistrements RÉPARTIS sur tout le fichier.
+//
+// Lire les 300 premiers enregistrements de PYBBIL ne montre que l'année 2003 : des
+// données anciennes, souvent incomplètes, où le numéro de projet n'existait pas encore.
+// Valider un mappage là-dessus le ferait refuser à tort. On prélève donc à intervalle
+// régulier sur toute la table, pour obtenir un échantillon représentatif.
+function echantillonReparti(chemin, n, metaFournie) {
+  const meta = metaFournie || lireEnTete(chemin);
+  const voulu = Math.max(1, n || 300);
+  const total = meta.nbEnregistrements;
+  if (total <= voulu) return lireTable(chemin, { meta });
+
+  const pas = Math.floor(total / voulu);
+  const fd = fs.openSync(chemin, 'r');
+  const sorties = [];
+  try {
+    const tampon = Buffer.alloc(meta.longueurEnregistrement);
+    for (let i = 0; i < total && sorties.length < voulu; i += pas) {
+      const position = meta.longueurEnTete + i * meta.longueurEnregistrement;
+      if (fs.readSync(fd, tampon, 0, meta.longueurEnregistrement, position) <= 0) break;
+      if (tampon[0] === SUPPRIME) continue;
+      const objet = {};
+      for (const c of meta.champs) {
+        objet[c.nom] = convertir(c, tampon.slice(c.decalage, c.decalage + c.longueur));
+      }
+      sorties.push(objet);
+    }
+  } finally {
+    fs.closeSync(fd);
+  }
+  return sorties;
+}
+
+module.exports = {
+  lireEnTete, lireTable, echantillonReparti, trouverFichier, inventaire, convertir, VERSIONS,
+};
