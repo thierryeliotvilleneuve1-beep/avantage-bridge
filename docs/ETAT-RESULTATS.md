@@ -60,6 +60,24 @@ Le montant d'un niveau est toujours la somme exacte du niveau inférieur : de la
 « Frais généraux » jusqu'à une facture précise, sans écart. C'est vérifié par test à
 chacun des cinq niveaux.
 
+## Instantané autonome — un seul fichier à transmettre
+
+L'écran ci-dessus a besoin du bridge en marche. Pour obtenir une version qui s'ouvre
+seule — sur un téléphone, chez le comptable, en pièce jointe — produire un instantané :
+
+```bash
+npm run instantane                                      # les douze derniers mois
+npm run instantane -- 2025-01-01 2025-12-31              # une période précise
+npm run instantane -- 2025-01-01 2025-12-31 "Bilan.html" # un nom de fichier choisi
+```
+
+Le résultat est **un seul fichier HTML** avec les données incluses : aucun serveur,
+aucune connexion. Le drill-down, la recherche et le simulateur fonctionnent tels quels.
+Compter environ 900 Ko pour une année complète.
+
+C'est aussi la façon de faire circuler les chiffres sans donner accès à Avantage :
+le fichier ne contient que le résultat de la lecture, jamais un identifiant.
+
 ## Routes
 
 | Route | Rôle |
@@ -144,3 +162,11 @@ npm test
 
 25 vérifications : refus d'écriture, classification, exclusion des taxes, réconciliation
 du drill-down aux cinq niveaux, exclusion hors période, annualisation.
+
+```bash
+npm run test:vue
+```
+
+20 vérifications de plus, dans un vrai navigateur : intégrité de l'arbre, drill-down au
+clic sur quatre niveaux, réconciliation affichée, simulateur, export CSV, absence d'erreur
+JavaScript. Nécessite Playwright ; sans lui le test se signale comme ignoré.

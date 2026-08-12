@@ -1,0 +1,697 @@
+<title>Où va l'argent chez CRC</title>
+<style>
+  /* ── Palette : rouge CRC, neutres biaisés chaud vers l'accent, sémantiques à part ── */
+  :root{
+    --rouge:#8D0005;
+    --accent:#DD101B;
+    --encre:#12100F;
+    --papier:#FBF9F8;
+    --surface:#FFFFFF;
+    --surface-2:#F4F0EF;
+    --graphite:#6E6867;
+    --trait:#E3DCDA;
+    --trait-fort:#C9BFBC;
+    --vert:#0B6B34;
+    --ambre:#8A5300;
+    --bleu:#1B4E8C;
+    --ombre:0 1px 2px rgba(18,16,15,.05), 0 8px 24px -12px rgba(18,16,15,.12);
+    /* Bandeaux et totaux : couleurs posées, jamais héritées d'une inversion de thème. */
+    --bandeau-fond:#12100F;
+    --bandeau-texte:#FBF9F8;
+    --somme-fond:#8D0005;
+    --somme-texte:#FFFFFF;
+
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --rouge:#E8555A;
+      --accent:#FF5A5F;
+      --encre:#F3EEEC;
+      --papier:#141110;
+      --surface:#1C1817;
+      --surface-2:#262120;
+      --graphite:#A79F9D;
+      --trait:#332C2B;
+      --trait-fort:#4A4140;
+      --vert:#4FC57F;
+      --ambre:#D9A039;
+      --bleu:#7FAEE8;
+      --ombre:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+      --bandeau-fond:#2E2726;
+      --bandeau-texte:#F3EEEC;
+      --somme-fond:#7A2226;
+      --somme-texte:#FFECED;
+    }
+  }
+  :root[data-theme="dark"]{
+    --rouge:#E8555A;
+    --accent:#FF5A5F;
+    --encre:#F3EEEC;
+    --papier:#141110;
+    --surface:#1C1817;
+    --surface-2:#262120;
+    --graphite:#A79F9D;
+    --trait:#332C2B;
+    --trait-fort:#4A4140;
+    --vert:#4FC57F;
+    --ambre:#D9A039;
+    --bleu:#7FAEE8;
+    --ombre:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    --bandeau-fond:#2E2726;
+    --bandeau-texte:#F3EEEC;
+    --somme-fond:#7A2226;
+    --somme-texte:#FFECED;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--papier); color:var(--encre);
+    font-family:var(--sans); font-size:15px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .enveloppe{max-width:1180px; margin:0 auto; padding:28px 20px 140px}
+
+  /* ── Titre ── */
+  .marque{display:flex; align-items:center; gap:12px; margin-bottom:22px}
+  .sigle{
+    width:38px; height:38px; flex:none; background:var(--accent); color:#fff;
+    display:grid; place-items:center; font-weight:800; font-size:13px; letter-spacing:.5px;
+    clip-path:polygon(0 0,84% 0,100% 16%,100% 100%,16% 100%,0 84%);
+  }
+  .marque .nom{font-size:12px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase}
+  .marque .sous{font-size:10.5px; color:var(--graphite); letter-spacing:1.1px; text-transform:uppercase}
+
+  h1{
+    font-size:clamp(26px,4.2vw,40px); line-height:1.08; font-weight:800; letter-spacing:-.022em;
+    margin:0 0 10px; text-wrap:balance; max-width:22ch;
+  }
+  .chapeau{max-width:62ch; color:var(--graphite); font-size:15.5px; margin:0 0 6px}
+  .chapeau b{color:var(--encre); font-weight:600}
+  .periode{
+    font-family:var(--mono); font-size:11.5px; color:var(--graphite);
+    letter-spacing:.02em; margin-top:14px; padding-top:12px; border-top:1px solid var(--trait);
+  }
+
+  /* ── Bande de synthèse : la colonne vertébrale du résultat ── */
+  .spine{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:1px;
+    background:var(--trait); border:1px solid var(--trait); border-radius:3px;
+    margin:22px 0 8px; overflow:hidden; box-shadow:var(--ombre);
+  }
+  .vert-cell{background:var(--surface); padding:12px 13px; display:flex; flex-direction:column; gap:2px}
+  .vert-cell .etq{
+    font-size:9.5px; text-transform:uppercase; letter-spacing:.09em; color:var(--graphite); font-weight:600;
+  }
+  .vert-cell .val{font-family:var(--mono); font-size:19px; font-weight:700; letter-spacing:-.02em}
+  .vert-cell .pc{font-family:var(--mono); font-size:11.5px; color:var(--graphite)}
+  .vert-cell .sim{font-family:var(--mono); font-size:11.5px; color:var(--vert); font-weight:600; min-height:17px}
+  .vert-cell.neg .val{color:var(--rouge)}
+  .vert-cell.pos .val{color:var(--vert)}
+  .vert-cell.pivot{background:var(--surface-2)}
+
+  /* ── Barre d'outils ── */
+  .outils{
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+    margin:20px 0 6px; padding:12px 13px; background:var(--surface);
+    border:1px solid var(--trait); border-radius:3px;
+  }
+  .groupe{display:flex; gap:6px; align-items:center}
+  .groupe-etq{
+    font-size:9.5px; text-transform:uppercase; letter-spacing:.09em; color:var(--graphite);
+    font-weight:600; margin-right:2px;
+  }
+  button{
+    font-family:inherit; font-size:12.5px; font-weight:600; padding:6px 11px;
+    background:var(--surface); color:var(--encre); border:1px solid var(--trait-fort);
+    border-radius:2px; cursor:pointer; transition:background .12s, border-color .12s;
+  }
+  button:hover{background:var(--surface-2); border-color:var(--graphite)}
+  button:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+  button.primaire{background:var(--rouge); border-color:var(--rouge); color:#fff}
+  button.primaire:hover{background:var(--accent); border-color:var(--accent)}
+  button.actif{background:var(--rouge); border-color:var(--rouge); color:#fff}
+  input[type="search"]{
+    font-family:inherit; font-size:12.5px; padding:6px 10px; min-width:190px;
+    background:var(--surface); color:var(--encre); border:1px solid var(--trait-fort); border-radius:2px;
+  }
+  input[type="search"]:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+
+  /* ── Le tableau : cœur de la page ── */
+  .cadre{
+    background:var(--surface); border:1px solid var(--trait); border-radius:3px;
+    overflow-x:auto; box-shadow:var(--ombre);
+  }
+  table{width:100%; border-collapse:collapse; min-width:820px}
+  thead th{
+    position:sticky; top:0; z-index:3; background:var(--bandeau-fond); color:var(--bandeau-texte);
+    font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.09em;
+    text-align:left; padding:9px 11px; white-space:nowrap;
+  }
+  thead th.r{text-align:right}
+  td{
+    padding:0; border-bottom:1px solid var(--trait);
+    font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums; white-space:nowrap;
+  }
+  td.lib{font-family:var(--sans); font-size:13.5px; white-space:normal; min-width:300px}
+  td.r{text-align:right}
+  .cellule{padding:7px 11px}
+
+  /* profondeur : rail + retrait */
+  .rail{display:flex; align-items:flex-start; gap:0}
+  .tige{width:13px; flex:none; align-self:stretch; border-left:1px solid var(--trait)}
+  .corps{padding:7px 11px 7px 4px; flex:1; min-width:0}
+
+  tr.pliable{cursor:pointer}
+  tr.pliable:hover>td{background:var(--surface-2)}
+  tr.cache{display:none}
+  .chevron{
+    display:inline-block; width:12px; margin-right:5px; color:var(--accent);
+    font-size:9px; font-weight:800; transition:transform .12s; transform-origin:center;
+  }
+  tr.ouvert>td .chevron{transform:rotate(90deg)}
+  .creux{display:inline-block; width:12px; margin-right:5px}
+
+  /* niveaux */
+  tr.niv-sec>td{background:var(--surface-2); font-weight:700; border-top:2px solid var(--encre)}
+  tr.niv-sec>td .corps, tr.niv-sec>td.cellule{font-size:14px}
+  tr.niv-poste>td{font-weight:600}
+  tr.niv-gl>td{color:var(--encre)}
+  tr.niv-four>td{color:var(--encre)}
+  tr.niv-piece>td{background:var(--papier); color:var(--graphite); font-size:11.5px}
+  tr.niv-piece>td.lib{font-size:12px}
+
+  tr.somme>td{
+    background:var(--somme-fond); color:var(--somme-texte); font-weight:800; border:none;
+    font-size:14px; letter-spacing:.01em;
+  }
+  tr.somme.finale>td{background:var(--bandeau-fond); color:var(--bandeau-texte)}
+  tr.somme>td .cellule{padding:10px 11px}
+
+  /* chips de levier */
+  .chip{
+    display:inline-block; font-family:var(--sans); font-size:9.5px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.07em; padding:2px 6px; border-radius:2px;
+    margin-left:7px; vertical-align:1px; white-space:nowrap;
+  }
+  .lv-negociable{background:color-mix(in srgb,var(--vert) 14%,transparent); color:var(--vert)}
+  .lv-structurel{background:color-mix(in srgb,var(--ambre) 16%,transparent); color:var(--ambre)}
+  .lv-fixe{background:color-mix(in srgb,var(--graphite) 16%,transparent); color:var(--graphite)}
+  .lv-volume{background:color-mix(in srgb,var(--bleu) 14%,transparent); color:var(--bleu)}
+  .lv-inconnu,.lv-hors_resultat{background:color-mix(in srgb,var(--rouge) 13%,transparent); color:var(--rouge)}
+
+  .meta-inline{font-family:var(--mono); font-size:11px; color:var(--graphite); margin-left:6px}
+
+  /* saisie de réduction */
+  input.reduc{
+    font-family:var(--mono); font-size:12px; width:52px; padding:3px 5px; text-align:right;
+    background:var(--surface); color:var(--encre); border:1px solid var(--trait-fort); border-radius:2px;
+  }
+  input.reduc:focus-visible{outline:2px solid var(--accent); outline-offset:-1px}
+  input.reduc.rempli{border-color:var(--vert); background:color-mix(in srgb,var(--vert) 8%,transparent)}
+  .eco{color:var(--vert); font-weight:700}
+  .apres{color:var(--graphite)}
+
+
+  /* ── Barre d'impact ancrée ── */
+  .impact{
+    position:fixed; left:0; right:0; bottom:0; z-index:20;
+    background:var(--bandeau-fond); color:var(--bandeau-texte);
+    border-top:3px solid var(--accent);
+    padding:11px 20px;
+    display:flex; gap:26px; align-items:center; flex-wrap:wrap;
+    box-shadow:0 -8px 24px -12px rgba(0,0,0,.4);
+  }
+  .impact .bloc{display:flex; flex-direction:column; gap:1px}
+  .impact .etq{
+    font-size:9px; text-transform:uppercase; letter-spacing:.1em; opacity:.65; font-weight:600;
+  }
+  .impact .val{font-family:var(--mono); font-size:17px; font-weight:700; letter-spacing:-.01em}
+  .impact .val.gain{color:#7BE3A4}
+  .impact .val.perte{color:#FF8A8E}
+  .impact .fleche{font-family:var(--mono); font-size:12px; opacity:.55; align-self:center}
+  .impact .pousse{margin-left:auto; display:flex; gap:8px; align-items:center}
+  .impact button{
+    background:transparent; color:var(--bandeau-texte); border-color:rgba(255,255,255,.28); font-size:12px;
+  }
+  .impact button:hover{background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.5)}
+
+  /* ── Notes ── */
+  .note{
+    margin:16px 0 0; padding:12px 15px; background:var(--surface);
+    border:1px solid var(--trait); border-left:3px solid var(--graphite); border-radius:2px;
+    font-size:13px; color:var(--graphite); max-width:none;
+  }
+  .note b{color:var(--encre); font-weight:600}
+  .note.attention{border-left-color:var(--accent)}
+  .mono{font-family:var(--mono); font-size:12px}
+
+  .pied{
+    margin-top:26px; padding-top:12px; border-top:1px solid var(--trait);
+    font-size:11.5px; color:var(--graphite); line-height:1.6;
+  }
+  .pied b{color:var(--encre); font-weight:600}
+
+  .vide{padding:40px; text-align:center; color:var(--graphite)}
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important; animation:none !important}
+  }
+  @media (max-width:640px){
+    .enveloppe{padding:20px 12px 160px}
+    .impact{gap:16px; padding:10px 12px}
+    .impact .val{font-size:15px}
+  }
+</style>
+
+<div class="enveloppe">
+
+  <div class="marque">
+    <div class="sigle">CRC</div>
+    <div>
+      <div class="nom">Construction Richard Champagne</div>
+      <div class="sous">État des résultats — source Avantage</div>
+    </div>
+  </div>
+
+  <h1>Où va l'argent</h1>
+  <p class="chapeau">
+    Chaque dollar des douze derniers mois, du poste jusqu'à la facture. Clique une ligne pour
+    descendre. Saisis un pourcentage dans <b>Réduction</b> et regarde la barre du bas :
+    le résultat net et le seuil de rentabilité se recalculent pendant que tu tapes.
+  </p>
+  <div class="periode" id="periode"></div>
+
+  <div class="spine" id="spine"></div>
+
+  <div class="outils">
+    <div class="groupe">
+      <span class="groupe-etq">Scénarios</span>
+      <button id="sc-discipline">Discipline seule</button>
+      <button id="sc-complet">Plan complet</button>
+      <button id="sc-structure">Structure 4+3</button>
+      <button id="sc-raz">Remettre à zéro</button>
+    </div>
+    <div class="groupe" style="margin-left:auto">
+      <span class="groupe-etq">Affichage</span>
+      <button id="tout">Tout ouvrir</button>
+      <button id="plier">Tout fermer</button>
+      <input type="search" id="filtre" placeholder="Chercher un fournisseur…" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="cadre">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:46%">Poste</th>
+          <th class="r" style="width:13%">Montant</th>
+          <th class="r" style="width:8%">% rev.</th>
+          <th class="r" style="width:9%">Réduction</th>
+          <th class="r" style="width:12%">Après</th>
+          <th class="r" style="width:12%">Économie</th>
+        </tr>
+      </thead>
+      <tbody id="corps"></tbody>
+    </table>
+  </div>
+
+  <div class="note attention" id="note-bilan"></div>
+  <div class="note" id="note-qualite"></div>
+
+  <div class="pied">
+    <b>Construction Richard Champagne inc.</b> · Saint-Tite, Québec<br>
+    RBQ 8231-1127-01 · NEQ 1180040314 · info@c-rc.ca · 418 365-7973<br>
+    Données lues en lecture seule dans Avantage. Confidentiel — direction.
+  </div>
+</div>
+
+<div class="impact" id="impact">
+  <div class="bloc">
+    <span class="etq">Résultat net</span>
+    <span class="val" id="i-res">—</span>
+  </div>
+  <span class="fleche">→</span>
+  <div class="bloc">
+    <span class="etq">Après réductions</span>
+    <span class="val" id="i-res-sim">—</span>
+  </div>
+  <div class="bloc">
+    <span class="etq">Économie annuelle</span>
+    <span class="val" id="i-eco">—</span>
+  </div>
+  <div class="bloc">
+    <span class="etq">Seuil de rentabilité</span>
+    <span class="val" id="i-seuil">—</span>
+  </div>
+  <div class="pousse">
+    <span class="etq" id="i-compte" style="opacity:.65"></span>
+    <button id="i-raz">Effacer</button>
+  </div>
+</div>
+
+<script id="donnees" type="application/json">__DONNEES__</script>
+<script>
+const E = JSON.parse(document.getElementById('donnees').textContent);
+const REDUC = {};
+
+const $ = s => document.querySelector(s);
+const arg = n => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString('fr-CA') + ' $';
+const pc = n => (n === null || n === undefined) ? '—' : n.toFixed(1).replace('.', ',') + ' %';
+const ech = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const T = E.totaux;
+const MOIS = E.periode.mois || 12;
+const chargesResultat = () => T.cout_direct + T.frais_generaux + T.non_classe;
+
+// Postes sur lesquels une réduction a du sens : les frais qui ne suivent pas le volume.
+const simulables = new Set();
+E.sections.filter(s => !s.exclu && s.id !== 'cout_direct')
+  .forEach(s => s.postes.forEach(p => simulables.add(p.id)));
+
+const posteParId = {};
+E.sections.forEach(s => s.postes.forEach(p => { posteParId[p.id] = p; }));
+
+// ── Période et bande de synthèse ────────────────────────────────────────────
+$('#periode').textContent =
+  'Période du ' + E.periode.debut + ' au ' + E.periode.fin +
+  '  ·  ' + MOIS.toFixed(2).replace('.', ',') + ' mois' +
+  '  ·  ' + E.qualite.lignes_de_charge.toLocaleString('fr-CA') + ' lignes de charge' +
+  '  ·  ' + E.revenus.nb_factures + ' factures clients sur ' + E.revenus.projets.length + ' projets';
+
+function cellule(etq, val, opts) {
+  const o = opts || {};
+  return '<div class="vert-cell ' + (o.classe || '') + '">' +
+    '<span class="etq">' + etq + '</span>' +
+    '<span class="val">' + val + '</span>' +
+    (o.pc ? '<span class="pc">' + o.pc + '</span>' : '') +
+    (o.simId ? '<span class="sim" id="' + o.simId + '"></span>' : '') +
+    '</div>';
+}
+$('#spine').innerHTML =
+  cellule('Revenus facturés', arg(T.revenus), { pc: '100 %' }) +
+  cellule('Coût des travaux', arg(T.cout_direct), { pc: pc(T.cout_direct / T.revenus * 100) }) +
+  cellule('Marge brute', arg(T.marge_brute), { pc: pc(T.marge_brute_pct), classe: 'pivot' }) +
+  cellule('Frais généraux', arg(T.frais_generaux + T.non_classe),
+          { pc: pc((T.frais_generaux + T.non_classe) / T.revenus * 100), simId: 'sim-fg' }) +
+  cellule('Résultat net', arg(T.resultat_net),
+          { pc: pc(T.resultat_net_pct), simId: 'sim-res', classe: T.resultat_net >= 0 ? 'pos' : 'neg' });
+
+// ── Construction du tableau ─────────────────────────────────────────────────
+function ligneRevenus() {
+  let h = '';
+  h += rangee({ cle: 'rev', niveau: 'sec', libelle: 'Revenus facturés', montant: T.revenus,
+                pctRev: 100, ouvert: false });
+  E.revenus.projets.forEach((p, i) => {
+    const nom = (p.projet === '(sans projet)' ? 'Sans projet' : 'P' + p.projet) +
+      (p.nom ? ' — ' + ech(p.nom) : '');
+    const meta = '<span class="meta-inline">' + p.nb + ' fact.' +
+      (p.soldeOuvert ? ' · ouvert ' + arg(p.soldeOuvert) : '') + '</span>';
+    h += rangee({ cle: 'rev-' + i, parent: 'rev', niveau: 'poste', profondeur: 1,
+                  libelle: nom + meta, montant: p.total, pctRev: p.total / T.revenus * 100,
+                  cache: true, pliable: true });
+    p.factures.forEach((f, j) => {
+      const det = '<span class="mono">' + ech(f.date) + '</span> · n<sup>o</sup> ' + ech(f.numeroFacture) +
+        (f.client ? ' · ' + ech(f.client) : '');
+      h += rangee({ cle: 'rev-' + i + '-' + j, parent: 'rev-' + i, niveau: 'piece', profondeur: 2,
+                    libelle: det, montant: f.montant, cache: true, pliable: false,
+                    recherche: f.client });
+    });
+  });
+  return h;
+}
+
+function rangee(o) {
+  const prof = o.profondeur || 0;
+  const rails = '<span class="tige"></span>'.repeat(prof);
+  const chev = o.pliable === false ? '<span class="creux"></span>' : '<span class="chevron">▶</span>';
+  const cls = ['niv-' + o.niveau];
+  if (o.pliable !== false) cls.push('pliable');
+  if (o.cache) cls.push('cache');
+  if (o.ouvert) cls.push('ouvert');
+
+  const libelleInterne = prof === 0
+    ? '<div class="cellule">' + chev + o.libelle + '</div>'
+    : '<div class="rail">' + rails + '<div class="corps">' + chev + o.libelle + '</div></div>';
+
+  const champ = o.simId
+    ? '<input class="reduc" type="number" min="0" max="100" step="5" placeholder="0" data-poste="' + o.simId + '">'
+    : '';
+
+  return '<tr class="' + cls.join(' ') + '" data-cle="' + o.cle + '"' +
+    (o.parent ? ' data-parent="' + o.parent + '"' : '') +
+    (o.recherche ? ' data-recherche="' + ech(String(o.recherche).toLowerCase()) + '"' : '') + '>' +
+    '<td class="lib">' + libelleInterne + '</td>' +
+    '<td class="r"><div class="cellule">' + arg(o.montant) + '</div></td>' +
+    '<td class="r"><div class="cellule">' + (o.pctRev !== undefined ? pc(o.pctRev) : '') + '</div></td>' +
+    '<td class="r"><div class="cellule">' + champ + '</div></td>' +
+    '<td class="r apres"><div class="cellule" data-apres="' + (o.simId || '') + '"></div></td>' +
+    '<td class="r eco"><div class="cellule" data-eco="' + (o.simId || '') + '"></div></td>' +
+    '</tr>';
+}
+
+function sectionCharges(s) {
+  let h = rangee({ cle: 's-' + s.id, niveau: 'sec', libelle: s.libelle,
+                   montant: s.total, pctRev: s.total / T.revenus * 100, ouvert: true });
+  s.postes.forEach((p, pi) => {
+    const cleP = 's-' + s.id + '-' + pi;
+    const chip = '<span class="chip lv-' + ech(p.levier) + '">' + ech(p.levier.replace(/_/g, ' ')) + '</span>';
+    h += rangee({ cle: cleP, parent: 's-' + s.id, niveau: 'poste', profondeur: 1,
+                  libelle: ech(p.libelle) + chip, montant: p.total,
+                  pctRev: p.total / T.revenus * 100,
+                  simId: simulables.has(p.id) ? p.id : null, pliable: true });
+    p.comptes.forEach((c, ci) => {
+      const cleC = cleP + '-' + ci;
+      h += rangee({ cle: cleC, parent: cleP, niveau: 'gl', profondeur: 2,
+                    libelle: '<span class="mono">' + ech(c.gl) + '</span> &nbsp;' + ech(c.libelle),
+                    montant: c.total, pctRev: c.total / T.revenus * 100, cache: true, pliable: true });
+      c.fournisseurs.forEach((f, fi) => {
+        const cleF = cleC + '-' + fi;
+        h += rangee({ cle: cleF, parent: cleC, niveau: 'four', profondeur: 3,
+                      libelle: ech(f.nom) + '<span class="meta-inline">' + f.nb + ' fact.</span>',
+                      montant: f.total, pctRev: f.total / T.revenus * 100,
+                      cache: true, pliable: true, recherche: f.nom });
+        f.factures.forEach((x, xi) => {
+          const det = [
+            '<span class="mono">' + ech(x.date) + '</span>',
+            x.numeroFacture ? 'n<sup>o</sup> ' + ech(x.numeroFacture) : '',
+            x.projet ? 'P' + ech(x.projet) : 'frais général',
+            x.division ? '<span class="mono">' + ech(x.division) + '</span>' +
+              (x.divisionNom ? ' ' + ech(x.divisionNom) : '') : '',
+            x.description ? ech(x.description) : '',
+          ].filter(Boolean).join(' · ');
+          h += rangee({ cle: cleF + '-' + xi, parent: cleF, niveau: 'piece', profondeur: 4,
+                        libelle: det, montant: x.montant, cache: true, pliable: false,
+                        recherche: f.nom + ' ' + (x.description || '') });
+        });
+      });
+    });
+  });
+  return h;
+}
+
+function somme(libelle, montant, pctRev, finale) {
+  return '<tr class="somme' + (finale ? ' finale' : '') + '">' +
+    '<td class="lib"><div class="cellule">' + libelle + '</div></td>' +
+    '<td class="r"><div class="cellule">' + arg(montant) + '</div></td>' +
+    '<td class="r"><div class="cellule">' + pc(pctRev) + '</div></td>' +
+    '<td></td><td></td><td></td></tr>';
+}
+
+let html = ligneRevenus();
+const dansResultat = E.sections.filter(s => !s.exclu);
+const horsResultat = E.sections.filter(s => s.exclu);
+dansResultat.forEach(s => {
+  html += sectionCharges(s);
+  if (s.id === 'cout_direct') html += somme('Marge brute', T.marge_brute, T.marge_brute_pct);
+});
+html += somme('Résultat net', T.resultat_net, T.resultat_net_pct, true);
+horsResultat.forEach(s => { html += sectionCharges(s); });
+$('#corps').innerHTML = html;
+
+// ── Notes ───────────────────────────────────────────────────────────────────
+const assur = horsResultat.flatMap(s => s.postes).find(p => p.id === 'assurances_payees_davance');
+$('#note-bilan').innerHTML = horsResultat.length
+  ? 'Les <b>mouvements de bilan</b> en bas de tableau — comptes d\'actif 1xxxx et de passif 2xxxx — ' +
+    'sont des virements, remboursements de prêt et écritures de retenue. Ce ne sont pas des charges, ' +
+    'donc ils <b>n\'entrent pas dans le résultat net</b>. ' +
+    (assur ? 'À noter : les primes d\'assurance sont portées en actif payé d\'avance (<b>' +
+      arg(assur.total) + '</b> sur la période). C\'est le déboursé réel et il est négociable, même s\'il ' +
+      'ne figure pas dans la ligne « Assurances » des frais généraux.' : '')
+  : '';
+if (!horsResultat.length) $('#note-bilan').style.display = 'none';
+
+$('#note-qualite').innerHTML =
+  'Part des charges non classées : <b>' + pc(E.qualite.pct_non_classe) + '</b> — chaque dollar est ' +
+  'rattaché à un poste du plan comptable. Les GL de taxes sont exclus et les montants nets ' +
+  'reconstruits à partir des paires GL de chaque facture. Un poste égale toujours la somme exacte ' +
+  'de ses comptes, chaque compte la somme de ses fournisseurs, chaque fournisseur la somme de ses factures.';
+
+// ── Pliage ──────────────────────────────────────────────────────────────────
+function enfants(cle){ return document.querySelectorAll('[data-parent="' + cle + '"]'); }
+
+function fermerDescendance(tr){
+  const cle = tr.getAttribute('data-cle');
+  if (!cle) return;
+  enfants(cle).forEach(e => { e.classList.add('cache'); fermerDescendance(e); });
+  tr.classList.remove('ouvert');
+}
+
+function basculer(tr){
+  const cle = tr.getAttribute('data-cle');
+  const kids = enfants(cle);
+  if (!kids.length) return;
+  const ouvert = !kids[0].classList.contains('cache');
+  if (ouvert){
+    kids.forEach(e => { e.classList.add('cache'); fermerDescendance(e); });
+    tr.classList.remove('ouvert');
+  } else {
+    kids.forEach(e => e.classList.remove('cache'));
+    tr.classList.add('ouvert');
+  }
+}
+
+$('#corps').addEventListener('click', ev => {
+  if (ev.target.tagName === 'INPUT') return;
+  const tr = ev.target.closest('tr.pliable');
+  if (tr) basculer(tr);
+});
+
+// Remet l'arbre dans son état d'accueil : sections de charges ouvertes sur leurs postes,
+// revenus fermés, lignes de total visibles. Sert au bouton « Tout fermer » comme à la
+// sortie de recherche — sans cela, une branche sans résultat resterait masquée.
+function etatInitial(){
+  document.querySelectorAll('#corps tr').forEach(t => {
+    t.classList.remove('ouvert');
+    if (t.hasAttribute('data-parent')) t.classList.add('cache');
+    else t.classList.remove('cache');
+  });
+  document.querySelectorAll('#corps tr.niv-sec').forEach(t => {
+    const cle = t.getAttribute('data-cle');
+    if (cle === 'rev') return;
+    enfants(cle).forEach(e => e.classList.remove('cache'));
+    t.classList.add('ouvert');
+  });
+}
+
+$('#tout').addEventListener('click', () => {
+  document.querySelectorAll('#corps tr').forEach(t => t.classList.remove('cache'));
+  document.querySelectorAll('#corps tr.pliable').forEach(t => t.classList.add('ouvert'));
+});
+$('#plier').addEventListener('click', etatInitial);
+
+// ── Recherche : révèle toute ligne qui mentionne le terme, et ses ancêtres ──
+const filtre = $('#filtre');
+filtre.addEventListener('input', () => {
+  const q = filtre.value.trim().toLowerCase();
+  const lignes = [...document.querySelectorAll('#corps tr')];
+  if (!q){ etatInitial(); return; }
+  const parCle = {};
+  lignes.forEach(t => { const c = t.getAttribute('data-cle'); if (c) parCle[c] = t; });
+  lignes.forEach(t => t.classList.add('cache'));
+  lignes.forEach(t => {
+    const r = t.getAttribute('data-recherche');
+    if (!r || !r.includes(q)) return;
+    t.classList.remove('cache');
+    let p = t.getAttribute('data-parent');
+    while (p && parCle[p]){
+      parCle[p].classList.remove('cache');
+      parCle[p].classList.add('ouvert');
+      p = parCle[p].getAttribute('data-parent');
+    }
+  });
+});
+
+// ── Simulateur ──────────────────────────────────────────────────────────────
+function economie(){
+  let e = 0;
+  for (const [id, taux] of Object.entries(REDUC)){
+    const p = posteParId[id];
+    if (p) e += p.total * (taux / 100);
+  }
+  return e;
+}
+
+function rafraichir(){
+  const eco = economie();
+  const nb = Object.keys(REDUC).length;
+  const fgSim = T.frais_generaux + T.non_classe - eco;
+  const resSim = T.resultat_net + eco;
+  const taux = T.revenus ? T.marge_brute / T.revenus : 0;
+  const seuil = taux > 0 ? (T.frais_generaux + T.non_classe) / taux : null;
+  const seuilSim = taux > 0 ? fgSim / taux : null;
+  const ecoAn = MOIS > 0 ? eco / MOIS * 12 : eco;
+
+  $('#sim-fg').textContent = eco ? '→ ' + arg(fgSim) : '';
+  $('#sim-res').textContent = eco ? '→ ' + arg(resSim) : '';
+
+  $('#i-res').textContent = arg(T.resultat_net);
+  $('#i-res').className = 'val ' + (T.resultat_net >= 0 ? 'gain' : 'perte');
+  $('#i-res-sim').textContent = eco ? arg(resSim) : '—';
+  $('#i-res-sim').className = 'val ' + (eco ? (resSim >= 0 ? 'gain' : 'perte') : '');
+  $('#i-eco').textContent = eco ? arg(ecoAn) : '—';
+  $('#i-eco').className = 'val ' + (eco ? 'gain' : '');
+  $('#i-seuil').textContent = seuil === null ? '—' : (eco ? arg(seuilSim) : arg(seuil));
+  $('#i-compte').textContent = nb ? nb + (nb > 1 ? ' postes réduits' : ' poste réduit') : '';
+
+  document.querySelectorAll('[data-apres]').forEach(el => {
+    const id = el.getAttribute('data-apres');
+    if (!id || !posteParId[id]) return;
+    const t = REDUC[id] || 0;
+    el.textContent = t ? arg(posteParId[id].total * (1 - t / 100)) : '';
+  });
+  document.querySelectorAll('[data-eco]').forEach(el => {
+    const id = el.getAttribute('data-eco');
+    if (!id || !posteParId[id]) return;
+    const t = REDUC[id] || 0;
+    el.textContent = t ? '−' + arg(posteParId[id].total * (t / 100)).replace('−', '') : '';
+  });
+  document.querySelectorAll('input.reduc').forEach(i => {
+    i.classList.toggle('rempli', Boolean(REDUC[i.getAttribute('data-poste')]));
+  });
+}
+
+$('#corps').addEventListener('input', ev => {
+  const i = ev.target.closest('input.reduc');
+  if (!i) return;
+  const id = i.getAttribute('data-poste');
+  const v = parseFloat(i.value);
+  if (!Number.isFinite(v) || v <= 0) delete REDUC[id];
+  else REDUC[id] = Math.min(100, v);
+  rafraichir();
+});
+$('#corps').addEventListener('click', ev => {
+  if (ev.target.closest('input.reduc')) ev.stopPropagation();
+}, true);
+
+function appliquer(plan, bouton){
+  Object.keys(REDUC).forEach(k => delete REDUC[k]);
+  document.querySelectorAll('input.reduc').forEach(i => { i.value = ''; });
+  for (const [id, taux] of Object.entries(plan)){
+    if (!posteParId[id]) continue;
+    REDUC[id] = taux;
+    const i = document.querySelector('input.reduc[data-poste="' + id + '"]');
+    if (i) i.value = String(taux);
+  }
+  document.querySelectorAll('.groupe button').forEach(b => b.classList.remove('actif'));
+  if (bouton) bouton.classList.add('actif');
+  rafraichir();
+}
+
+// Les trois scénarios du plan CRC-STRAT-2026-002, exprimés en pourcentage de chaque poste.
+const PLAN_DISCIPLINE = {
+  telecom_info: 29, honoraires: 49, deplacements: 30, outillage: 24,
+  vehicules: 20, entretien: 29, pub_dons: 100, autres_generaux: 27,
+};
+const PLAN_STRUCTURE = { salaires_struct: 30, charges_struct: 30, direction: 74 };
+const PLAN_COMPLET = Object.assign({}, PLAN_DISCIPLINE, PLAN_STRUCTURE);
+
+$('#sc-discipline').addEventListener('click', e => appliquer(PLAN_DISCIPLINE, e.currentTarget));
+$('#sc-structure').addEventListener('click', e => appliquer(PLAN_STRUCTURE, e.currentTarget));
+$('#sc-complet').addEventListener('click', e => appliquer(PLAN_COMPLET, e.currentTarget));
+$('#sc-raz').addEventListener('click', e => appliquer({}, null));
+$('#i-raz').addEventListener('click', () => appliquer({}, null));
+
+rafraichir();
+</script>

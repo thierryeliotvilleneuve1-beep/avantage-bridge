@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "node test/etat-resultats.test.js",
-    "test:vue": "node test/vue.test.js"
+    "test:vue": "node test/vue.test.js",
+    "instantane": "node scripts/instantane.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
