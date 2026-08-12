@@ -61,7 +61,7 @@ const TABLES = {
   // Seule table dont les noms de colonnes sont déjà connus et vérifiés (export à en-tête).
   FACTMA: {
     table: 'FACTMA',
-    mappe: true,
+    mappe: false,
     colonnes: {
       numeroFacture: { csv: 'FFNOFACT', bd: 'FFNOFACT' },
       numeroProjet:  { csv: 'FFCONT',   bd: 'FFCONT' },
@@ -70,13 +70,15 @@ const TABLES = {
       montant:       { csv: 'FFTOTDU',  bd: 'FFTOTDU' },
       soldeOuvert:   { csv: 'FFSOLDE',  bd: 'FFSOLDE' },
       retenue:       { csv: 'FFMNTRET', bd: 'FFMNTRET' },
+      // Note de crédit : présente dans l'export sous « Note de crédit (T/F) », index 26.
+      noteCredit:    { csv: 26,          bd: 'FFNOTCR' },
     },
   },
 
   // Fiches de projet — noms et clients.
   CONTRA: {
     table: 'CONTRA',
-    mappe: true,
+    mappe: false,
     colonnes: {
       numeroProjet: { csv: 'CONUM',     bd: 'CONUM' },
       nom:          { csv: 'CONOM',     bd: 'CONOM' },

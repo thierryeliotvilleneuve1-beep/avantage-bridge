@@ -52,6 +52,11 @@ const NATURES = {
   },
   ACTIVE: { code: 'projet', nom: 'texte' },
   COMITE: { numeroCommande: 'projet', codeActivite: 'projet' },
+  FACTMA: {
+    numeroFacture: 'texte', numeroProjet: 'projet', client: 'texte', date: 'date',
+    montant: 'montant', soldeOuvert: 'montant', retenue: 'montant', noteCredit: 'texte',
+  },
+  CONTRA: { numeroProjet: 'projet', nom: 'texte', client: 'texte', statut: 'texte' },
 };
 
 // Champs dont l'échec invalide tout le mappage. Les autres sont tolérés : une description
@@ -61,6 +66,8 @@ const OBLIGATOIRES = {
   TRANS: ['date', 'montant', 'numeroGl', 'journal'],
   ACTIVE: ['code'],
   COMITE: ['numeroCommande', 'codeActivite'],
+  FACTMA: ['numeroFacture', 'date', 'montant'],
+  CONTRA: ['numeroProjet'],
 };
 
 // Seuil de tolérance : les exports hérités contiennent des lignes abîmées, on n'exige pas
@@ -75,24 +82,54 @@ function proportionValide(valeurs, nature) {
   return bons / utiles.length;
 }
 
-// Construit le mappage positionnel d'une table à partir de ses colonnes réelles.
+// Construit le mappage d'une table à partir de ses colonnes réelles.
+//
+// Deux stratégies, dans cet ordre :
+//   1. par NOM — si la configuration propose un nom de colonne et que ce nom existe
+//      vraiment dans la table, c'est le signal le plus sûr. La comparaison ignore la casse.
+//   2. par POSITION — sinon, on retombe sur l'index de l'export CSV, en supposant que
+//      l'export reflète l'ordre des colonnes de la table.
+// La validation qui suit tranche : peu importe la stratégie, un champ dont le contenu ne
+// correspond pas à sa nature attendue fait échouer le mappage.
 function mapperParPosition(nomTable, colonnes) {
   const def = TABLES[nomTable];
   if (!def) return null;
   const noms = colonnes.map(c => c.nom);
+  const parMinuscule = {};
+  noms.forEach(n => { parMinuscule[String(n).toLowerCase()] = n; });
+
   const mappage = {};
+  const strategies = {};
   const horsBornes = [];
 
   for (const [champ, spec] of Object.entries(def.colonnes)) {
+    // 1. par nom
+    if (spec.bd && parMinuscule[String(spec.bd).toLowerCase()]) {
+      mappage[champ] = parMinuscule[String(spec.bd).toLowerCase()];
+      strategies[champ] = 'nom';
+      continue;
+    }
+    // 2. par position
     const idx = spec.csv;
-    if (typeof idx !== 'number') continue; // table déjà nommée (FACTMA, CONTRA)
+    if (typeof idx !== 'number') {
+      horsBornes.push(champ + ' (aucun nom trouvé et aucune position connue)');
+      continue;
+    }
     if (idx >= noms.length) { horsBornes.push(champ + ' (index ' + idx + ')'); continue; }
     mappage[champ] = noms[idx];
+    strategies[champ] = 'position';
   }
 
   // Paires GL/montant de PYBBIL : dix paires consécutives à partir de l'index 8.
   let paires = null;
-  if (def.pairesGl) {
+  if (def.pairesGl && Array.isArray(def.pairesGl.bd)) {
+    paires = def.pairesGl.bd.filter(p => parMinuscule[String(p.gl).toLowerCase()]);
+    if (paires.length) paires = paires.map(p => ({
+      gl: parMinuscule[String(p.gl).toLowerCase()],
+      montant: parMinuscule[String(p.montant).toLowerCase()] || p.montant,
+    }));
+  }
+  if (def.pairesGl && (!paires || !paires.length)) {
     const p = def.pairesGl;
     paires = [];
     for (let i = 0; i < p.nombre; i++) {
@@ -103,7 +140,7 @@ function mapperParPosition(nomTable, colonnes) {
     }
   }
 
-  return { mappage, paires, nbColonnes: noms.length, horsBornes };
+  return { mappage, paires, strategies, nbColonnes: noms.length, horsBornes };
 }
 
 // Valide un mappage sur un échantillon de lignes.
@@ -193,6 +230,7 @@ async function deduire(nomTable, depot, tailleEchantillon) {
     nbColonnes: pos.nbColonnes,
     nbLignesEchantillon: echantillon.length,
     mappage: pos.mappage,
+    strategies: pos.strategies,
     paires: pos.paires,
     controles: v.details,
     echecs: v.echecs,

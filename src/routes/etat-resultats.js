@@ -7,6 +7,7 @@ const etatResultats = require('../services/etatResultats');
 const source = require('../sources/donneesAvantage');
 const cx = require('../db/connexion');
 const autoMappage = require('../db/autoMappage');
+const dbfDepot = require('../sources/depotDbf');
 const { TABLES, estLisibleEnBd } = require('../config/colonnes-avantage');
 
 // Toutes les routes de ce module sont en LECTURE SEULE : aucune n'écrit dans Avantage
@@ -102,8 +103,18 @@ router.get('/diagnostic-bd', async (req, res) => {
 // Auto-mappage : déduit les colonnes par position et les valide sur les données réelles.
 // C'est ce qui remplace la transcription manuelle des noms de colonnes.
 router.get('/mappage', async (req, res) => {
-  if (!cx.disponible()) {
-    return res.json({ disponible: false, raison: cx.raisonIndisponible() });
+  // La résolution fonctionne dès qu'une source structurée est là : les .DBF d'abord,
+  // l'ODBC ensuite. Exiger l'ODBC seul ferait manquer la voie normale.
+  if (!dbfDepot.disponible() && !cx.disponible()) {
+    return res.json({
+      disponible: false,
+      raison_dbf: dbfDepot.raisonIndisponible(),
+      raison_odbc: cx.raisonIndisponible(),
+      marche_a_suivre: [
+        'Voie normale : pointer AVANTAGE_DBF_DIR sur le répertoire des .DBF (A:\\AVA01 par défaut sous Windows).',
+        'Voie ODBC : renseigner AVANTAGE_DSN et AVANTAGE_BD_ACTIVE=true.',
+      ],
+    });
   }
   try {
     const resultats = await source.autoMapper(true);
@@ -111,8 +122,9 @@ router.get('/mappage', async (req, res) => {
     const refusees = resultats.filter(r => !r.retenu);
     res.json({
       disponible: true,
-      voie: cx.voie(),
+      voie: dbfDepot.disponible() ? 'dbf' : cx.voie(),
       lecture_seule: true,
+      repertoire_dbf: dbfDepot.repertoire(),
       tables_lues_en_bd: Object.keys(TABLES).filter(t => estLisibleEnBd(t)),
       deduites_et_validees: retenues,
       non_retenues: refusees.map(r => ({ table: r.table, raison: r.raison, controles: r.controles })),

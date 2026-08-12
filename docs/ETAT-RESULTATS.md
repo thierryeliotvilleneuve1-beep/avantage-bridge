@@ -29,6 +29,10 @@ npm install
 npm start
 ```
 
+Sous Windows, le bridge cherche de lui-même les tables Avantage dans `A:\AVA01`. Rien à
+configurer si elles y sont : les données sont lues à la source, donc toujours à jour.
+Ailleurs, ou si le répertoire diffère, pointer `AVANTAGE_DBF_DIR` dessus dans `.env`.
+
 Ouvrir dans le navigateur :
 
 ```
@@ -78,6 +82,29 @@ Compter environ 900 Ko pour une année complète.
 C'est aussi la façon de faire circuler les chiffres sans donner accès à Avantage :
 le fichier ne contient que le résultat de la lecture, jamais un identifiant.
 
+## Les trois voies de lecture
+
+Le bridge essaie dans cet ordre, et annonce toujours celle qu'il a employée :
+
+| Voie | Ce qu'elle lit | Fraîcheur |
+|---|---|---|
+| **DBF** | `A:\AVA01\PYBBIL.DBF`, `TRANS.DBF`, `FACTMA.DBF`… | **la base elle-même, à la seconde** |
+| ODBC | la même base via un DSN | à la seconde |
+| CSV | les exports `exports-avantage/*.csv` | figée à la date de l'export |
+
+Avantage stocke ses tables en dBASE/FoxPro. Ces `.DBF` **sont** la base — pas un export.
+Les lire directement supprime trois dépendances d'un coup : plus d'export à relancer, plus
+de pilote ODBC à installer, plus de noms de colonnes à transcrire, puisqu'un `.DBF`
+déclare ses champs dans son propre en-tête.
+
+Le lecteur `.DBF` traite les types `C N F D L I Y B T M`, écarte les enregistrements
+supprimés, convertit les dates en `AAAA-MM-JJ`, conserve le signe des notes de crédit, lit
+par blocs de 4 Mo pour ne pas charger 38 Mo d'un coup, et se protège d'un compteur
+d'enregistrements menteur en recalculant le nombre réel d'après la taille du fichier.
+
+L'écran affiche la provenance de chaque jeu de données — `DBF`, `BD`, `CSV` ou `ABSENT` —
+avec le nombre d'enregistrements et la date de dernière modification du fichier lu.
+
 ## Routes
 
 | Route | Rôle |
@@ -85,7 +112,8 @@ le fichier ne contient que le résultat de la lecture, jamais un identifiant.
 | `GET /api/etat-resultats/vue` | L'écran interactif |
 | `GET /api/etat-resultats?debut=AAAA-MM-JJ&fin=AAAA-MM-JJ` | L'état des résultats en JSON, arbre complet |
 | `GET /api/etat-resultats/diagnostic` | Ce que le bridge voit : base joignable ou non, fichiers présents, tables mappées |
-| `GET /api/etat-resultats/diagnostic-bd` | Introspection de la base : tables et colonnes réelles |
+| `GET /api/etat-resultats/diagnostic-bd` | Introspection ODBC : tables et colonnes réelles |
+| `GET /api/etat-resultats/mappage` | Résolution des champs : ce qui a été déduit, validé ou refusé, et pourquoi |
 
 Toutes exigent la clé API (`?key=` ou en-tête `x-api-key`).
 
@@ -191,15 +219,14 @@ triée par montant : c'est la liste de travail pour affiner le plan comptable.
 npm run test:tout
 ```
 
-64 vérifications en trois harnais :
+112 vérifications en cinq harnais :
 
 | Harnais | Nombre | Ce qu'il couvre |
 |---|---|---|
-| `npm test` | 25 | Refus d'écriture, classification, exclusion des taxes, réconciliation du drill-down aux cinq niveaux, exclusion hors période, annualisation |
-| `npm run test:mappage` | 19 | Déduction des colonnes par position, et surtout le **refus** d'un mappage faux : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec |
-| `npm run test:vue` | 20 | Dans un vrai navigateur : intégrité de l'arbre, drill-down au clic, réconciliation affichée, simulateur, export CSV, absence d'erreur JavaScript |
+| `npm test` | 25 | Refus d'écriture, classification, exclusion des taxes, réconciliation du drill-down, annualisation |
+| `npm run test:dbf` | 21 | Le format `.DBF` sur de vrais fichiers binaires fabriqués pour l'occasion : types de champs, enregistrements supprimés, dates vides, montants négatifs, compteur menteur, lecture par blocs sur 20 000 enregistrements |
+| `npm run test:mappage` | 19 | Résolution des champs, et surtout son **refus** : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec |
+| `npm run test:bout-en-bout` | 27 | Un jeu complet de `.DBF` jusqu'à l'état des résultats : résolution automatique, séparation projet / frais général, exclusion des taxes, notes de crédit, mouvements de bilan, chaque total au dollar |
+| `npm run test:vue` | 20 | Dans un vrai navigateur : drill-down au clic, réconciliation affichée, simulateur, export CSV |
 
 Le harnais de vue exige Playwright ; sans lui il se signale comme ignoré au lieu d'échouer.
-Le harnais de mappage simule le pilote ODBC : la base Avantage n'est pas joignable depuis
-un poste de développement, mais ce qui compte — que la validation rejette un mappage
-douteux — se vérifie sans elle.
