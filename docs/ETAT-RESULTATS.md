@@ -118,9 +118,37 @@ toujours que tout va bien.
 
 Quand une table est illisible, le message de mappage le dit franchement — « contenu
 illisible (chiffré par Avantage ou format inconnu) » — au lieu d'accuser un champ date.
-Aucun nom de colonne ne corrige un chiffrement : il faut une autre source. Pour les revenus,
-le rapport sonde le grand livre `TRANS` et liste les types de journaux et les comptes avec
-leurs montants, ce qui montre si les produits y sont et rend `FACTMA` inutile.
+Aucun nom de colonne ne corrige un chiffrement : il faut une autre source.
+
+### Les revenus par le grand livre
+
+Chez CRC, `FACTMA` et `CONTRA` sont chiffrées ; `PYBBIL`, `TRANS`, `ACTIVE` et `COMITE` ne le
+sont pas. Les revenus viennent donc du **grand livre `TRANS`, aux comptes de produits
+`31xxx`** — une source plus sûre que la facturation, puisque c'est la comptabilité
+elle-même. Le bridge y passe automatiquement dès que `FACTMA` est illisible, et l'annonce
+dans la provenance.
+
+Ce qu'on y perd : le nom du client, qui vit dans une table chiffrée. Les projets s'affichent
+par numéro.
+
+`TRANS` étant le grand livre de projet, il contient aussi ce que d'autres tables portent
+déjà. Le tri est explicite, et **ce qui est écarté est affiché avec son montant** :
+
+| Journal | Traitement | Pourquoi |
+|---|---|---|
+| `R` | revenus | journal des produits, comptes `31xxx` |
+| `E` | charge | écritures salariales — aucune autre table ne les porte |
+| `B` | charge | transactions bancaires |
+| `P` | **écarté** | contrepartie des factures fournisseurs, déjà dans `PYBBIL` avec le nom du fournisseur et le numéro de facture |
+| `C` | **écarté** | engagements de contrat, pas des dépenses |
+| `X` | **écarté** | écritures d'exception |
+
+Compter `P` en plus de `PYBBIL` doublerait la sous-traitance et les matériaux ; compter `C`
+ajouterait des octrois de sous-traitance qui ne sont pas encore des factures. Sur douze mois
+chez CRC, cela représentait 9,8 M$ et 7,9 M$ — de quoi transformer un bénéfice en désastre
+sans qu'aucun message ne le signale. Un harnais complet le vérifie
+(`npm run test:grand-livre`) : le jeu d'essai est calibré pour qu'un doublon ou un oubli
+change le résultat net de façon visible.
 
 ## Décrire les tables réelles
 
@@ -285,7 +313,7 @@ triée par montant : c'est la liste de travail pour affiner le plan comptable.
 npm run test:tout
 ```
 
-138 vérifications en cinq harnais :
+151 vérifications en six harnais :
 
 | Harnais | Nombre | Ce qu'il couvre |
 |---|---|---|
@@ -293,6 +321,7 @@ npm run test:tout
 | `npm run test:dbf` | 29 | Le format `.DBF` sur de vrais fichiers binaires fabriqués pour l'occasion : types de champs, enregistrements supprimés, dates vides, montants négatifs, compteur menteur, lecture par blocs sur 20 000 enregistrements, échantillon réparti sur toute la table, verdict de lisibilité qui distingue une table chiffrée d'une table vide |
 | `npm run test:mappage` | 26 | Résolution des champs, et surtout son **refus** : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec, colonne vide selon la façon dont elle a été retrouvée, champ facultatif absent qui ne condamne pas la table |
 | `npm run test:bout-en-bout` | 27 | Un jeu complet de `.DBF` jusqu'à l'état des résultats : résolution automatique, séparation projet / frais général, exclusion des taxes, notes de crédit, mouvements de bilan, chaque total au dollar |
+| `npm run test:grand-livre` | 13 | La situation réelle de CRC : `FACTMA` chiffrée, revenus lus au grand livre, journaux en doublon écartés, réconciliation du résultat net au dollar |
 | `npm run test:vue` | 20 | Dans un vrai navigateur : drill-down au clic, réconciliation affichée, simulateur, export CSV |
 
 Le harnais de vue exige Playwright ; sans lui il se signale comme ignoré au lieu d'échouer.

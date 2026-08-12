@@ -30,80 +30,10 @@ async function test(nom, fn) {
 }
 
 // ── Fabrique de .DBF ────────────────────────────────────────────────────────────
-function ecrireDbf(nomFichier, champs, lignes) {
-  const longueurEnr = 1 + champs.reduce((s, c) => s + c.longueur, 0);
-  const longueurTete = 32 + champs.length * 32 + 1;
-
-  const tete = Buffer.alloc(32, 0);
-  tete[0] = 0x03;
-  tete[1] = 126; tete[2] = 8; tete[3] = 12;
-  tete.writeUInt32LE(lignes.length, 4);
-  tete.writeUInt16LE(longueurTete, 8);
-  tete.writeUInt16LE(longueurEnr, 10);
-
-  const desc = Buffer.alloc(champs.length * 32, 0);
-  champs.forEach((c, i) => {
-    desc.write(c.nom.slice(0, 10), i * 32, 11, 'latin1');
-    desc[i * 32 + 11] = c.type.charCodeAt(0);
-    desc[i * 32 + 16] = c.longueur;
-    desc[i * 32 + 17] = c.decimales || 0;
-  });
-
-  const blocs = [tete, desc, Buffer.from([0x0d])];
-  for (const l of lignes) {
-    const e = Buffer.alloc(longueurEnr, 0x20);
-    e[0] = l.__supprime ? 0x2a : 0x20;
-    let d = 1;
-    for (const c of champs) {
-      const v = l[c.nom];
-      if (v !== undefined && v !== null) {
-        const s = String(v);
-        const t = (c.type === 'N' || c.type === 'F') ? s.padStart(c.longueur, ' ') : s;
-        e.write(t.slice(0, c.longueur), d, c.longueur, 'latin1');
-      }
-      d += c.longueur;
-    }
-    blocs.push(e);
-  }
-  blocs.push(Buffer.from([0x1a]));
-  fs.writeFileSync(path.join(DIR, nomFichier), Buffer.concat(blocs));
-}
-
-// PYBBIL : 49 champs, mêmes positions que l'export réel.
-//   0 séquence · 1 date · 2 no fournisseur · 4 no facture · 5 description · 6 montant total
-//   8/9 .. 26/27 paires GL/montant · 33 no projet · 44 no commande · 48 nom fournisseur
-function champsPybbil() {
-  const c = [];
-  for (let i = 0; i < 49; i++) {
-    if (i === 1) { c.push({ nom: 'PBDATE', type: 'D', longueur: 8 }); continue; }
-    if (i === 6) { c.push({ nom: 'PBTOTAL', type: 'N', longueur: 13, decimales: 2 }); continue; }
-    if (i >= 8 && i <= 27) {
-      const paire = Math.floor((i - 8) / 2) + 1;
-      c.push((i - 8) % 2 === 0
-        ? { nom: 'PBGL' + String(paire).padStart(2, '0'), type: 'C', longueur: 5 }
-        : { nom: 'PBMT' + String(paire).padStart(2, '0'), type: 'N', longueur: 13, decimales: 2 });
-      continue;
-    }
-    if (i === 5) { c.push({ nom: 'PBDESC', type: 'C', longueur: 30 }); continue; }
-    if (i === 48) { c.push({ nom: 'PBNOMFOU', type: 'C', longueur: 40 }); continue; }
-    c.push({ nom: 'PBF' + String(i).padStart(2, '0'), type: 'C', longueur: 10 });
-  }
-  return c;
-}
-
-function lignePybbil(o) {
-  const l = {
-    PBF00: o.seq, PBDATE: o.date, PBF02: o.noFourn, PBF04: o.facture,
-    PBDESC: o.desc, PBTOTAL: o.total, PBF33: o.projet || '', PBF44: o.commande || '',
-    PBNOMFOU: o.nom,
-  };
-  (o.gl || []).forEach(([g, m], i) => {
-    l['PBGL' + String(i + 1).padStart(2, '0')] = g;
-    l['PBMT' + String(i + 1).padStart(2, '0')] = m;
-  });
-  if (o.supprime) l.__supprime = true;
-  return l;
-}
+const aide = require('./aide-dbf');
+const ecrireDbf = aide.pour(DIR);
+const champsPybbil = aide.champsPybbil;
+const lignePybbil = aide.lignePybbil;
 
 function ecrireJeu() {
   // ── PYBBIL : coûts de projet, frais généraux, taxes, note de crédit, supprimé

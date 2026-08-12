@@ -25,55 +25,7 @@ const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'dbf-'));
 // ── Fabrique de .DBF ────────────────────────────────────────────────────────────
 // champs : [{ nom, type, longueur, decimales }]
 // lignes : [{ NOM: 'valeur brute déjà formatée' }] — on écrit tel quel, comme Avantage.
-function ecrireDbf(nomFichier, champs, lignes, options) {
-  const o = options || {};
-  const longueurEnregistrement = 1 + champs.reduce((s, c) => s + c.longueur, 0);
-  const longueurEnTete = 32 + champs.length * 32 + 1;
-
-  const tete = Buffer.alloc(32, 0);
-  tete[0] = o.version === undefined ? 0x03 : o.version;
-  tete[1] = 126; tete[2] = 8; tete[3] = 12; // 2026-08-12
-  tete.writeUInt32LE(o.nbAnnonce === undefined ? lignes.length : o.nbAnnonce, 4);
-  tete.writeUInt16LE(longueurEnTete, 8);
-  tete.writeUInt16LE(longueurEnregistrement, 10);
-  tete[29] = 0x03; // code page Windows ANSI
-
-  const descripteurs = Buffer.alloc(champs.length * 32, 0);
-  champs.forEach((c, i) => {
-    descripteurs.write(c.nom.slice(0, 10), i * 32, 11, 'latin1');
-    descripteurs[i * 32 + 11] = c.type.charCodeAt(0);
-    descripteurs[i * 32 + 16] = c.longueur;
-    descripteurs[i * 32 + 17] = c.decimales || 0;
-  });
-
-  const morceaux = [tete, descripteurs, Buffer.from([0x0d])];
-
-  for (const l of lignes) {
-    const enr = Buffer.alloc(longueurEnregistrement, 0x20);
-    enr[0] = l.__supprime ? 0x2a : 0x20;
-    let d = 1;
-    for (const c of champs) {
-      const v = l[c.nom];
-      if (v !== undefined && v !== null) {
-        if (Buffer.isBuffer(v)) {
-          v.copy(enr, d, 0, Math.min(v.length, c.longueur));
-        } else {
-          const s = String(v);
-          // Les numériques sont cadrés à droite dans un .DBF, le texte à gauche.
-          const t = (c.type === 'N' || c.type === 'F') ? s.padStart(c.longueur, ' ') : s;
-          enr.write(t.slice(0, c.longueur), d, c.longueur, 'latin1');
-        }
-      }
-      d += c.longueur;
-    }
-    morceaux.push(enr);
-  }
-  morceaux.push(Buffer.from([0x1a])); // marqueur de fin de fichier
-
-  const chemin = path.join(DIR, nomFichier);
-  fs.writeFileSync(chemin, Buffer.concat(morceaux));
-  return chemin;
-}
+const ecrireDbf = require('./aide-dbf').pour(DIR);
 
 // ── En-tête et champs ───────────────────────────────────────────────────────────
 console.log('\nEn-tête et déclaration des champs');

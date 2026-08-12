@@ -127,6 +127,26 @@ async function chargerRevenus(debut, fin) {
     } catch (e) { noter('revenus', 'erreur_dbf', e.message); }
   }
 
+  // FACTMA chiffrée : le grand livre porte les mêmes revenus, aux comptes de produits.
+  // C'est même la source la plus sûre des deux — c'est la comptabilité, pas la facturation.
+  // Ce qu'on y perd : le nom du client, qui vit dans une table chiffrée.
+  if (dbfDepot.disponible() && dbfDepot.aTable('TRANS')) {
+    const lis = dbfDepot.lisibilite('TRANS');
+    if (lis && lis.verdict !== 'illisible') {
+      try {
+        const out = dbfDepot.lireRevenusGrandLivre(debut, fin);
+        if (out.length) {
+          const total = out.reduce((s, f) => s + f.montant, 0);
+          noter('revenus', 'dbf', 'Grand livre TRANS.DBF, comptes de produits ' +
+            require('../config/plan-comptable').PREFIXES_REVENUS.join('/') + 'xxx — ' +
+            out.length + ' écritures, ' +
+            Math.round(total).toLocaleString('fr-CA') + ' $ · ' + fraicheur('TRANS'));
+          return out;
+        }
+      } catch (e) { noter('revenus', 'erreur_dbf', e.message); }
+    }
+  }
+
   if (cx.disponible() && estLisibleEnBd('FACTMA')) {
     try {
       const c = TABLES.FACTMA.colonnes;
@@ -239,7 +259,21 @@ async function chargerCharges(debut, fin) {
     try {
       const lignes = dbfDepot.lireEcritures(debut, fin);
       lignes.forEach(l => charges.push(l));
-      noter('ecritures', 'dbf', 'TRANS.DBF — ' + lignes.length + ' écritures · ' + fraicheur('TRANS'));
+
+      // On dit ce qu'on a écarté, et combien : un journal mis de côté en silence est une
+      // invitation à croire que le total est complet quand il ne l'est pas.
+      let ecarte = '';
+      try {
+        const parJournal = dbfDepot.totauxParJournal(debut, fin);
+        const morceaux = Object.entries(dbfDepot.JOURNAUX_ECARTES)
+          .filter(([t]) => parJournal[t])
+          .map(([t, pourquoi]) => 'journal ' + t + ' ' +
+            Math.round(parJournal[t].montant).toLocaleString('fr-CA') + ' $ (' + pourquoi + ')');
+        if (morceaux.length) ecarte = ' · écarté : ' + morceaux.join(', ');
+      } catch (e) { /* l'inventaire des journaux est un confort, pas une dépendance */ }
+
+      noter('ecritures', 'dbf', 'TRANS.DBF — ' + lignes.length + ' écritures des journaux ' +
+        dbfDepot.JOURNAUX_CHARGE.join('/') + ' · ' + fraicheur('TRANS') + ecarte);
       faitTrans = true;
     } catch (e) { noter('ecritures', 'erreur_dbf', e.message); }
   }

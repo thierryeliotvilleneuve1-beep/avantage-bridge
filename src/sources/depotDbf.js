@@ -159,25 +159,122 @@ function lireChargesFournisseurs(debut, fin) {
   return sorties;
 }
 
+// Journaux de TRANS retenus comme CHARGES, et pourquoi les autres sont écartés.
+//
+// TRANS est le grand livre de projet : il contient tout, y compris ce que d'autres tables
+// contiennent déjà. Additionner sans trier gonflerait les coûts sans que rien ne le signale.
+//
+//   E  retenu  — écritures salariales. Aucune autre table ne les porte.
+//   B  retenu  — transactions bancaires. Volume négligeable, mais rien ne les répète.
+//   P  écarté  — contrepartie des factures fournisseurs, que PYBBIL porte déjà avec le nom
+//                du fournisseur et le numéro de facture. Les compter deux fois doublerait
+//                la sous-traitance et les matériaux.
+//   C  écarté  — engagements de contrat (soumissions retenues), pas des dépenses. Chez CRC :
+//                336 écritures pour 7,9 M$ sur douze mois, soit des octrois de
+//                sous-traitance, non des factures reçues.
+//   R  écarté  — journal des produits. Il alimente les REVENUS, jamais les charges.
+//   X  écarté  — écritures d'exception, à examiner à la main si le montant grossit.
+const JOURNAUX_CHARGE = ['E', 'B'];
+const JOURNAUX_ECARTES = {
+  P: 'contrepartie des factures fournisseurs — déjà dans PYBBIL',
+  C: 'engagements de contrat — pas des dépenses',
+  R: 'journal des produits — compté dans les revenus',
+  X: 'écritures d\'exception',
+};
+
+// Totaux par journal sur la période : sert à afficher ce qui a été écarté, et à vérifier
+// que l'hypothèse du doublon tient encore.
+function totauxParJournal(debut, fin) {
+  const c = {
+    date: champ('TRANS', 'date'), journal: champ('TRANS', 'journal'),
+    montant: champ('TRANS', 'montant'), numeroGl: champ('TRANS', 'numeroGl'),
+  };
+  const parType = {};
+  dbf.lireTable(fichier('TRANS'), {
+    meta: meta('TRANS'),
+    filtre: l => {
+      if (!dansPeriode(gl.normaliserDate(l[c.date]), debut, fin)) return false;
+      const type = String(l[c.journal] || '').trim().charAt(0).toUpperCase() || '?';
+      const m = gl.nombre(l[c.montant]);
+      if (!parType[type]) parType[type] = { nb: 0, montant: 0 };
+      parType[type].nb++;
+      parType[type].montant += m;
+      return false;
+    },
+  });
+  return parType;
+}
+
+// Revenus lus dans le grand livre, quand FACTMA est chiffrée et donc inutilisable.
+// Les comptes 31xxx portent la facturation client ; TFACT donne le numéro de facture, ce
+// qui préserve le drill-down jusqu'à la pièce.
+function lireRevenusGrandLivre(debut, fin) {
+  const m = meta('TRANS');
+  const noms = m.champs.map(x => x.nom);
+  const c = {
+    numeroProjet: champ('TRANS', 'numeroProjet') || noms[0],
+    numeroGl: champ('TRANS', 'numeroGl') || noms[1],
+    date: champ('TRANS', 'date') || noms[2],
+    journal: champ('TRANS', 'journal') || noms[3],
+    montant: champ('TRANS', 'montant') || noms[4],
+    facture: noms[7] || null,
+  };
+  const { estCompteRevenu } = require('../config/plan-comptable');
+
+  const sorties = [];
+  dbf.lireTable(fichier('TRANS'), {
+    meta: m,
+    filtre: l => {
+      const compte = String(l[c.numeroGl] === null ? '' : l[c.numeroGl]).trim();
+      if (!estCompteRevenu(compte)) return false;
+      const date = gl.normaliserDate(l[c.date]);
+      if (!dansPeriode(date, debut, fin)) return false;
+      const montant = gl.nombre(l[c.montant]);
+      if (!montant) return false;
+
+      const journal = String(l[c.journal] || '').trim();
+      const facture = c.facture ? String(l[c.facture] === null ? '' : l[c.facture]).trim() : '';
+      sorties.push({
+        numeroFacture: facture || journal,
+        numeroProjet: gl.normaliserProjet(l[c.numeroProjet]),
+        client: '',
+        date,
+        montant,
+        soldeOuvert: 0,
+        retenue: 0,
+        noteCredit: false,
+        numeroGl: compte,
+        source: 'TRANS.DBF',
+      });
+      return false;
+    },
+  });
+  return sorties;
+}
+
 function lireEcritures(debut, fin) {
   const c = {
     numeroProjet: champ('TRANS', 'numeroProjet'), numeroGl: champ('TRANS', 'numeroGl'),
     date: champ('TRANS', 'date'), journal: champ('TRANS', 'journal'),
     montant: champ('TRANS', 'montant'), codeActivite: champ('TRANS', 'codeActivite'),
   };
+  const { estCompteRevenu } = require('../config/plan-comptable');
   const lignes = dbf.lireTable(fichier('TRANS'), {
     meta: meta('TRANS'),
     filtre: l => {
       const journal = String(l[c.journal] || '').trim();
-      const type = journal.charAt(0);
-      if (type !== 'E' && type !== 'B') return false;
+      const type = journal.charAt(0).toUpperCase();
+      if (!JOURNAUX_CHARGE.includes(type)) return false;
+      // Un compte de produits égaré dans un journal de charge viendrait en diminution
+      // des coûts et gonflerait la marge : on l'écarte explicitement.
+      if (estCompteRevenu(String(l[c.numeroGl] === null ? '' : l[c.numeroGl]).trim())) return false;
       if (!gl.nombre(l[c.montant])) return false;
       return dansPeriode(gl.normaliserDate(l[c.date]), debut, fin);
     },
   });
   return lignes.map(l => {
     const journal = String(l[c.journal] || '').trim();
-    const type = journal.charAt(0);
+    const type = journal.charAt(0).toUpperCase();
     const numeroProjet = gl.normaliserProjet(l[c.numeroProjet]);
     return {
       source: 'TRANS.DBF', numeroJournal: journal,
@@ -272,6 +369,7 @@ function lisibilite(table) {
 
 module.exports = {
   disponible, raisonIndisponible, repertoire, aTable, listerColonnes, echantillonner,
-  lireFactures, lireChargesFournisseurs, lireEcritures, lireProjets, lireActivites,
-  lireCommandeDivisions, inventaire, lisibilite, meta, TABLES_ATTENDUES,
+  lireFactures, lireRevenusGrandLivre, lireChargesFournisseurs, lireEcritures, lireProjets,
+  lireActivites, lireCommandeDivisions, totauxParJournal, inventaire, lisibilite, meta,
+  TABLES_ATTENDUES, JOURNAUX_CHARGE, JOURNAUX_ECARTES,
 };

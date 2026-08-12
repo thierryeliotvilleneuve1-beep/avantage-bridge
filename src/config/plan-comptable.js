@@ -13,6 +13,17 @@
 // GL de taxes — jamais une charge, on les retire du montant net des factures.
 const GL_TAXES = ['21300', '21310', '21340', '21370'];
 
+// Comptes de PRODUITS, relevés dans le grand livre de CRC : 31100 et 31200 portent la
+// facturation aux clients, et leur total égale au dollar près celui du journal R.
+// Ils ne sont jamais une charge : s'ils apparaissaient du côté des dépenses, ils
+// viendraient en diminution des coûts et gonfleraient la marge d'autant.
+const PREFIXES_REVENUS = ['31'];
+
+function estCompteRevenu(numeroGl) {
+  const s = (numeroGl || '').toString().trim();
+  return PREFIXES_REVENUS.some(p => s.startsWith(p));
+}
+
 // Sections de l'état des résultats, dans l'ordre d'affichage.
 // `exclu` marque une section qui ne participe PAS au résultat net : elle est affichée
 // pour que rien ne soit caché, mais un mouvement de bilan n'est pas une charge.
@@ -237,6 +248,6 @@ function reclasserEnGeneral(fournisseur) {
 }
 
 module.exports = {
-  GL_TAXES, SECTIONS, POSTES, COMPTES, PREFIXES_GL, MOTS_CLES_FOURNISSEUR,
-  classer, normaliser,
+  GL_TAXES, PREFIXES_REVENUS, SECTIONS, POSTES, COMPTES, PREFIXES_GL, MOTS_CLES_FOURNISSEUR,
+  classer, normaliser, estCompteRevenu,
 };
