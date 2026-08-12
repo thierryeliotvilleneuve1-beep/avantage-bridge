@@ -122,6 +122,61 @@ function regrouperRevenus(revenus, projets) {
 }
 
 // Construit l'état des résultats complet pour une période.
+// Revenus et coûts mois par mois.
+//
+// POURQUOI C'EST INDISPENSABLE
+// En construction, les coûts s'enregistrent quand ils sont engagés et les revenus quand
+// ils sont facturés. À n'importe quelle date de coupure, il reste donc des travaux exécutés
+// et non encore facturés. Un total sur douze mois qui se termine en pleine saison affiche
+// une marge écrasée sans que rien n'aille mal : c'est du décalage, pas une perte.
+//
+// Le seul moyen de distinguer un décalage de facturation d'un vrai problème de rentabilité
+// est de regarder la courbe. Un mois où le coût dépasse le revenu, en fin de période, se
+// rattrape à la facturation suivante. Le même écart tous les mois de l'année, non.
+function repartirParMois(revenus, charges, debut, fin) {
+  const mois = {};
+  const seau = date => {
+    const m = (date || '').slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(m)) return null;
+    if (!mois[m]) {
+      mois[m] = { mois: m, revenus: 0, cout_direct: 0, frais_generaux: 0, autres: 0 };
+    }
+    return mois[m];
+  };
+
+  for (const r of revenus) {
+    const s = seau(r.date);
+    if (s) s.revenus += r.montant;
+  }
+
+  for (const l of charges) {
+    const s = seau(l.date);
+    if (!s) continue;
+    const cl = classer(l.numeroGl, l.fournisseur, l.estProjet);
+    const poste = POSTES[cl.poste] || POSTES.a_classer;
+    // Un mouvement de bilan n'est pas une charge : il ne doit pas peser sur la marge.
+    const section = Object.values(SECTIONS).find(x => x.id === poste.section);
+    if (section && section.exclu) continue;
+    if (poste.section === 'cout_direct') s.cout_direct += l.montant;
+    else if (poste.section === 'frais_general') s.frais_generaux += l.montant;
+    else s.autres += l.montant;
+  }
+
+  return Object.keys(mois).sort().map(m => {
+    const v = mois[m];
+    const margeBrute = arrondi(v.revenus - v.cout_direct);
+    return {
+      mois: m,
+      revenus: arrondi(v.revenus),
+      cout_direct: arrondi(v.cout_direct),
+      marge_brute: margeBrute,
+      marge_brute_pct: v.revenus ? arrondi((margeBrute / v.revenus) * 100) : null,
+      frais_generaux: arrondi(v.frais_generaux + v.autres),
+      resultat_net: arrondi(margeBrute - v.frais_generaux - v.autres),
+    };
+  });
+}
+
 async function construire(debut, fin) {
   source.reinitialiser();
 
@@ -157,6 +212,7 @@ async function construire(debut, fin) {
   // et on réutilise cette valeur partout : le lecteur peut ainsi refaire l'annualisation
   // à partir du nombre de mois affiché et retomber exactement sur nos chiffres.
   const mois = arrondi(moisEntre(debut, fin));
+  const mensuel = repartirParMois(revenus, charges, debut, fin);
 
   return {
     genere_le: new Date().toISOString(),
@@ -170,6 +226,7 @@ async function construire(debut, fin) {
       projets: revenusParProjet,
     },
     sections,
+    mensuel,
     totaux: {
       revenus: totalRevenus,
       cout_direct: totalCoutDirect,

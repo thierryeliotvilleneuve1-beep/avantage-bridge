@@ -158,6 +158,34 @@
   td.r{text-align:right}
   .cellule{padding:7px 11px}
 
+  /* ── Mois par mois ── */
+  .mensuel-bloc{margin-bottom:22px}
+  .mensuel-titre{
+    font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.09em;
+    color:var(--graphite); margin-bottom:8px;
+  }
+  .mensuel-aide{
+    display:block; font-family:var(--sans); font-size:12.5px; font-weight:400;
+    text-transform:none; letter-spacing:0; color:var(--graphite);
+    margin-top:5px; max-width:62ch; line-height:1.5;
+  }
+  table.mensuel{min-width:700px}
+  table.mensuel td{padding:6px 11px}
+  table.mensuel td.mois{font-family:var(--mono); font-size:12.5px}
+  table.mensuel tr.total td{
+    background:var(--somme-fond); color:var(--somme-texte); font-weight:700;
+    border-bottom:none;
+  }
+  .neg{color:var(--rouge)}
+  table.mensuel tr.total .neg{color:inherit}
+  /* Une barre de marge, pour lire la forme de l'année d'un coup d'œil. */
+  .jauge{
+    display:inline-block; vertical-align:middle; width:52px; height:7px;
+    background:var(--surface-2); margin-left:7px; position:relative; border-radius:1px;
+  }
+  .jauge i{position:absolute; top:0; bottom:0; background:var(--vert); border-radius:1px}
+  .jauge i.neg{background:var(--rouge)}
+
   /* profondeur : rail + retrait */
   .rail{display:flex; align-items:flex-start; gap:0}
   .tige{width:13px; flex:none; align-self:stretch; border-left:1px solid var(--trait)}
@@ -302,6 +330,33 @@
     </div>
   </div>
 
+  <!-- Mois par mois : la seule vue qui distingue un décalage de facturation d'une
+       vraie perte de rentabilité. -->
+  <div class="mensuel-bloc">
+    <div class="mensuel-titre">
+      Mois par mois
+      <span class="mensuel-aide">Les coûts s'inscrivent quand ils sont engagés, les revenus
+      quand ils sont facturés. Un mois négatif suivi d'un mois fort, c'est de la facturation
+      en retard. Le même écart tous les mois, c'est autre chose.</span>
+    </div>
+    <div class="cadre">
+      <table class="mensuel">
+        <thead>
+          <tr>
+            <th style="width:16%">Mois</th>
+            <th class="r">Revenus</th>
+            <th class="r">Coût des travaux</th>
+            <th class="r">Marge brute</th>
+            <th class="r">%</th>
+            <th class="r">Frais généraux</th>
+            <th class="r">Résultat</th>
+          </tr>
+        </thead>
+        <tbody id="corps-mensuel"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="cadre">
     <table>
       <thead>
@@ -319,6 +374,7 @@
   </div>
 
   <div class="note attention" id="note-bilan"></div>
+  <div class="note attention" id="note-manquant"></div>
   <div class="note" id="note-qualite"></div>
   <div class="note" id="note-fraicheur"></div>
 
@@ -566,6 +622,88 @@ if (E.fraicheur && E.fraicheur.length) {
 } else {
   $('#note-fraicheur').style.display = 'none';
 }
+
+// Ce que cette page ne peut pas voir.
+//
+// Les chiffres viennent des factures fournisseurs et du grand livre de projet. Trois postes
+// de l'état des résultats officiel d'Avantage n'y sont pas, parce qu'ils naissent d'écritures
+// de fin de période et non d'une facture : les amortissements, les intérêts sur emprunt et
+// l'ajustement des travaux en cours. Les taire donnerait l'illusion d'un état complet.
+$('#note-manquant').innerHTML =
+  '<b>À comparer avec l\'état des résultats officiel d\'Avantage.</b> Cette page est bâtie ' +
+  'sur les factures et le grand livre de projet ; trois postes lui échappent parce qu\'ils ' +
+  'proviennent d\'écritures de fin de période : les <b>amortissements</b>, les ' +
+  '<b>intérêts sur emprunt</b> et l\'<b>ajustement des travaux en cours</b>. Le premier et ' +
+  'le deuxième creusent le résultat, le troisième le redresse. Pour décider d\'une coupe ' +
+  'poste par poste, c\'est cette page qui sert ; pour le résultat net à présenter, c\'est ' +
+  'l\'état officiel qui fait foi.';
+
+// ── Mois par mois ───────────────────────────────────────────────────────────
+// Un total de douze mois cache la forme de l'année. Sur un chantier, le coût précède la
+// facturation : la fenêtre qui se termine en pleine saison montre une marge écrasée alors
+// que les travaux exécutés ne sont simplement pas encore facturés. Cette vue-là le montre.
+(function mensuel() {
+  const lignes = E.mensuel || [];
+  const corps = $('#corps-mensuel');
+  if (!lignes.length) { $('.mensuel-bloc').style.display = 'none'; return; }
+
+  const NOMS = ['janv.', 'févr.', 'mars', 'avril', 'mai', 'juin',
+    'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const etiquette = m => {
+    const p = m.split('-');
+    return NOMS[Number(p[1]) - 1] + ' ' + p[0];
+  };
+
+  // Échelle commune à toutes les jauges, sinon les barres ne sont pas comparables.
+  const ampleur = Math.max(1, ...lignes.map(l => Math.abs(l.marge_brute_pct || 0)));
+
+  const cel = (v, opts) => {
+    const o = opts || {};
+    const cl = 'r' + (v < 0 ? ' neg' : '');
+    return '<td class="' + cl + '"><div class="cellule">' + (o.texte || arg(v)) + '</div></td>';
+  };
+
+  const html = lignes.map(l => {
+    const largeur = Math.round((Math.abs(l.marge_brute_pct || 0) / ampleur) * 100);
+    const jauge = l.marge_brute_pct === null ? '' :
+      '<span class="jauge"><i class="' + (l.marge_brute_pct < 0 ? 'neg' : '') +
+      '" style="left:0; width:' + largeur + '%"></i></span>';
+    return '<tr>' +
+      '<td class="mois"><div class="cellule">' + etiquette(l.mois) + '</div></td>' +
+      cel(l.revenus) + cel(l.cout_direct) + cel(l.marge_brute) +
+      cel(l.marge_brute_pct, { texte: pc(l.marge_brute_pct) + jauge }) +
+      cel(l.frais_generaux) + cel(l.resultat_net) +
+      '</tr>';
+  }).join('');
+
+  const somme = c => lignes.reduce((s, l) => s + (l[c] || 0), 0);
+  const totRev = somme('revenus'), totCout = somme('cout_direct');
+  const totMarge = totRev - totCout;
+  const total = '<tr class="total">' +
+    '<td class="mois"><div class="cellule">' + lignes.length + ' mois</div></td>' +
+    cel(totRev) + cel(totCout) + cel(totMarge) +
+    cel(0, { texte: pc(totRev ? (totMarge / totRev) * 100 : null) }) +
+    cel(somme('frais_generaux')) + cel(somme('resultat_net')) +
+    '</tr>';
+
+  corps.innerHTML = html + total;
+
+  // Le mois le plus faible et le plus fort, dits en clair sous le tableau.
+  const avecPc = lignes.filter(l => l.marge_brute_pct !== null);
+  if (avecPc.length >= 2) {
+    const bas = avecPc.reduce((a, b) => (a.marge_brute_pct <= b.marge_brute_pct ? a : b));
+    const haut = avecPc.reduce((a, b) => (a.marge_brute_pct >= b.marge_brute_pct ? a : b));
+    const ecart = haut.marge_brute_pct - bas.marge_brute_pct;
+    if (ecart > 25) {
+      $('.mensuel-aide').innerHTML +=
+        '<br><b>Ici la marge va de ' + pc(bas.marge_brute_pct) + ' (' + etiquette(bas.mois) +
+        ') à ' + pc(haut.marge_brute_pct) + ' (' + etiquette(haut.mois) + ')</b> — un écart de ' +
+        Math.round(ecart) + ' points. Aucun mois pris seul ne dit la rentabilité : ' +
+        'c\'est la moyenne sur la durée qui compte, et la date de fin de période influence ' +
+        'fortement le résultat affiché.';
+    }
+  }
+})();
 
 // ── Pliage ──────────────────────────────────────────────────────────────────
 function enfants(cle){ return document.querySelectorAll('[data-parent="' + cle + '"]'); }
