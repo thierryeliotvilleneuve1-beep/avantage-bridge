@@ -170,6 +170,13 @@ Une marge globale faible peut venir de tous les chantiers un peu justes, ou de d
 saignent pendant que les autres tiennent. Deux problèmes, deux remèdes. Le tableau donne
 revenus, coûts et marge par chantier, les pires en tête.
 
+**Chaque chantier s'ouvre.** Un clic descend dans sa facturation au client, puis dans ses
+coûts : poste → fournisseur → facture, avec la date, le numéro de pièce, le compte GL et la
+description. C'est ce qui permet de prendre un chantier en perte et de voir si la cause est
+le prix de vente ou le contrôle des coûts — deux maladies différentes. Le regroupement se
+fait à l'affichage, à partir des pièces que l'arbre principal porte déjà : le fichier ne
+grossit pas.
+
 Deux précautions y sont prises :
 
 - **La structure imputée à un chantier est comptée à part.** Avantage permet d'imputer des
@@ -343,7 +350,7 @@ triée par montant : c'est la liste de travail pour affiner le plan comptable.
 npm run test:tout
 ```
 
-156 vérifications en six harnais :
+170 vérifications en sept harnais :
 
 | Harnais | Nombre | Ce qu'il couvre |
 |---|---|---|
@@ -352,6 +359,7 @@ npm run test:tout
 | `npm run test:mappage` | 26 | Résolution des champs, et surtout son **refus** : dates qui n'en sont pas, montants non numériques, table trop courte, table vide, introspection en échec, colonne vide selon la façon dont elle a été retrouvée, champ facultatif absent qui ne condamne pas la table |
 | `npm run test:bout-en-bout` | 27 | Un jeu complet de `.DBF` jusqu'à l'état des résultats : résolution automatique, séparation projet / frais général, exclusion des taxes, notes de crédit, mouvements de bilan, chaque total au dollar |
 | `npm run test:grand-livre` | 18 | La situation réelle de CRC : `FACTMA` chiffrée, revenus lus au grand livre, journaux en doublon écartés, réconciliation du résultat net au dollar, marge par chantier, découpage mensuel |
+| `npm run test:instantane` | 14 | L'instantané autonome dans un vrai navigateur : drill-down du chantier jusqu'à la pièce, détail replié au départ, réconciliation poste / fournisseurs, repli complet |
 | `npm run test:vue` | 20 | Dans un vrai navigateur : drill-down au clic, réconciliation affichée, simulateur, export CSV |
 
 Le harnais de vue exige Playwright ; sans lui il se signale comme ignoré au lieu d'échouer.

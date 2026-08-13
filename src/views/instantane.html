@@ -191,6 +191,16 @@
     font-family:var(--sans); font-size:12px; white-space:normal;
   }
   table.mensuel tr.pale-ligne td{color:var(--graphite)}
+  /* Le drill-down chantier réutilise le rail du tableau principal. */
+  table.mensuel td.lib{padding:0}
+  table.mensuel td.lib .cellule{padding:6px 11px}
+  table.mensuel tr.niv-ch>td{font-weight:600; background:var(--surface-2)}
+  table.mensuel tr.niv-groupe>td{font-weight:600}
+  table.mensuel tr.niv-piece>td{background:var(--papier); color:var(--graphite); font-size:11.5px}
+  table.mensuel tr.pliable{cursor:pointer}
+  table.mensuel tr.pliable:hover>td{background:var(--surface-2)}
+  table.mensuel tr.cache{display:none}
+  table.mensuel tr.ouvert>td .chevron{transform:rotate(90deg)}
 
   /* profondeur : rail + retrait */
   .rail{display:flex; align-items:flex-start; gap:0}
@@ -735,60 +745,231 @@ $('#note-manquant').innerHTML =
   }
 })();
 
-// ── Marge par chantier ──────────────────────────────────────────────────────
+// ── Marge par chantier, avec drill-down jusqu'à la pièce ────────────────────
 // Une marge globale faible peut venir de tous les chantiers un peu justes, ou de deux qui
-// saignent pendant que les autres tiennent. Deux problèmes, deux remèdes. Seule cette vue
-// les distingue.
+// saignent pendant que les autres tiennent. Deux problèmes, deux remèdes. Et savoir QUEL
+// chantier perd ne suffit pas : il faut pouvoir descendre dedans, jusqu'au fournisseur et
+// à la facture, pour savoir si la cause est le prix de vente ou le contrôle des coûts.
+//
+// L'index se construit en parcourant l'arbre principal, qui porte déjà chaque pièce avec
+// son numéro de chantier. Rien n'est dupliqué dans le fichier : la même donnée est
+// simplement regroupée dans l'autre sens.
 (function projets() {
   const tous = E.marge_projets || [];
   const corps = $('#corps-projets');
   if (!tous.length) { $('#bloc-projets').style.display = 'none'; return; }
 
+  // ── Index : chantier → { direct, structure } → poste → fournisseur → pièces
+  const index = {};
+  const seau = (proj, bac, poste, fournisseur) => {
+    const c = index[proj] || (index[proj] = { direct: {}, structure: {} });
+    const b = c[bac];
+    const p = b[poste] || (b[poste] = { total: 0, fournisseurs: {} });
+    const f = p.fournisseurs[fournisseur] ||
+      (p.fournisseurs[fournisseur] = { total: 0, pieces: [] });
+    return { poste: p, four: f };
+  };
+
+  (E.sections || []).forEach(s => {
+    if (s.exclu) return; // un mouvement de bilan n'est pas un coût de chantier
+    const bac = s.id === 'cout_direct' ? 'direct' : 'structure';
+    (s.postes || []).forEach(p => {
+      (p.comptes || []).forEach(c => {
+        (c.fournisseurs || []).forEach(f => {
+          (f.factures || []).forEach(pi => {
+            if (!pi.projet) return;
+            const cible = seau(pi.projet, bac, p.libelle, f.nom);
+            cible.poste.total += pi.montant;
+            cible.four.total += pi.montant;
+            cible.four.pieces.push(Object.assign({ gl: c.gl }, pi));
+          });
+        });
+      });
+    });
+  });
+
+  // Facturation par chantier, pour ouvrir aussi le côté revenus.
+  const facturation = {};
+  ((E.revenus && E.revenus.projets) || []).forEach(p => {
+    if (p.projet) facturation[p.projet] = p;
+  });
+
+  const NOMS_MOIS = ['janv.', 'févr.', 'mars', 'avril', 'mai', 'juin',
+    'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const jour = d => {
+    const m = String(d || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? Number(m[3]) + ' ' + NOMS_MOIS[Number(m[2]) - 1] + ' ' + m[1] : (d || '');
+  };
+
+  // ── Fabrique de lignes ────────────────────────────────────────────────────
+  const rails = n => {
+    let h = '';
+    for (let i = 0; i < n; i++) h += '<span class="tige"></span>';
+    return h;
+  };
+  const libelle = (texte, profondeur, pliable) => {
+    const chev = pliable ? '<span class="chevron">▶</span>' : '<span class="creux"></span>';
+    return profondeur === 0
+      ? '<div class="cellule">' + chev + texte + '</div>'
+      : '<div class="rail">' + rails(profondeur) + '<div class="corps">' + chev + texte + '</div></div>';
+  };
+  const nombre = (v, classe) => '<td class="r' + (v < 0 ? ' neg' : '') + '">' +
+    '<div class="cellule' + (classe ? ' ' + classe : '') + '">' + arg(v) + '</div></td>';
+  const vide = (classe) => '<td class="r"><div class="cellule' +
+    (classe ? ' ' + classe : '') + '"></div></td>';
+
+  function ligne(o) {
+    const cls = ['niv-' + o.niveau];
+    if (o.pliable) cls.push('pliable');
+    if (o.cache) cls.push('cache');
+    return '<tr class="' + cls.join(' ') + '" data-cle="' + o.cle + '"' +
+      (o.parent ? ' data-parent="' + o.parent + '"' : '') +
+      (o.recherche ? ' data-recherche="' + ech(String(o.recherche).toLowerCase()) + '"' : '') + '>' +
+      '<td class="lib">' + libelle(o.libelle, o.profondeur, o.pliable) + '</td>' +
+      o.cellules + '</tr>';
+  }
+
+  // ── Rendu d'un chantier et de sa descendance ──────────────────────────────
+  function chantier(p, i) {
+    const cle = 'ch-' + i;
+    const nom = p.nom || p.client || '';
+    const titre = '<b>' + ech(p.projet) + '</b>' +
+      (nom ? ' <span class="pale">' + ech(nom) + '</span>' : '');
+    const detail = index[p.projet] || { direct: {}, structure: {} };
+    const fact = facturation[p.projet];
+    const aDuDetail = fact || Object.keys(detail.direct).length || Object.keys(detail.structure).length;
+
+    let h = ligne({
+      cle, niveau: 'ch', profondeur: 0, pliable: Boolean(aDuDetail),
+      libelle: titre, recherche: p.projet + ' ' + nom,
+      cellules: nombre(p.revenus) + nombre(p.cout) + nombre(p.marge) +
+        '<td class="r' + (p.marge < 0 ? ' neg' : '') + '"><div class="cellule">' +
+        (p.a_cheval ? '<span class="pale">—</span>' : pc(p.marge_pct)) + '</div></td>' +
+        '<td class="r"><div class="cellule pale">' + p.nb_factures + ' / ' + p.nb_lignes_cout +
+        '</div></td>',
+    });
+
+    // Facturation au client
+    if (fact && fact.factures && fact.factures.length) {
+      const cleF = cle + '-fact';
+      h += ligne({
+        cle: cleF, parent: cle, niveau: 'groupe', profondeur: 1, pliable: true, cache: true,
+        libelle: 'Facturation au client <span class="pale">· ' + fact.factures.length + ' pièce' +
+          (fact.factures.length > 1 ? 's' : '') + '</span>',
+        cellules: nombre(fact.total) + vide() + vide() + vide() + vide(),
+      });
+      fact.factures.forEach((f, k) => {
+        h += ligne({
+          cle: cleF + '-' + k, parent: cleF, niveau: 'piece', profondeur: 2, pliable: false,
+          cache: true,
+          libelle: jour(f.date) + ' · facture ' + ech(f.numeroFacture) +
+            (f.client ? ' · ' + ech(f.client) : ''),
+          recherche: f.numeroFacture + ' ' + (f.client || ''),
+          cellules: nombre(f.montant) + vide() + vide() + vide() + vide(),
+        });
+      });
+    }
+
+    // Coûts, puis structure imputée au chantier
+    [['direct', 'Coûts du chantier'], ['structure', 'Structure imputée au chantier']]
+      .forEach(([bac, titreBac]) => {
+        const postes = Object.entries(detail[bac])
+          .sort((a, b) => b[1].total - a[1].total);
+        if (!postes.length) return;
+
+        const cleB = cle + '-' + bac;
+        const totalBac = postes.reduce((s, [, v]) => s + v.total, 0);
+        h += ligne({
+          cle: cleB, parent: cle, niveau: 'groupe', profondeur: 1, pliable: true, cache: true,
+          libelle: titreBac,
+          cellules: vide() + nombre(totalBac) + vide() + vide() + vide(),
+        });
+
+        postes.forEach(([nomPoste, vp], pi) => {
+          const cleP = cleB + '-' + pi;
+          h += ligne({
+            cle: cleP, parent: cleB, niveau: 'poste', profondeur: 2, pliable: true, cache: true,
+            libelle: ech(nomPoste), recherche: nomPoste,
+            cellules: vide() + nombre(vp.total) + vide() + vide() + vide(),
+          });
+
+          Object.entries(vp.fournisseurs).sort((a, b) => b[1].total - a[1].total)
+            .forEach(([nomFour, vf], fi) => {
+              const cleF = cleP + '-' + fi;
+              h += ligne({
+                cle: cleF, parent: cleP, niveau: 'four', profondeur: 3, pliable: true, cache: true,
+                libelle: ech(nomFour) + ' <span class="pale">· ' + vf.pieces.length + '</span>',
+                recherche: nomFour,
+                cellules: vide() + nombre(vf.total) + vide() + vide() + vide(),
+              });
+              vf.pieces.sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+                .forEach((pi2, k) => {
+                  h += ligne({
+                    cle: cleF + '-' + k, parent: cleF, niveau: 'piece', profondeur: 4,
+                    pliable: false, cache: true,
+                    libelle: jour(pi2.date) +
+                      (pi2.numeroFacture ? ' · ' + ech(pi2.numeroFacture) : '') +
+                      (pi2.gl ? ' · GL ' + ech(pi2.gl) : '') +
+                      (pi2.description ? ' · ' + ech(pi2.description) : ''),
+                    recherche: (pi2.numeroFacture || '') + ' ' + (pi2.description || ''),
+                    cellules: vide() + nombre(pi2.montant) + vide() + vide() + vide(),
+                  });
+                });
+            });
+        });
+      });
+
+    return h;
+  }
+
   const comparables = tous.filter(p => !p.a_cheval);
   const aCheval = tous.filter(p => p.a_cheval);
 
-  const etiquette = p => {
-    const nom = p.nom || p.client || '';
-    return '<b>' + ech(p.projet) + '</b>' + (nom ? ' <span class="pale">' + ech(nom) + '</span>' : '');
-  };
-
-  const cel = (v, texte) => '<td class="r' + (v < 0 ? ' neg' : '') + '">' +
-    '<div class="cellule">' + (texte === undefined ? arg(v) : texte) + '</div></td>';
-
-  const ligne = p => '<tr>' +
-    '<td class="lib"><div class="cellule">' + etiquette(p) + '</div></td>' +
-    cel(p.revenus) + cel(p.cout) + cel(p.marge) +
-    cel(p.marge_pct === null ? 0 : p.marge_pct, pc(p.marge_pct)) +
-    '<td class="r"><div class="cellule pale">' + p.nb_factures + ' / ' + p.nb_lignes_cout +
-    '</div></td></tr>';
-
-  let html = comparables.map(ligne).join('');
+  let html = comparables.map((p, i) => chantier(p, i)).join('');
 
   const somme = (liste, c) => liste.reduce((s, p) => s + (p[c] || 0), 0);
   const rev = somme(comparables, 'revenus'), cout = somme(comparables, 'cout');
-  html += '<tr class="total">' +
-    '<td class="lib"><div class="cellule">' + comparables.length + ' chantiers comparables</div></td>' +
-    cel(rev) + cel(cout) + cel(rev - cout) +
-    cel(0, pc(rev ? ((rev - cout) / rev) * 100 : null)) +
-    '<td class="r"><div class="cellule"></div></td></tr>';
+  html += '<tr class="total"><td class="lib"><div class="cellule">' +
+    comparables.length + ' chantiers comparables</div></td>' +
+    nombre(rev) + nombre(cout) + nombre(rev - cout) +
+    '<td class="r"><div class="cellule">' + pc(rev ? ((rev - cout) / rev) * 100 : null) +
+    '</div></td><td class="r"><div class="cellule"></div></td></tr>';
 
   // Les chantiers à cheval sur la période sont montrés à part : leur marge n'est pas une
-  // performance, c'est un effet de bornes. Les mélanger fausserait la lecture.
+  // performance, c'est un effet de bornes. Les mélanger fausserait la lecture. Ils
+  // s'ouvrent quand même — le détail des pièces, lui, reste exact.
   if (aCheval.length) {
     html += '<tr class="separateur"><td colspan="6"><div class="cellule pale">' +
       aCheval.length + ' chantier' + (aCheval.length > 1 ? 's' : '') +
       ' à cheval sur la période — facturés d\'un côté de la borne et coûtés de l\'autre. ' +
-      'Leur pourcentage ne veut rien dire ; ils sont listés pour que les totaux se ' +
-      'réconcilient.</div></td></tr>';
-    html += aCheval.map(p => '<tr class="pale-ligne">' +
-      '<td class="lib"><div class="cellule">' + etiquette(p) + '</div></td>' +
-      cel(p.revenus) + cel(p.cout) + cel(p.marge) +
-      '<td class="r"><div class="cellule pale">—</div></td>' +
-      '<td class="r"><div class="cellule pale">' + p.nb_factures + ' / ' + p.nb_lignes_cout +
-      '</div></td></tr>').join('');
+      'Leur pourcentage ne veut rien dire ; le détail des pièces, lui, reste exact.' +
+      '</div></td></tr>';
+    html += aCheval.map((p, i) => chantier(p, 'x' + i)).join('');
   }
 
   corps.innerHTML = html;
+
+  // ── Interaction ───────────────────────────────────────────────────────────
+  const enfantsDe = cle => corps.querySelectorAll('[data-parent="' + cle + '"]');
+  function fermerSous(tr) {
+    const cle = tr.getAttribute('data-cle');
+    if (!cle) return;
+    enfantsDe(cle).forEach(e => { e.classList.add('cache'); fermerSous(e); });
+    tr.classList.remove('ouvert');
+  }
+  corps.addEventListener('click', ev => {
+    const tr = ev.target.closest('tr.pliable');
+    if (!tr || !corps.contains(tr)) return;
+    const kids = enfantsDe(tr.getAttribute('data-cle'));
+    if (!kids.length) return;
+    if (!kids[0].classList.contains('cache')) {
+      kids.forEach(e => { e.classList.add('cache'); fermerSous(e); });
+      tr.classList.remove('ouvert');
+    } else {
+      kids.forEach(e => e.classList.remove('cache'));
+      tr.classList.add('ouvert');
+    }
+  });
 
   // Ce que le tableau dit, dit en français sous le titre.
   const perdants = comparables.filter(p => p.marge < 0);
@@ -800,7 +981,8 @@ $('#note-manquant').innerHTML =
       ' en perte, pour ' + arg(perte) + '</b> — le plus lourd est le ' + ech(pire.projet) +
       ' à ' + arg(pire.marge) + ' (' + pc(pire.marge_pct) + ').' +
       ' Les autres dégagent ' + pc(rev ? ((rev - cout) / rev) * 100 : null) +
-      ' au total. Le redressement se joue chantier par chantier, pas sur une moyenne.';
+      ' au total. <b>Clique un chantier</b> pour descendre dans sa facturation et ses coûts, ' +
+      'poste par poste, fournisseur par fournisseur, jusqu\'à la pièce.';
   }
 })();
 
