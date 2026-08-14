@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Standard 24 — Réceptionniste IA pour PME québécoises</title>
+<meta name="description" content="Un agent vocal qui répond à vos appels 24 h sur 24, en français, prend les messages, fixe les rendez-vous et transfère aux bonnes personnes. Conçu au Québec, données au Canada.">
+<style>
+  :root{
+    --rouge:#DD101B; --rouge-fonce:#8D0005; --noir:#0A0A0A;
+    --gris:#828182; --gris-pale:#C4C4C4; --gris-fond:#F5F4F3; --blanc:#FFFFFF;
+    --max:1120px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Montserrat','Segoe UI',system-ui,-apple-system,sans-serif;
+    font-weight:300;color:var(--noir);background:var(--blanc);
+    line-height:1.6;-webkit-font-smoothing:antialiased;
+  }
+  .contenant{max-width:var(--max);margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-weight:800;line-height:1.15;letter-spacing:-0.01em}
+  a{color:inherit}
+
+  /* En-tête */
+  header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--gris-pale)}
+  .barre{display:flex;align-items:center;justify-content:space-between;
+    height:72px;gap:24px}
+  .logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+  .logo .marque{width:40px;height:40px;background:var(--rouge);display:flex;
+    align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;
+    clip-path:polygon(0 0,85% 0,100% 15%,100% 100%,15% 100%,0 85%)}
+  .logo .texte{font-size:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}
+  .logo .sous{font-size:9px;font-weight:300;letter-spacing:1.5px;color:var(--gris);text-transform:uppercase}
+  nav{display:flex;gap:28px;align-items:center}
+  nav a{text-decoration:none;font-size:14px;font-weight:500;color:var(--noir);
+    padding:4px 0;border-bottom:2px solid transparent}
+  nav a:hover{border-bottom-color:var(--rouge)}
+  .tel-entete{font-weight:800;font-size:14px;color:var(--rouge-fonce);white-space:nowrap}
+  .bouton{display:inline-block;background:var(--rouge);color:#fff;text-decoration:none;
+    font-weight:800;font-size:14px;padding:13px 26px;border:none;cursor:pointer;
+    letter-spacing:.3px;transition:background .15s}
+  .bouton:hover{background:var(--rouge-fonce)}
+  .bouton.fantome{background:transparent;color:var(--noir);border:2px solid var(--noir);padding:11px 24px}
+  .bouton.fantome:hover{background:var(--noir);color:#fff}
+
+  /* Héros */
+  .heros{background:var(--noir);color:#fff;padding:96px 0 88px;position:relative;overflow:hidden}
+  .heros::after{content:"";position:absolute;bottom:0;left:0;right:0;height:5px;background:var(--rouge)}
+  .heros .grille{display:grid;grid-template-columns:1.15fr .85fr;gap:64px;align-items:center}
+  .etiquette{display:inline-block;font-size:11px;font-weight:800;letter-spacing:2px;
+    text-transform:uppercase;color:var(--rouge);border:1px solid var(--rouge);
+    padding:6px 12px;margin-bottom:24px}
+  .heros h1{font-size:clamp(34px,4.6vw,58px);margin-bottom:22px}
+  .heros h1 em{font-style:normal;color:var(--rouge)}
+  .heros p.accroche{font-size:19px;color:var(--gris-pale);max-width:36em;margin-bottom:34px}
+  .actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px}
+  .heros .bouton.fantome{color:#fff;border-color:#fff}
+  .heros .bouton.fantome:hover{background:#fff;color:var(--noir)}
+  .rassure{font-size:13px;color:var(--gris)}
+
+  /* Carte démo d'appel */
+  .carte-appel{background:#151515;border:1px solid #2a2a2a;padding:26px}
+  .carte-appel .entete{display:flex;align-items:center;gap:10px;
+    padding-bottom:14px;border-bottom:1px solid #2a2a2a;margin-bottom:18px}
+  .pastille{width:9px;height:9px;border-radius:50%;background:var(--rouge);
+    animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .carte-appel .entete span{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;
+    color:var(--gris);font-weight:500}
+  .bulle{margin-bottom:14px;font-size:14.5px;line-height:1.55}
+  .bulle .qui{display:block;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;
+    color:var(--gris);margin-bottom:5px;font-weight:800}
+  .bulle.agent{color:#fff;border-left:3px solid var(--rouge);padding-left:14px}
+  .bulle.client{color:var(--gris-pale);border-left:3px solid #3a3a3a;padding-left:14px}
+  .carte-appel .bilan{margin-top:20px;padding-top:16px;border-top:1px solid #2a2a2a;
+    font-size:12.5px;color:var(--gris);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .carte-appel .bilan strong{color:#fff;font-weight:800}
+
+  /* Bandeau chiffres */
+  .bandeau{background:var(--gris-fond);border-bottom:1px solid var(--gris-pale);padding:44px 0}
+  .bandeau .grille{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;text-align:center}
+  .chiffre{font-size:34px;font-weight:800;color:var(--rouge-fonce);line-height:1}
+  .chiffre + p{font-size:13px;color:var(--gris);margin-top:8px;font-weight:500}
+
+  /* Sections */
+  section{padding:88px 0}
+  .titre-section{font-size:11px;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;
+    color:var(--rouge-fonce);margin-bottom:14px}
+  h2{font-size:clamp(28px,3.4vw,40px);margin-bottom:18px;text-transform:uppercase}
+  .intro{font-size:17px;color:var(--gris);max-width:52em;margin-bottom:52px}
+
+  .cartes{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--gris-pale)}
+  .carte{background:#fff;padding:32px 28px}
+  .carte .num{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--rouge);margin-bottom:14px}
+  .carte h3{font-size:18px;margin-bottom:10px;text-transform:uppercase}
+  .carte p{font-size:14.5px;color:#3a3a3a}
+
+  /* Secteurs */
+  .secteurs{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--gris-pale)}
+  .secteur{background:#fff;padding:24px 20px}
+  .secteur h4{font-size:14px;font-weight:800;text-transform:uppercase;margin-bottom:8px}
+  .secteur p{font-size:13px;color:var(--gris)}
+  .fond-gris{background:var(--gris-fond)}
+  .fond-gris .carte,.fond-gris .secteur{background:#fff}
+
+  /* Tarifs */
+  .tarifs{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:start}
+  .forfait{border:1px solid var(--gris-pale);padding:34px 28px;background:#fff;position:relative}
+  .forfait.vedette{border:2px solid var(--rouge);box-shadow:0 14px 40px rgba(0,0,0,.09)}
+  .forfait.vedette::before{content:"LE PLUS CHOISI";position:absolute;top:-11px;left:28px;
+    background:var(--rouge);color:#fff;font-size:10px;font-weight:800;letter-spacing:1.5px;padding:4px 10px}
+  .forfait h3{font-size:17px;text-transform:uppercase;margin-bottom:6px}
+  .forfait .cible{font-size:13px;color:var(--gris);margin-bottom:22px;min-height:40px}
+  .prix{font-size:40px;font-weight:800;color:var(--noir);line-height:1}
+  .prix small{font-size:14px;font-weight:300;color:var(--gris)}
+  .prix + .note{font-size:12px;color:var(--gris);margin:8px 0 22px}
+  .forfait ul{list-style:none;margin-bottom:26px}
+  .forfait li{font-size:14px;padding:9px 0 9px 26px;position:relative;border-top:1px solid var(--gris-fond)}
+  .forfait li::before{content:"";position:absolute;left:0;top:16px;width:10px;height:2px;background:var(--rouge)}
+  .forfait .bouton{width:100%;text-align:center}
+
+  /* Comparatif */
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{text-align:left;padding:15px 16px;border-bottom:1px solid var(--gris-pale)}
+  thead th{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gris);
+    font-weight:800;border-bottom:2px solid var(--noir)}
+  tbody th{font-weight:500}
+  td.oui{color:var(--rouge-fonce);font-weight:800}
+  .defile{overflow-x:auto}
+
+  /* Formulaire */
+  .formulaire-zone{background:var(--noir);color:#fff}
+  .formulaire-zone h2{color:#fff}
+  .formulaire-zone .intro{color:var(--gris-pale)}
+  .form-grille{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .champ{display:flex;flex-direction:column;gap:7px}
+  .champ.large{grid-column:1/-1}
+  label{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--gris-pale)}
+  input,select,textarea{background:#161616;border:1px solid #2f2f2f;color:#fff;
+    padding:13px 14px;font-family:inherit;font-size:15px;font-weight:300}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--rouge)}
+  textarea{resize:vertical;min-height:96px}
+  .form-pied{grid-column:1/-1;display:flex;align-items:center;gap:20px;
+    justify-content:space-between;flex-wrap:wrap;margin-top:8px}
+  .form-pied p{font-size:12.5px;color:var(--gris)}
+  #reponse{grid-column:1/-1;font-size:15px;font-weight:500;padding:14px;display:none}
+  #reponse.ok{display:block;background:#0f2a12;border-left:3px solid #4caf50;color:#c8e6c9}
+  #reponse.erreur{display:block;background:#2a0f0f;border-left:3px solid var(--rouge);color:#ffcdd2}
+
+  /* Pied de page */
+  footer{background:var(--noir);color:var(--gris);padding:52px 0 30px;border-top:1px solid #222}
+  .pied-grille{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:36px}
+  footer h5{color:#fff;font-size:11px;font-weight:800;letter-spacing:1.8px;
+    text-transform:uppercase;margin-bottom:14px}
+  footer p,footer a{font-size:13.5px;text-decoration:none;display:block;margin-bottom:8px}
+  footer a:hover{color:var(--rouge)}
+  .pied-bas{border-top:1px solid #222;padding-top:22px;font-size:12px;
+    display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+  @media (max-width:980px){
+    .heros .grille{grid-template-columns:1fr;gap:44px}
+    .cartes,.tarifs{grid-template-columns:1fr}
+    .secteurs{grid-template-columns:repeat(2,1fr)}
+    .bandeau .grille{grid-template-columns:repeat(2,1fr);gap:26px}
+    .pied-grille{grid-template-columns:1fr}
+    nav a:not(.bouton){display:none}
+  }
+  @media (max-width:600px){
+    .form-grille{grid-template-columns:1fr}
+    .secteurs{grid-template-columns:1fr}
+    section{padding:60px 0}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="contenant barre">
+    <a href="#" class="logo">
+      <div class="marque">S24</div>
+      <div>
+        <div class="texte">Standard 24</div>
+        <div class="sous">Réceptionniste IA</div>
+      </div>
+    </a>
+    <nav>
+      <a href="#fonctionnement">Fonctionnement</a>
+      <a href="#secteurs">Secteurs</a>
+      <a href="#tarifs">Tarifs</a>
+      <a href="#comparatif">Comparatif</a>
+      <span class="tel-entete">418 365-7973</span>
+      <a href="#demo" class="bouton">Demander une démo</a>
+    </nav>
+  </div>
+</header>
+
+<div class="heros">
+  <div class="contenant grille">
+    <div>
+      <span class="etiquette">Conçu au Québec · Données au Canada</span>
+      <h1>Plus un seul appel <em>manqué</em>.</h1>
+      <p class="accroche">
+        Standard 24 répond au téléphone de votre PME jour et nuit, en français.
+        Il qualifie l'appel, prend le message, fixe le rendez-vous, transfère à la
+        bonne personne — et vous envoie le tout par courriel avant même que
+        l'appelant ait raccroché.
+      </p>
+      <div class="actions">
+        <a href="#demo" class="bouton">Écouter une démo de votre agent</a>
+        <a href="#fonctionnement" class="bouton fantome">Voir comment ça marche</a>
+      </div>
+      <p class="rassure">Mise en service en 5 à 10 jours ouvrables · Sans contrat à long terme · Numéro 418, 514, 450 ou 438 inclus</p>
+    </div>
+
+    <div class="carte-appel">
+      <div class="entete"><span class="pastille"></span><span>Appel en cours · 21 h 47, un mardi</span></div>
+      <div class="bulle agent"><span class="qui">Agent</span>Construction Richard Champagne, bonjour, Sophie à l'appareil. Comment puis-je vous aider ?</div>
+      <div class="bulle client"><span class="qui">Appelant</span>Oui bonjour, j'appelle pour le chantier de l'école. Y a de l'eau qui coule dans le sous-sol.</div>
+      <div class="bulle agent"><span class="qui">Agent</span>D'accord, c'est une urgence. Je vous mets en communication tout de suite avec le responsable de chantier. Restez en ligne.</div>
+      <div class="bilan">
+        <span>Traité en <strong>19 secondes</strong></span>
+        <span>Acheminé à <strong>Carl Milot</strong></span>
+        <span>Message <strong>envoyé</strong></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bandeau">
+  <div class="contenant grille">
+    <div><div class="chiffre">24/7</div><p>Répond en tout temps, sans file d'attente</p></div>
+    <div><div class="chiffre">&lt; 1 s</div><p>Décroche avant la deuxième sonnerie</p></div>
+    <div><div class="chiffre">FR / EN</div><p>Bascule de langue en cours d'appel</p></div>
+    <div><div class="chiffre">100 %</div><p>Appels résumés et consignés</p></div>
+  </div>
+</div>
+
+<section id="fonctionnement">
+  <div class="contenant">
+    <div class="titre-section">Fonctionnement</div>
+    <h2>Quatre étapes, puis vous n'y pensez plus</h2>
+    <p class="intro">
+      Aucun changement à votre système téléphonique. Votre ligne actuelle reste la vôtre —
+      on ajoute simplement une règle de renvoi vers l'agent, selon vos conditions :
+      après trois sonneries, en dehors des heures, ou en tout temps.
+    </p>
+    <div class="cartes">
+      <div class="carte">
+        <div class="num">01</div>
+        <h3>On apprend votre entreprise</h3>
+        <p>Heures, services, équipe, tarification, questions fréquentes, qui reçoit quoi.
+        On part de vos documents existants et d'une rencontre d'une heure.</p>
+      </div>
+      <div class="carte">
+        <div class="num">02</div>
+        <h3>On branche votre ligne</h3>
+        <p>Renvoi d'appel depuis Telus Business Connect, Bell, Vidéotron, Teams Phone
+        ou tout autre système. Votre numéro d'affaires ne change pas.</p>
+      </div>
+      <div class="carte">
+        <div class="num">03</div>
+        <h3>L'agent répond et agit</h3>
+        <p>Il identifie le besoin, répond aux questions courantes, prend le message,
+        fixe un rendez-vous ou transfère en direct — selon vos règles.</p>
+      </div>
+      <div class="carte">
+        <div class="num">04</div>
+        <h3>Vous recevez tout</h3>
+        <p>Courriel ou texto immédiat avec le résumé, la transcription, les coordonnées
+        et l'action posée. Tableau de bord accessible en tout temps.</p>
+      </div>
+      <div class="carte">
+        <div class="num">05</div>
+        <h3>Les urgences passent devant</h3>
+        <p>Vous définissez ce qui constitue une urgence. L'agent l'escalade sur-le-champ
+        vers la ligne de garde, même à trois heures du matin.</p>
+      </div>
+      <div class="carte">
+        <div class="num">06</div>
+        <h3>La sollicitation reste dehors</h3>
+        <p>Vente de logiciel, référencement, placement média : l'agent remercie
+        poliment et raccroche. Votre équipe ne voit jamais passer ces appels.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="secteurs" class="fond-gris">
+  <div class="contenant">
+    <div class="titre-section">Secteurs</div>
+    <h2>Configuré pour votre métier</h2>
+    <p class="intro">
+      L'agent est configuré à partir d'une fiche propre à votre entreprise. Voici
+      ce qu'il fait le plus souvent, selon le secteur.
+    </p>
+    <div class="secteurs">
+      <div class="secteur"><h4>Construction</h4><p>Urgences de chantier, appels de sous-traitants, demandes de prix, coordination de livraisons.</p></div>
+      <div class="secteur"><h4>Santé et cliniques</h4><p>Prise et déplacement de rendez-vous, rappels, tri des urgences, questions administratives.</p></div>
+      <div class="secteur"><h4>Services professionnels</h4><p>Qualification de nouveaux dossiers, filtrage des sollicitations, prise de mandat.</p></div>
+      <div class="secteur"><h4>Commerce de détail</h4><p>Heures, inventaire, itinéraire, suivi de commande, retours.</p></div>
+      <div class="secteur"><h4>Restauration</h4><p>Réservations, menu du jour, groupes, commandes à emporter.</p></div>
+      <div class="secteur"><h4>Automobile</h4><p>Rendez-vous à l'atelier, état d'une réparation, disponibilité d'un véhicule.</p></div>
+      <div class="secteur"><h4>Immobilier</h4><p>Visites, informations sur une inscription, qualification d'acheteurs.</p></div>
+      <div class="secteur"><h4>Métiers du bâtiment</h4><p>Appels de service, urgences hors heures, estimation sur place.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="tarifs">
+  <div class="contenant">
+    <div class="titre-section">Tarifs</div>
+    <h2>Un prix par mois, tout inclus</h2>
+    <p class="intro">
+      Numéro local, configuration, hébergement canadien et mises à jour compris.
+      Aucun frais caché par message ou par transfert. Facturation en dollars canadiens, taxes en sus.
+    </p>
+    <div class="tarifs">
+      <div class="forfait">
+        <h3>Essentiel</h3>
+        <p class="cible">Travailleur autonome ou PME de moins de cinq personnes.</p>
+        <div class="prix">249 $<small> / mois</small></div>
+        <p class="note">200 minutes incluses, puis 0,55 $ la minute</p>
+        <ul>
+          <li>Réponse 24/7 en français</li>
+          <li>Prise de message et acheminement par courriel</li>
+          <li>Questions fréquentes et heures d'ouverture</li>
+          <li>Filtrage des sollicitations</li>
+          <li>Tableau de bord des appels</li>
+        </ul>
+        <a href="#demo" class="bouton fantome">Demander une démo</a>
+      </div>
+
+      <div class="forfait vedette">
+        <h3>Affaires</h3>
+        <p class="cible">PME de 5 à 40 personnes avec plusieurs points de contact.</p>
+        <div class="prix">449 $<small> / mois</small></div>
+        <p class="note">600 minutes incluses, puis 0,45 $ la minute</p>
+        <ul>
+          <li>Tout ce que comprend Essentiel</li>
+          <li>Transfert en direct vers la bonne personne</li>
+          <li>Prise de rendez-vous avec vérification des plages</li>
+          <li>Escalade des urgences vers la ligne de garde</li>
+          <li>Textos de confirmation et de suivi</li>
+          <li>Français et anglais dans le même appel</li>
+        </ul>
+        <a href="#demo" class="bouton">Demander une démo</a>
+      </div>
+
+      <div class="forfait">
+        <h3>Sur mesure</h3>
+        <p class="cible">Volume élevé, plusieurs succursales ou intégrations internes.</p>
+        <div class="prix">Sur devis</div>
+        <p class="note">Tarification selon le volume et les intégrations</p>
+        <ul>
+          <li>Tout ce que comprend Affaires</li>
+          <li>Plusieurs numéros et plusieurs équipes</li>
+          <li>Intégration à votre CRM ou à votre logiciel de gestion</li>
+          <li>Appels sortants de rappel et de confirmation</li>
+          <li>Rapports mensuels et accompagnement dédié</li>
+        </ul>
+        <a href="#demo" class="bouton fantome">Nous parler</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="comparatif" class="fond-gris">
+  <div class="contenant">
+    <div class="titre-section">Comparatif</div>
+    <h2>Par rapport aux autres options</h2>
+    <p class="intro">
+      Ce que vous obtenez selon la façon dont vos appels sont pris aujourd'hui.
+    </p>
+    <div class="defile">
+      <table>
+        <thead>
+          <tr>
+            <th>Critère</th>
+            <th>Boîte vocale</th>
+            <th>Service de réponse traditionnel</th>
+            <th>Standard 24</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th>Répond la nuit et la fin de semaine</th><td>Enregistrement seulement</td><td>Selon le forfait</td><td class="oui">Toujours</td></tr>
+          <tr><th>Connaît vos services et vos prix</th><td>Non</td><td>Partiellement</td><td class="oui">Oui, selon votre fiche</td></tr>
+          <tr><th>Transfère à la bonne personne</th><td>Non</td><td>Oui</td><td class="oui">Oui, selon vos règles</td></tr>
+          <tr><th>Fixe un rendez-vous</th><td>Non</td><td>Parfois</td><td class="oui">Oui, avec vérification</td></tr>
+          <tr><th>Temps d'attente</th><td>Aucun</td><td>Variable</td><td class="oui">Aucun</td></tr>
+          <tr><th>Transcription intégrale de l'appel</th><td>Non</td><td>Rarement</td><td class="oui">Systématique</td></tr>
+          <tr><th>Filtre la sollicitation</th><td>Non</td><td>Non</td><td class="oui">Oui</td></tr>
+          <tr><th>Hébergement des données</th><td>Variable</td><td>Souvent aux États-Unis</td><td class="oui">Canada</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="demo" class="formulaire-zone">
+  <div class="contenant">
+    <div class="titre-section" style="color:var(--rouge)">Démonstration</div>
+    <h2>Entendez votre propre agent</h2>
+    <p class="intro">
+      Remplissez ce formulaire et nous configurons un agent avec les informations
+      de votre entreprise. Vous l'appelez, vous lui posez vos vraies questions,
+      et vous décidez ensuite. Sans engagement.
+    </p>
+
+    <form id="form-demo" class="form-grille">
+      <div class="champ">
+        <label for="entreprise">Entreprise *</label>
+        <input id="entreprise" name="entreprise" required autocomplete="organization">
+      </div>
+      <div class="champ">
+        <label for="nom">Votre nom *</label>
+        <input id="nom" name="nom" required autocomplete="name">
+      </div>
+      <div class="champ">
+        <label for="courriel">Courriel</label>
+        <input id="courriel" name="courriel" type="email" autocomplete="email">
+      </div>
+      <div class="champ">
+        <label for="telephone">Téléphone</label>
+        <input id="telephone" name="telephone" type="tel" autocomplete="tel">
+      </div>
+      <div class="champ">
+        <label for="secteur">Secteur</label>
+        <select id="secteur" name="secteur">
+          <option value="">Choisir…</option>
+          <option>Construction</option>
+          <option>Santé et cliniques</option>
+          <option>Services professionnels</option>
+          <option>Commerce de détail</option>
+          <option>Restauration</option>
+          <option>Automobile</option>
+          <option>Immobilier</option>
+          <option>Métiers du bâtiment</option>
+          <option>Autre</option>
+        </select>
+      </div>
+      <div class="champ">
+        <label for="volume">Appels par semaine</label>
+        <select id="volume" name="volume">
+          <option value="">Choisir…</option>
+          <option>Moins de 25</option>
+          <option>25 à 100</option>
+          <option>100 à 300</option>
+          <option>Plus de 300</option>
+        </select>
+      </div>
+      <div class="champ large">
+        <label for="message">Ce que l'agent devrait savoir faire</label>
+        <textarea id="message" name="message" placeholder="Ex. : prendre les rendez-vous, filtrer les vendeurs, acheminer les urgences de chantier au responsable de garde…"></textarea>
+      </div>
+      <div id="reponse"></div>
+      <div class="form-pied">
+        <p>Réponse sous un jour ouvrable. Vos informations ne servent qu'à préparer la démo.</p>
+        <button type="submit" class="bouton">Préparer ma démo</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="contenant">
+    <div class="pied-grille">
+      <div>
+        <h5>Standard 24</h5>
+        <p style="max-width:34em">
+          Réceptionniste IA pour PME québécoises. Conçu, configuré et soutenu au Québec.
+          Vos enregistrements et vos transcriptions demeurent hébergés au Canada.
+        </p>
+      </div>
+      <div>
+        <h5>Nous joindre</h5>
+        <a href="tel:+14183657973">418 365-7973</a>
+        <a href="#demo">Demander une démo</a>
+        <p>Saint-Tite, Québec</p>
+      </div>
+      <div>
+        <h5>Le produit</h5>
+        <a href="#fonctionnement">Fonctionnement</a>
+        <a href="#secteurs">Secteurs</a>
+        <a href="#tarifs">Tarifs</a>
+        <a href="#comparatif">Comparatif</a>
+      </div>
+    </div>
+    <div class="pied-bas">
+      <span>© <span id="annee"></span> Standard 24. Tous droits réservés.</span>
+      <span>Les prix affichés sont en dollars canadiens, taxes en sus.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('annee').textContent = new Date().getFullYear();
+
+  document.getElementById('form-demo').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const bouton = form.querySelector('button[type=submit]');
+    const zone = document.getElementById('reponse');
+    const donnees = Object.fromEntries(new FormData(form));
+
+    if (!donnees.courriel && !donnees.telephone) {
+      zone.className = 'erreur';
+      zone.textContent = 'Indiquez au moins un courriel ou un numéro de téléphone.';
+      return;
+    }
+
+    bouton.disabled = true;
+    bouton.textContent = 'Envoi…';
+    try {
+      const r = await fetch('/api/demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(donnees),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.erreur || 'Erreur inattendue');
+      zone.className = 'ok';
+      zone.textContent = 'Merci. Nous préparons votre agent et vous revenons sous un jour ouvrable.';
+      form.reset();
+    } catch (err) {
+      zone.className = 'erreur';
+      zone.textContent = 'L’envoi a échoué : ' + err.message + '. Vous pouvez aussi nous joindre au 418 365-7973.';
+    } finally {
+      bouton.disabled = false;
+      bouton.textContent = 'Préparer ma démo';
+    }
+  });
+</script>
+</body>
+</html>

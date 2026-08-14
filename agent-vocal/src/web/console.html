@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Console — Standard 24</title>
+<style>
+  :root{
+    --rouge:#DD101B; --rouge-fonce:#8D0005; --noir:#0A0A0A;
+    --gris:#828182; --gris-pale:#C4C4C4; --fond:#F5F4F3; --blanc:#FFFFFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Montserrat','Segoe UI',system-ui,sans-serif;font-weight:300;
+    background:var(--fond);color:var(--noir);font-size:14px;line-height:1.55}
+  header{background:var(--noir);color:#fff;padding:0 24px;height:64px;
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
+    border-bottom:4px solid var(--rouge)}
+  .logo{display:flex;align-items:center;gap:11px}
+  .marque{width:34px;height:34px;background:var(--rouge);display:flex;align-items:center;
+    justify-content:center;font-weight:800;font-size:11px;
+    clip-path:polygon(0 0,85% 0,100% 15%,100% 100%,15% 100%,0 85%)}
+  .logo b{font-size:13px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase}
+  header .droite{display:flex;align-items:center;gap:12px}
+  select,input,button{font-family:inherit;font-size:13px;padding:8px 11px;border:1px solid var(--gris-pale);background:#fff}
+  button{background:var(--rouge);color:#fff;border:none;font-weight:800;cursor:pointer;letter-spacing:.3px}
+  button:hover{background:var(--rouge-fonce)}
+  button.discret{background:transparent;color:#fff;border:1px solid #444}
+  button.discret:hover{background:#222}
+
+  main{max-width:1240px;margin:0 auto;padding:24px}
+  .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;background:var(--gris-pale);margin-bottom:24px}
+  .stat{background:#fff;padding:18px 16px}
+  .stat .v{font-size:26px;font-weight:800;color:var(--rouge-fonce);line-height:1.1}
+  .stat .e{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--gris);
+    font-weight:800;margin-top:5px}
+
+  .onglets{display:flex;gap:2px;background:var(--gris-pale);margin-bottom:2px}
+  .onglets button{background:#fff;color:var(--noir);font-weight:800;font-size:11.5px;
+    letter-spacing:1.3px;text-transform:uppercase;padding:13px 22px;flex:0 0 auto}
+  .onglets button.actif{background:var(--noir);color:#fff}
+  .onglets button:hover{background:var(--fond)}
+  .onglets button.actif:hover{background:var(--noir)}
+
+  .panneau{background:#fff;padding:0;display:none}
+  .panneau.actif{display:block}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--fond);vertical-align:top}
+  thead th{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--gris);
+    font-weight:800;border-bottom:2px solid var(--noir);white-space:nowrap}
+  tbody tr:hover{background:#fafafa}
+  .puce{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.8px;
+    text-transform:uppercase;padding:3px 9px;border:1px solid currentColor}
+  .p-transfert{color:#1b5e20}.p-message{color:#0d47a1}.p-rendez_vous{color:#4a148c}
+  .p-urgence{color:var(--rouge);background:#fff0f0}.p-filtre{color:var(--gris)}
+  .p-raccroche{color:var(--gris)}.p-erreur,.p-erreur_transfert{color:var(--rouge);background:#fff0f0}
+  .p-urgente{color:var(--rouge);background:#fff0f0}.p-elevee{color:#e65100}.p-normale{color:var(--gris)}
+  .lien{color:var(--rouge-fonce);cursor:pointer;text-decoration:underline;font-weight:500}
+  .vide{padding:52px 20px;text-align:center;color:var(--gris)}
+
+  dialog{border:none;padding:0;max-width:760px;width:92vw;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+  dialog::backdrop{background:rgba(10,10,10,.62)}
+  .modale-entete{background:var(--noir);color:#fff;padding:18px 24px;
+    display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .modale-entete h3{font-size:14px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase}
+  .modale-corps{padding:24px;max-height:66vh;overflow:auto}
+  .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;
+    padding-bottom:18px;border-bottom:1px solid var(--fond)}
+  .meta div span{display:block;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;
+    color:var(--gris);font-weight:800;margin-bottom:3px}
+  .tour{margin-bottom:13px;padding-left:14px;border-left:3px solid var(--gris-pale)}
+  .tour.agent{border-left-color:var(--rouge)}
+  .tour .qui{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--gris);font-weight:800}
+  #connexion{max-width:400px;margin:100px auto;background:#fff;padding:36px}
+  #connexion h2{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px}
+  #connexion p{color:var(--gris);margin-bottom:20px;font-size:13px}
+  #connexion input{width:100%;margin-bottom:12px}
+  #connexion button{width:100%;padding:12px}
+  .erreur-cle{color:var(--rouge);font-size:12.5px;font-weight:500;margin-top:10px}
+
+  @media (max-width:900px){
+    .stats{grid-template-columns:repeat(3,1fr)}
+    .meta{grid-template-columns:repeat(2,1fr)}
+    main{padding:14px}
+  }
+</style>
+</head>
+<body>
+
+<div id="connexion">
+  <h2>Console Standard 24</h2>
+  <p>Entrez la clé d'administration pour accéder au tableau de bord.</p>
+  <input id="cle" type="password" placeholder="Clé d'administration" autocomplete="current-password">
+  <button onclick="connecter()">Ouvrir la console</button>
+  <div id="erreur-cle" class="erreur-cle"></div>
+</div>
+
+<div id="appli" hidden>
+  <header>
+    <div class="logo">
+      <div class="marque">S24</div>
+      <b>Standard 24 · Console</b>
+    </div>
+    <div class="droite">
+      <select id="selecteur-client" onchange="changerClient()"></select>
+      <button class="discret" onclick="rafraichir()">Rafraîchir</button>
+      <button class="discret" onclick="deconnecter()">Quitter</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="stats" id="stats"></div>
+
+    <div class="onglets">
+      <button class="actif" data-panneau="appels">Appels</button>
+      <button data-panneau="messages">Messages</button>
+      <button data-panneau="rendezvous">Rendez-vous</button>
+    </div>
+
+    <div class="panneau actif" id="p-appels"></div>
+    <div class="panneau" id="p-messages"></div>
+    <div class="panneau" id="p-rendezvous"></div>
+  </main>
+</div>
+
+<dialog id="modale">
+  <div class="modale-entete">
+    <h3 id="modale-titre">Détail de l'appel</h3>
+    <button class="discret" onclick="document.getElementById('modale').close()">Fermer</button>
+  </div>
+  <div class="modale-corps" id="modale-corps"></div>
+</dialog>
+
+<script>
+let cle = sessionStorage.getItem('cle_s24') || '';
+let clientCourant = null;
+
+const echapper = (s) => String(s ?? '').replace(/[<>&"]/g, (c) =>
+  ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+
+async function api(chemin) {
+  const r = await fetch(chemin, { headers: { 'X-Cle-Admin': cle } });
+  if (r.status === 401) throw new Error('Clé refusée');
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).erreur || `Erreur ${r.status}`);
+  return r.json();
+}
+
+async function connecter() {
+  cle = document.getElementById('cle').value.trim();
+  try {
+    await api('/api/clients');
+    sessionStorage.setItem('cle_s24', cle);
+    demarrer();
+  } catch (e) {
+    document.getElementById('erreur-cle').textContent = e.message;
+  }
+}
+
+function deconnecter() {
+  sessionStorage.removeItem('cle_s24');
+  location.reload();
+}
+
+async function demarrer() {
+  document.getElementById('connexion').hidden = true;
+  document.getElementById('appli').hidden = false;
+  const liste = await api('/api/clients');
+  const sel = document.getElementById('selecteur-client');
+  sel.innerHTML = liste
+    .map((c) => `<option value="${echapper(c.id)}">${echapper(c.nom)}${c.ouvert ? ' · ouvert' : ' · fermé'}</option>`)
+    .join('');
+  if (!liste.length) {
+    document.querySelector('main').innerHTML =
+      '<div class="panneau actif"><div class="vide">Aucun client configuré. Ajoutez un fichier JSON dans <code>data/clients/</code>.</div></div>';
+    return;
+  }
+  clientCourant = liste[0].id;
+  rafraichir();
+}
+
+function changerClient() {
+  clientCourant = document.getElementById('selecteur-client').value;
+  rafraichir();
+}
+
+async function rafraichir() {
+  if (!clientCourant) return;
+  const [liste, appels, messages, rdv] = await Promise.all([
+    api('/api/clients'),
+    api(`/api/clients/${clientCourant}/appels`),
+    api(`/api/clients/${clientCourant}/messages`),
+    api(`/api/clients/${clientCourant}/rendezvous`),
+  ]);
+
+  const s = (liste.find((c) => c.id === clientCourant) || {}).statistiques || {};
+  document.getElementById('stats').innerHTML = [
+    ['Appels (30 j)', s.appels ?? 0],
+    ['Minutes', s.minutes ?? 0],
+    ['Transferts', s.transferts ?? 0],
+    ['Messages', s.messages ?? 0],
+    ['Rendez-vous', s.rendez_vous ?? 0],
+    ['Sollicitations filtrées', s.filtres ?? 0],
+  ].map(([e, v]) => `<div class="stat"><div class="v">${v}</div><div class="e">${e}</div></div>`).join('');
+
+  rendreAppels(appels);
+  rendreMessages(messages);
+  rendreRdv(rdv);
+}
+
+const dateFr = (iso) => iso
+  ? new Date(iso).toLocaleString('fr-CA', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  : '—';
+const duree = (s) => (s == null ? '—' : `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')} s`);
+const puce = (v) => v ? `<span class="puce p-${echapper(v)}">${echapper(v).replace(/_/g, ' ')}</span>` : '—';
+
+function rendreAppels(lignes) {
+  const el = document.getElementById('p-appels');
+  if (!lignes.length) { el.innerHTML = '<div class="vide">Aucun appel enregistré.</div>'; return; }
+  el.innerHTML = `<table><thead><tr>
+      <th>Début</th><th>Appelant</th><th>Durée</th><th>Dénouement</th>
+      <th>Catégorie</th><th>Résumé</th><th></th></tr></thead><tbody>${
+    lignes.map((a) => `<tr>
+      <td>${dateFr(a.debut)}</td>
+      <td>${echapper(a.appelant || 'masqué')}</td>
+      <td>${duree(a.duree_s)}</td>
+      <td>${puce(a.denouement)}</td>
+      <td>${echapper(a.categorie || '—')}</td>
+      <td>${echapper(a.resume || '—')}</td>
+      <td><span class="lien" onclick="voirAppel('${echapper(a.id)}')">transcription</span></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function rendreMessages(lignes) {
+  const el = document.getElementById('p-messages');
+  if (!lignes.length) { el.innerHTML = '<div class="vide">Aucun message.</div>'; return; }
+  el.innerHTML = `<table><thead><tr>
+      <th>Reçu</th><th>De</th><th>Rappel</th><th>Objet</th>
+      <th>Message</th><th>Urgence</th><th>Destinataire</th></tr></thead><tbody>${
+    lignes.map((m) => `<tr>
+      <td>${dateFr(m.cree_le)}</td>
+      <td>${echapper(m.nom || '—')}</td>
+      <td>${echapper(m.telephone || '—')}${m.courriel ? `<br><small>${echapper(m.courriel)}</small>` : ''}</td>
+      <td>${echapper(m.objet || '—')}</td>
+      <td>${echapper(m.contenu || '—')}</td>
+      <td>${puce(m.urgence)}</td>
+      <td>${echapper(m.destinataire || 'équipe')}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function rendreRdv(lignes) {
+  const el = document.getElementById('p-rendezvous');
+  if (!lignes.length) { el.innerHTML = '<div class="vide">Aucun rendez-vous.</div>'; return; }
+  el.innerHTML = `<table><thead><tr>
+      <th>Date et heure</th><th>Durée</th><th>Client</th><th>Coordonnées</th>
+      <th>Objet</th><th>Statut</th></tr></thead><tbody>${
+    lignes.map((r) => `<tr>
+      <td>${dateFr(r.debut)}</td>
+      <td>${r.duree_min} min</td>
+      <td>${echapper(r.nom || '—')}</td>
+      <td>${echapper(r.telephone || '—')}${r.courriel ? `<br><small>${echapper(r.courriel)}</small>` : ''}</td>
+      <td>${echapper(r.objet || '—')}</td>
+      <td>${puce(r.statut)}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function voirAppel(id) {
+  const a = await api(`/api/appels/${id}`);
+  document.getElementById('modale-titre').textContent = `Appel du ${dateFr(a.debut)}`;
+  document.getElementById('modale-corps').innerHTML = `
+    <div class="meta">
+      <div><span>Appelant</span>${echapper(a.appelant || 'masqué')}</div>
+      <div><span>Durée</span>${duree(a.duree_s)}</div>
+      <div><span>Dénouement</span>${puce(a.denouement)}</div>
+      <div><span>Catégorie</span>${echapper(a.categorie || '—')}</div>
+    </div>
+    ${a.resume ? `<p style="margin-bottom:20px"><strong>Résumé :</strong> ${echapper(a.resume)}</p>` : ''}
+    ${(a.transcription || []).map((t) => `
+      <div class="tour ${t.qui === 'agent' ? 'agent' : ''}">
+        <div class="qui">${t.qui === 'agent' ? 'Agent' : 'Appelant'} · ${Math.round(t.t / 1000)} s</div>
+        ${echapper(t.texte)}
+      </div>`).join('') || '<p style="color:var(--gris)">Aucune transcription.</p>'}`;
+  document.getElementById('modale').showModal();
+}
+
+document.querySelectorAll('.onglets button').forEach((b) => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.onglets button').forEach((x) => x.classList.remove('actif'));
+    document.querySelectorAll('.panneau').forEach((x) => x.classList.remove('actif'));
+    b.classList.add('actif');
+    document.getElementById(`p-${b.dataset.panneau}`).classList.add('actif');
+  });
+});
+
+document.getElementById('cle').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') connecter();
+});
+
+if (cle) demarrer().catch(() => { sessionStorage.removeItem('cle_s24'); });
+</script>
+</body>
+</html>
