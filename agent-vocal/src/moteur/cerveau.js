@@ -11,7 +11,7 @@ const BETA_FALLBACK = 'server-side-fallback-2026-07-01';
 function promptSysteme(c, contexteAppel) {
   const p = c.persona;
   const ouvert = horaire.estOuvert(c);
-  const maintenant = horaire.momentLisible(new Date(), c.fuseau);
+  const maintenant = horaire.momentLisible(horaire.maintenant(), c.fuseau);
 
   const equipe = c.equipe.length
     ? c.equipe
@@ -133,6 +133,8 @@ class Cerveau {
           sortie = { resultat: `Erreur technique lors de l'execution : ${e.message}` };
         }
         if (sortie.action) actions.push(sortie.action);
+        // Point d'observation : journalisation, console d'essai, metriques.
+        this.contexte.surOutil?.(appel.name, appel.input || {}, sortie);
         resultats.push({
           type: 'tool_result',
           tool_use_id: appel.id,

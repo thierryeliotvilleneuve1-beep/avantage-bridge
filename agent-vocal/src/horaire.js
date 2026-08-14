@@ -6,6 +6,20 @@ const JOURS_LONGS = {
   jeu: 'jeudi', ven: 'vendredi', sam: 'samedi',
 };
 
+// Horloge injectable : permet d'essayer le comportement « hors des heures »
+// ou « veille de ferie » sans attendre le bon moment de la semaine.
+let horlogeFigee = null;
+
+/** Fige l'heure courante du systeme. `null` pour revenir a l'heure reelle. */
+function figerHorloge(date) {
+  horlogeFigee = date ? new Date(date) : null;
+}
+
+/** Heure courante, reelle ou figee. */
+function maintenant() {
+  return horlogeFigee ? new Date(horlogeFigee) : new Date();
+}
+
 /** Retourne { annee, mois, jour, heure, minute, jourSemaine } dans le fuseau donne. */
 function partiesLocales(date, fuseau) {
   const fmt = new Intl.DateTimeFormat('fr-CA', {
@@ -28,6 +42,37 @@ function partiesLocales(date, fuseau) {
   };
 }
 
+/** Ecart, en minutes, entre l'heure murale du fuseau et UTC a cet instant. */
+function decalageMinutes(date, fuseau) {
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: fuseau,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  });
+  const p = Object.fromEntries(fmt.formatToParts(date).map((x) => [x.type, x.value]));
+  const commeUtc = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second);
+  return (commeUtc - date.getTime()) / 60000;
+}
+
+/**
+ * Convertit une heure murale (« 2026-08-18 10:00 ») en instant reel, en
+ * l'interpretant dans le fuseau donne plutot que dans celui du serveur.
+ * @returns {Date|null} null si la chaine est illisible
+ */
+function depuisHeureLocale(chaine, fuseau) {
+  const m = String(chaine).match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  const [, A, M, J, h, min] = m.map(Number);
+  const mural = Date.UTC(A, M - 1, J, h, min);
+  // Deux passes : la premiere estime le decalage, la seconde le corrige si
+  // l'estimation tombait du mauvais cote d'un changement d'heure.
+  let ts = mural;
+  for (let i = 0; i < 2; i += 1) {
+    ts = mural - decalageMinutes(new Date(ts), fuseau) * 60000;
+  }
+  return new Date(ts);
+}
+
 function enMinutes(hhmm) {
   const [h, m] = String(hhmm).split(':').map((x) => parseInt(x, 10));
   return h * 60 + (m || 0);
@@ -40,7 +85,7 @@ function enHhmm(minutes) {
 }
 
 /** L'entreprise est-elle ouverte a l'instant donne ? */
-function estOuvert(client, date = new Date()) {
+function estOuvert(client, date = maintenant()) {
   const l = partiesLocales(date, client.fuseau);
   if ((client.jours_feries || []).includes(l.dateIso)) return false;
   const plage = client.heures[l.jourSemaine];
@@ -101,5 +146,7 @@ function momentLisible(date, fuseau) {
 
 module.exports = {
   partiesLocales, estOuvert, heuresLisibles, disponibilites,
-  momentLisible, enMinutes, enHhmm, JOURS, JOURS_LONGS,
+  momentLisible, enMinutes, enHhmm, figerHorloge, maintenant,
+  depuisHeureLocale, decalageMinutes,
+  JOURS, JOURS_LONGS,
 };

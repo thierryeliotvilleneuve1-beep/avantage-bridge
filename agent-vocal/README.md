@@ -87,6 +87,7 @@ Node.js 20 ou plus, et un serveur joignable en HTTPS depuis Internet.
 cd agent-vocal
 npm install
 cp .env.example .env      # puis remplir
+npm test                  # logique métier — aucune clé requise
 npm run verif             # valide la configuration et les fiches clients
 npm start
 ```
@@ -94,6 +95,65 @@ npm start
 `npm run verif` doit afficher **0 échec** avant toute mise en service. Il
 vérifie les clés, les numéros en double, les plages horaires incohérentes,
 les destinataires de transfert injoignables et les fiches sans voix.
+
+---
+
+## Essayer l'agent
+
+Trois niveaux, du moins coûteux au plus complet.
+
+### Niveau 1 — la logique métier, sans aucune clé
+
+```bash
+npm test
+```
+
+34 tests : heures d'ouverture aux bornes exactes, changement d'heure,
+disponibilités de rendez-vous, acheminement par mots-clés, refus de transfert
+hors des heures, escalade d'urgence la nuit, et refus de la FAQ de répondre
+hors sujet. C'est ce qui attrape les régressions quand vous modifiez une fiche.
+
+### Niveau 2 — converser avec l'agent par écrit
+
+Seule `ANTHROPIC_API_KEY` est requise. Ni téléphonie, ni synthèse vocale.
+Environ un cent par conversation.
+
+```bash
+npm run essai crc
+npm run essai crc -- --heure "2026-08-18 21:00"   # un mardi soir, entreprise fermée
+npm run essai crc -- --heure "2026-12-25 10:00"   # un jour férié
+npm run essai crc -- --appelant +15145551234
+```
+
+`--heure` s'interprète dans le fuseau du client : « 21:00 » veut dire 21 h
+chez lui, peu importe où tourne le serveur.
+
+La console affiche chaque outil appelé, ce qu'il a répondu et l'action qui en
+découle, ce qui rend les décisions de l'agent lisibles :
+
+```
+Appelant ▸ j'appelle pour le chantier de l'école, il y a de l'eau au sous-sol
+
+  ▸ escalader_urgence(nature: "dégât d'eau", lieu: "chantier de l'école")
+    └─ Urgence enregistree. Transfert vers la ligne d'urgence en cours.
+  ⚑ ACTION transfert {"numero":"+14183657973","vers":"ligne urgence"}
+```
+
+L'appel est consigné en base : il apparaît dans la console web avec sa
+transcription, comme un vrai appel.
+
+**Ce qu'il vaut la peine d'essayer :** poser une question absente de la FAQ
+(il doit prendre un message, pas inventer), demander un prix de soumission
+(il doit refuser), se faire passer pour un vendeur de logiciel (il doit
+raccrocher), appeler à 21 h en demandant Carl (il doit prendre un message,
+pas transférer), et déclarer une urgence la nuit (il doit escalader).
+
+### Niveau 3 — un vrai appel téléphonique
+
+Exige les cinq clés, un numéro Twilio et un serveur joignable en HTTPS. En
+développement, `ngrok http 8080` donne l'URL publique à mettre dans
+`URL_PUBLIQUE` et dans le webhook Twilio. C'est le seul niveau qui éprouve la
+latence, la qualité de la voix et le barge-in.
 
 ### 3. Configuration Twilio
 

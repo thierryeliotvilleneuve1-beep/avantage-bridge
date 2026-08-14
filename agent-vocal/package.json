@@ -1,11 +1,13 @@
 {
   "name": "standard24",
   "version": "1.0.0",
-  "description": "Standard 24 — reception niste IA pour PME quebecoises (agent vocal multi-clients)",
+  "description": "Standard 24 — receptionniste IA pour PME quebecoises (agent vocal multi-clients)",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "verif": "node scripts/verif-config.js"
+    "verif": "node scripts/verif-config.js",
+    "test": "node scripts/tests.js",
+    "essai": "node scripts/essai.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
