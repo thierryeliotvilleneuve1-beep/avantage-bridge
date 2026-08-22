@@ -11,7 +11,8 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY || 'CHANGE_MOI_CLE_SECRETE_LONGUE';
-const EXPORT_DIR = path.resolve(__dirname, '../exports-avantage');
+// Une seule definition du repertoire d'export, partagee avec les parseurs.
+const { EXPORT_DIR } = require('./lib/sources');
 const CRON_SCHEDULE = process.env.CRON_SCHEDULE || '*/15 * * * *';
 
 // Auth middleware
@@ -21,22 +22,62 @@ function auth(req, res, next) {
   next();
 }
 
-// Route status — publique
+// Fichiers d'export attendus depuis Avantage, et ce qu'ils alimentent.
+const SOURCES_ATTENDUES = [
+  ['CONTRA.csv',  'projets'],
+  ['FACTMA.csv',  'factures client'],
+  ['CONPRE.csv',  'budget de couts par activite'],
+  ['CONFIT.csv',  'budget de revenus par activite (marge)'],
+  ['CONACT.csv',  'facture et depense a venir par activite'],
+  ['TRANS.csv',   'couts reels'],
+  ['COMITE.csv',  'rattachement commande -> activite'],
+  ['PYBBIL.csv',  'factures fournisseurs'],
+  ['ACTIVE.csv',  'libelles d activite'],
+  ['export.xlsx', 'bons de commande (feuille COMMAN)'],
+];
+
+// Route status — publique. Expose la fraicheur des exports : un chiffre de
+// marge ne vaut que par la date de l'export qui l'alimente.
 app.get('/api/status', (req, res) => {
-  res.json({ ok: true, service: 'avantage-bridge', version: '7.0.0', export_dir: EXPORT_DIR });
+  const sources = SOURCES_ATTENDUES.map(([fichier, alimente]) => {
+    const p = path.join(EXPORT_DIR, fichier);
+    let present = false, maj = null, taille = null;
+    try {
+      const st = fs.statSync(p);
+      present = true;
+      maj = st.mtime.toISOString();
+      taille = st.size;
+    } catch (e) { /* fichier absent */ }
+    return { fichier, alimente, present, maj, taille };
+  });
+  const manquants = sources.filter((s) => !s.present).map((s) => s.fichier);
+  res.json({
+    ok: true,
+    service: 'avantage-bridge',
+    version: '7.1.0',
+    export_dir: EXPORT_DIR,
+    derniere_sync_cron: lastSync,
+    marge_calculable: sources.find((s) => s.fichier === 'CONFIT.csv').present,
+    sources,
+    manquants: manquants.length ? manquants : undefined,
+  });
 });
+
+// Etat de la derniere execution du cron, expose par /api/status.
+let lastSync = null;
 
 // Routes — protégées
 const budgetRouter = require('./routes/budget');
 const bcSyncRouter = require('./routes/bc-sync');
 const transSyncRouter = require('./routes/trans-sync');
+const margeRouter = require('./routes/marge');
 
 app.use('/api/budget', auth, budgetRouter);
 app.use('/api/bc', auth, bcSyncRouter);
 app.use('/api/trans', auth, transSyncRouter);
+app.use('/api/marge', auth, margeRouter);
 
 // Cron sync
-let lastSync = null;
 cron.schedule(CRON_SCHEDULE, async () => {
   console.log('[INFO] Cron déclenché — refresh des données Avantage');
   try {
@@ -67,7 +108,7 @@ cron.schedule(CRON_SCHEDULE, async () => {
 });
 
 app.listen(PORT, () => {
-  console.log('[INFO] Bridge Avantage v7 démarré sur le port ' + PORT);
+  console.log('[INFO] Bridge Avantage v7.1 démarré sur le port ' + PORT);
   console.log('[INFO] Export dir:', EXPORT_DIR);
   console.log('[INFO] Cron:', CRON_SCHEDULE);
 });

@@ -1,0 +1,5 @@
+node_modules/
+.env
+exports-avantage/
+test/fixtures/exports/
+*.log
