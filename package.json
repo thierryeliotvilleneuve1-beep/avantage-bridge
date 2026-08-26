@@ -2,8 +2,13 @@
   "name": "avantage-bridge",
   "version": "7.0.0",
   "main": "src/index.js",
-  "scripts": { "start": "node src/index.js" },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test comptabilite/test/*.test.mjs",
+    "test:gl": "node --test comptabilite/test/grandlivre.test.mjs"
+  },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.7",
     "cors": "^2.8.5",
     "csv-parse": "^5.5.0",
     "dotenv": "^16.3.1",

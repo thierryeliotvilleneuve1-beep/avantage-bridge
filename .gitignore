@@ -1,0 +1,6 @@
+node_modules/
+exports-avantage/
+.env
+*.log
+npm-debug.log*
+.DS_Store

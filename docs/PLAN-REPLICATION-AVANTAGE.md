@@ -1,5 +1,13 @@
 # Remplacer Avantage par Manœuvre — analyse d'écart et plan
 
+> ⚠️ **CE DOCUMENT EST SUPERSÉDÉ.**
+> Il a été écrit avant la décision. Sa recommandation — ne faire que la
+> comptabilité de projet et remettre le livre officiel à plus tard — a été
+> écartée le 26 août 2026 : CRC remplace Avantage au complet, livre officiel
+> inclus. Voir **`ARCHITECTURE-COMPTABILITE.md`**.
+> Ce qui reste valable ici : l'analyse d'écart de la section 1 et l'inventaire
+> des préalables de la section 5.
+
 > Suite du document `AVANTAGE-MODELE-DONNEES.md`.
 > Cible : **Manœuvre** (Base44, app `68927e133cde9f63295dd616`), **136 entités** existantes.
 > Objectif énoncé : cesser de chercher un autre système comptable et reconstruire
