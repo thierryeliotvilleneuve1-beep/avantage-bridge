@@ -1,0 +1,11 @@
+node_modules/
+out/*
+!out/.gitkeep
+state/*.json
+assets/music/*.mp3
+assets/music/*.m4a
+assets/music/*.wav
+assets/fonts/*.ttf
+assets/fonts/*.otf
+.env
+.cache/

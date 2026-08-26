@@ -1,0 +1,206 @@
+{
+  "channel": {
+    "slug": "mindloop",
+    "name": "MindLoop",
+    "language": "en-US",
+    "niche": "human behaviour & applied psychology",
+    "promise": "One uncomfortable truth about how people work, every day, in under a minute.",
+    "audience": "18-34, English-speaking, scrolls Shorts late at night, likes feeling smarter after 45 seconds",
+    "voiceOfChannel": "Calm, certain, slightly clinical. Never hypey. Never says 'guys'. States the finding, then hands the viewer a use for it.",
+    "forbidden": [
+      "medical or mental-health diagnosis",
+      "claims about a named real person's psychology",
+      "'science says' with no named mechanism",
+      "therapy-speak buzzwords (trauma, narcissist, gaslighting) used loosely",
+      "clickbait that the video does not pay off"
+    ],
+    "aiDisclosure": {
+      "syntheticVoice": true,
+      "realisticSyntheticPeople": false,
+      "note": "Voice is synthetic but no realistic synthetic depiction of real people/events is used, so YouTube's 'altered content' disclosure is not required. Re-evaluate if you switch to AI video of realistic humans."
+    }
+  },
+  "video": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "targetSeconds": [
+      42,
+      58
+    ],
+    "codec": {
+      "vcodec": "libx264",
+      "crf": 19,
+      "preset": "medium",
+      "acodec": "aac",
+      "abitrate": "192k"
+    },
+    "loudnessTarget": "I=-14:TP=-1.5:LRA=11"
+  },
+  "audio": {
+    "musicGainDb": -21,
+    "musicFadeInSeconds": 0.6,
+    "musicFadeOutSeconds": 1.2,
+    "voiceGainDb": 0,
+    "beatGapSeconds": 0.22,
+    "tailSeconds": 0.6
+  },
+  "captions": {
+    "fontName": "Montserrat ExtraBold",
+    "fontFallbacks": [
+      "Arial Black",
+      "Impact",
+      "DejaVu Sans Bold"
+    ],
+    "fontSize": 92,
+    "wordsPerGroup": 3,
+    "marginBottomPx": 620,
+    "primaryColour": "FFFFFF",
+    "activeColour": "3BE8B0",
+    "outlinePx": 7,
+    "shadowPx": 3,
+    "uppercase": true
+  },
+  "script": {
+    "model": "claude-opus-5",
+    "effort": "high",
+    "beatCount": [
+      5,
+      8
+    ],
+    "wordsPerSecond": 2.6,
+    "hookMaxWords": 12
+  },
+  "variation": {
+    "avoidLastNFormats": 3,
+    "avoidLastNHooks": 8,
+    "avoidLastNTopics": 40,
+    "comment": "YouTube demonetises 'inauthentic content': templated videos reproduced at scale with no real authorial input. The rotation below is the countermeasure - consecutive uploads must differ in structure, visual language and pacing, not just in topic."
+  },
+  "formats": [
+    {
+      "id": "mechanism",
+      "label": "The mechanism",
+      "structure": "Name a behaviour the viewer has seen -> reveal the hidden mechanism driving it -> name the mechanism -> one line the viewer can use tomorrow.",
+      "hookPattern": "observation the viewer has personally witnessed",
+      "visualStyle": "real people in ordinary settings, documentary stock footage, handheld feel, cool desaturated grade",
+      "visualSource": "video",
+      "pacing": {
+        "beatSeconds": [
+          6,
+          9
+        ]
+      },
+      "captionAccent": "3BE8B0"
+    },
+    {
+      "id": "experiment",
+      "label": "The study",
+      "structure": "Set up a real experimental design in one line -> what researchers expected -> what actually happened -> what it means for the viewer.",
+      "hookPattern": "a setup so strange the viewer needs the result",
+      "visualStyle": "clinical, archival, muted institutional interiors, paper, corridors, single-subject portraits",
+      "visualSource": "photo",
+      "pacing": {
+        "beatSeconds": [
+          5,
+          8
+        ]
+      },
+      "captionAccent": "FFD166"
+    },
+    {
+      "id": "counterintuitive",
+      "label": "The inversion",
+      "structure": "State the advice everyone repeats -> show why it backfires -> give the inverted rule -> the one situation where the original advice does hold.",
+      "hookPattern": "a belief the viewer holds, stated as if you agree, then broken",
+      "visualStyle": "clean minimal, negative space, single objects, high contrast, warm key light",
+      "visualSource": "photo",
+      "pacing": {
+        "beatSeconds": [
+          4,
+          7
+        ]
+      },
+      "captionAccent": "FF6B6B"
+    },
+    {
+      "id": "field-guide",
+      "label": "The field guide",
+      "structure": "Promise the viewer will be able to spot something -> give 3 concrete tells, each with a visual -> the tell that means you should walk away.",
+      "hookPattern": "a promise of a new perception the viewer keeps forever",
+      "visualStyle": "observational close-ups of hands, faces, doorways, screens; shallow depth of field",
+      "visualSource": "video",
+      "pacing": {
+        "beatSeconds": [
+          5,
+          7
+        ]
+      },
+      "captionAccent": "8BD3FF"
+    },
+    {
+      "id": "escalation",
+      "label": "The escalation",
+      "structure": "Start with a trivially small version of a behaviour -> escalate through 3 steps to its extreme consequence -> land on where the viewer already is on that ladder.",
+      "hookPattern": "something the viewer does daily, framed as step one of something larger",
+      "visualStyle": "moody, dark, escalating scale - rooms to streets to crowds to cities, night footage",
+      "visualSource": "video",
+      "pacing": {
+        "beatSeconds": [
+          4,
+          6
+        ]
+      },
+      "captionAccent": "C9A7FF"
+    },
+    {
+      "id": "self-test",
+      "label": "The self-test",
+      "structure": "Pose a question the viewer answers in their head -> reveal what each answer indicates -> explain the split -> tell them what to do with the answer they gave.",
+      "hookPattern": "a direct second-person question with only two plausible answers",
+      "visualStyle": "graphic and typographic, bold colour fields, abstract shapes, almost no footage of people",
+      "visualSource": "ai",
+      "pacing": {
+        "beatSeconds": [
+          5,
+          8
+        ]
+      },
+      "captionAccent": "FFFFFF"
+    }
+  ],
+  "topicSeeds": [
+    "status and social hierarchy in everyday interactions",
+    "how memory rewrites itself",
+    "why groups make worse decisions than individuals",
+    "the economics of attention and boredom",
+    "how people justify decisions after making them",
+    "trust, betrayal and repair between people",
+    "the psychology of waiting, queues and delay",
+    "how environments change behaviour without anyone noticing",
+    "what people do when they think nobody is watching",
+    "the difference between what people say they want and what they choose",
+    "habit formation and the moment a habit breaks",
+    "how language shapes what people are able to notice",
+    "why competence and confidence come apart",
+    "the social rules nobody states out loud",
+    "how fatigue, hunger and heat change moral judgement"
+  ],
+  "publishing": {
+    "cadencePerDay": 1,
+    "bestPostTimesLocal": [
+      "07:30",
+      "12:15",
+      "19:45"
+    ],
+    "titleMaxChars": 70,
+    "hashtagCount": 3,
+    "descriptionTemplate": "{hook}\n\n{summary}\n\n{sources}\n\n{hashtags}",
+    "surfaces": [
+      "youtube-shorts",
+      "facebook-reels",
+      "instagram-reels",
+      "tiktok"
+    ]
+  }
+}
