@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "node --test comptabilite/test/*.test.mjs",
-    "test:gl": "node --test comptabilite/test/grandlivre.test.mjs"
+    "test:gl": "node --test comptabilite/test/grandlivre.test.mjs",
+    "demo": "node comptabilite/src/demo/lancer.js"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.7",

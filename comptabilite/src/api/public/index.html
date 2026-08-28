@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M0 0h27l5 5v27H5l-5-5z' fill='%23dd101b'/%3E%3Ctext x='16' y='22' font-family='Helvetica,sans-serif' font-size='13' font-weight='bold' fill='white' text-anchor='middle'%3ECRC%3C/text%3E%3C/svg%3E">
+<title>Comptabilité CRC — Transactions à traiter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#ffffff; --panel:#faf7f7; --raised:#ffffff;
+  --ink:#0a0a0a; --ink-2:#6e6669; --ink-3:#8f8788;
+  --rule:#e2dbdb; --rule-strong:#c4bcbc;
+  --crc-deep:#8d0005; --crc-vif:#dd101b; --crc-wash:#f6eded;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --sans:"Montserrat",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --ground:#121011; --panel:#1a1617; --raised:#1f1a1c;
+    --ink:#f2eeee; --ink-2:#a89fa1; --ink-3:#8b8284;
+    --rule:#2e2729; --rule-strong:#453b3d;
+    --crc-deep:#ff6a63; --crc-vif:#ff4d47; --crc-wash:#2a1a1b;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+  font-weight:300;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px 80px}
+
+/* en-tête */
+.masthead{display:flex;align-items:center;gap:13px;padding:20px 0 16px;border-bottom:3px solid var(--crc-deep)}
+.mark{width:38px;height:38px;flex:none;background:var(--crc-vif);display:flex;align-items:center;
+  justify-content:center;font-weight:800;font-size:13px;color:#fff;
+  clip-path:polygon(0 0,85% 0,100% 15%,100% 100%,15% 100%,0 85%)}
+.mark-txt .l1{font-size:11.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;line-height:1.3}
+.mark-txt .l2{font-size:9.5px;font-weight:300;letter-spacing:1.3px;color:var(--ink-2);text-transform:uppercase}
+.masthead .right{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink-2);text-align:right;line-height:1.7}
+
+h1{font-size:26px;font-weight:800;letter-spacing:-.5px;text-transform:uppercase;margin:30px 0 4px}
+.sub{color:var(--ink-2);margin:0 0 26px;font-size:14px}
+
+/* tuiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin-bottom:30px}
+.tile{background:var(--panel);padding:15px 17px}
+.tile .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--ink-2);margin-bottom:7px}
+.tile .val{font-size:26px;font-weight:800;letter-spacing:-.8px;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .val.ok{color:var(--crc-deep)}
+.tile .note{font-size:11px;color:var(--ink-3);margin-top:3px}
+
+/* barre d'action */
+.bar{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.bar h2{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;
+  color:var(--crc-deep);margin:0}
+.bar .count{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.bar .spacer{flex:1}
+
+button{font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;
+  border:1px solid var(--rule-strong);background:var(--raised);color:var(--ink);
+  padding:7px 14px;letter-spacing:.3px}
+button:hover{border-color:var(--crc-deep);color:var(--crc-deep)}
+button.primaire{background:var(--crc-deep);border-color:var(--crc-deep);color:#fff}
+button.primaire:hover{background:var(--crc-vif);border-color:var(--crc-vif);color:#fff}
+button.discret{border-color:var(--rule);color:var(--ink-3);padding:7px 11px}
+button.discret:hover{border-color:var(--rule-strong);color:var(--ink-2)}
+button:disabled{opacity:.4;cursor:default}
+button:disabled:hover{border-color:var(--rule-strong);color:var(--ink)}
+
+/* tableau */
+.tw{border:1px solid var(--rule);background:var(--panel);overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th{text-align:left;font-weight:600;font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--ink-2);padding:11px 14px;border-bottom:1px solid var(--rule-strong);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--raised)}
+td.date{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);white-space:nowrap}
+td.desc{min-width:230px}
+td.desc .d1{font-weight:500;font-size:13px}
+td.desc .d2{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+td.mnt{text-align:right;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.mnt .sortie{color:var(--ink)}
+td.mnt .entree{color:var(--crc-deep);font-weight:600}
+td.act{text-align:right;white-space:nowrap}
+td.act button{margin-left:6px}
+
+.pill{display:inline-block;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.7px;
+  padding:2px 7px;text-transform:uppercase;white-space:nowrap}
+.pill-sug{background:var(--crc-deep);color:var(--ground)}
+.pill-sans{background:transparent;color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--rule-strong)}
+.regle{font-size:10.5px;color:var(--ink-3);margin-top:3px;font-family:var(--mono)}
+
+select{font-family:var(--mono);font-size:11.5px;background:var(--raised);color:var(--ink);
+  border:1px solid var(--rule-strong);padding:5px 7px;max-width:230px}
+select:focus{outline:2px solid var(--crc-vif);outline-offset:1px}
+input.proj{font-family:var(--mono);font-size:11.5px;background:var(--raised);color:var(--ink);
+  border:1px solid var(--rule-strong);padding:5px 7px;width:74px}
+
+.vide{padding:44px 20px;text-align:center;color:var(--ink-3)}
+.vide .big{font-size:15px;font-weight:600;color:var(--ink-2);margin-bottom:5px}
+
+/* bandeau message */
+#flash{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:50;
+  background:var(--crc-deep);color:#fff;padding:11px 20px;font-size:13px;font-weight:500;
+  box-shadow:0 4px 18px rgba(0,0,0,.22);display:none;max-width:90vw}
+#flash.erreur{background:var(--ink);border-left:4px solid var(--crc-vif)}
+
+.pied{margin-top:32px;padding-top:16px;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:10.5px;color:var(--ink-3);line-height:1.8}
+.demo-note{border-left:3px solid var(--crc-vif);background:var(--crc-wash);padding:12px 16px;
+  margin:0 0 26px;font-size:12.5px;color:var(--ink-2)}
+.demo-note b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="mark">CRC</div>
+  <div class="mark-txt">
+    <div class="l1">Construction Richard Champagne</div>
+    <div class="l2">Comptabilité</div>
+  </div>
+  <div class="right" id="entete-droite">—</div>
+</header>
+
+<h1>Transactions à traiter</h1>
+<p class="sub">Ce qui est arrivé de la banque et qui attend une imputation.</p>
+
+<div class="demo-note">
+  <b>Mode démonstration.</b> Base embarquée, données fictives sur le projet P23020 — Caserne Wemotaci.
+  Les écritures passées ici sont réelles au sens du moteur : équilibrées, immuables, contrepassables.
+</div>
+
+<div class="tiles" id="tuiles"></div>
+
+<div class="bar">
+  <h2>File de traitement</h2>
+  <span class="count" id="compteur">—</span>
+  <span class="spacer"></span>
+  <button id="btn-regles">Réappliquer les règles</button>
+  <button id="btn-rafraichir" class="discret">Rafraîchir</button>
+</div>
+
+<div class="tw">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:96px">Date</th>
+        <th>Description</th>
+        <th style="width:128px;text-align:right">Montant</th>
+        <th style="width:120px">État</th>
+        <th style="width:250px">Imputation</th>
+        <th style="width:180px"></th>
+      </tr>
+    </thead>
+    <tbody id="lignes">
+      <tr><td colspan="6" class="vide">Chargement…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="pied">
+  Construction Richard Champagne &nbsp;|&nbsp; Saint-Tite, Québec<br>
+  RBQ : 8231-1127-01 &nbsp;|&nbsp; NEQ : 1180040314 &nbsp;|&nbsp; info@c-rc.ca &nbsp;|&nbsp; 418-365-7973
+</div>
+
+</div>
+<div id="flash"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let COMPTES = [];
+
+const argent = (n) => new Intl.NumberFormat('fr-CA',
+  { style:'currency', currency:'CAD' }).format(Math.abs(n));
+const jour = (d) => new Date(d).toLocaleDateString('fr-CA',
+  { day:'2-digit', month:'short', timeZone:'UTC' });
+
+function flash(msg, erreur) {
+  const f = $('#flash');
+  f.textContent = msg;
+  f.className = erreur ? 'erreur' : '';
+  f.style.display = 'block';
+  clearTimeout(flash._t);
+  flash._t = setTimeout(() => { f.style.display = 'none'; }, 4200);
+}
+
+async function api(chemin, options) {
+  const r = await fetch(chemin, options);
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.erreur || `Erreur ${r.status}`);
+  return d;
+}
+
+async function chargerEtat() {
+  const e = await api('/api/etat');
+  $('#entete-droite').innerHTML =
+    `BASE : ${e.mode.toUpperCase()}<br>${e.periodes_ouvertes} PÉRIODES OUVERTES`;
+  $('#tuiles').innerHTML = `
+    <div class="tile">
+      <div class="lbl">En attente</div>
+      <div class="val">${e.transactions_en_attente}</div>
+      <div class="note">transactions à imputer</div>
+    </div>
+    <div class="tile">
+      <div class="lbl">Écritures aux livres</div>
+      <div class="val">${e.ecritures}</div>
+      <div class="note">validées, immuables</div>
+    </div>
+    <div class="tile">
+      <div class="lbl">Équilibre du grand livre</div>
+      <div class="val ${e.equilibre ? 'ok' : ''}">${e.equilibre ? '✓' : '✕'}</div>
+      <div class="note">écart ${e.ecart.toFixed(2)} $</div>
+    </div>`;
+}
+
+function optionsCompte(selection) {
+  return ['<option value="">— choisir un compte —</option>']
+    .concat(COMPTES.map((c) =>
+      `<option value="${c.numero}"${c.numero === selection ? ' selected' : ''}>` +
+      `${c.numero} · ${c.nom}</option>`))
+    .join('');
+}
+
+function ligne(t) {
+  const sortie = t.montant < 0;
+  const suggeree = t.statut === 'suggeree';
+  return `
+  <tr data-id="${t.id}">
+    <td class="date">${jour(t.date_transaction)}</td>
+    <td class="desc">
+      <div class="d1">${t.marchand || t.description}</div>
+      <div class="d2">${t.description}</div>
+    </td>
+    <td class="mnt">
+      <span class="${sortie ? 'sortie' : 'entree'}">${sortie ? '−' : '+'} ${argent(t.montant)}</span>
+    </td>
+    <td>
+      <span class="pill ${suggeree ? 'pill-sug' : 'pill-sans'}">${suggeree ? 'suggérée' : 'sans règle'}</span>
+      ${t.regle_nom ? `<div class="regle">${t.regle_nom}</div>` : ''}
+    </td>
+    <td>
+      <select class="compte">${optionsCompte(t.suggestion_compte)}</select>
+      <input class="proj" placeholder="projet" value="${t.suggestion_projet || ''}" aria-label="Code de projet">
+    </td>
+    <td class="act">
+      <button class="primaire confirmer">Confirmer</button>
+      <button class="discret ignorer">Ignorer</button>
+    </td>
+  </tr>`;
+}
+
+async function charger() {
+  const ts = await api('/api/banque/a-traiter');
+  $('#compteur').textContent = ts.length
+    ? `${ts.length} en attente` : 'file vide';
+  $('#lignes').innerHTML = ts.length
+    ? ts.map(ligne).join('')
+    : `<tr><td colspan="6" class="vide">
+         <div class="big">Rien à traiter</div>
+         Toutes les transactions bancaires sont imputées.</td></tr>`;
+  await chargerEtat();
+}
+
+$('#lignes').addEventListener('click', async (ev) => {
+  const tr = ev.target.closest('tr[data-id]');
+  if (!tr) return;
+  const id = tr.dataset.id;
+
+  if (ev.target.classList.contains('confirmer')) {
+    const compteGl = tr.querySelector('.compte').value;
+    const projet = tr.querySelector('.proj').value.trim();
+    if (!compteGl) return flash('Choisissez un compte d\'imputation', true);
+    ev.target.disabled = true;
+    try {
+      const r = await api(`/api/banque/${id}/rapprocher`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ compteGl, projet: projet || null }),
+      });
+      flash(`Écriture ${r.ecriture.numeroPiece} passée`);
+      await charger();
+    } catch (e) {
+      ev.target.disabled = false;
+      flash(e.message, true);
+    }
+  }
+
+  if (ev.target.classList.contains('ignorer')) {
+    ev.target.disabled = true;
+    try {
+      await api(`/api/banque/${id}/ignorer`, { method: 'POST' });
+      flash('Transaction écartée');
+      await charger();
+    } catch (e) {
+      ev.target.disabled = false;
+      flash(e.message, true);
+    }
+  }
+});
+
+$('#btn-regles').addEventListener('click', async (ev) => {
+  ev.target.disabled = true;
+  try {
+    const b = await api('/api/banque/1/suggerer', { method: 'POST' });
+    flash(`${b.automatiques} passée(s) seule(s), ${b.suggerees} suggérée(s), ${b.sans_regle} sans règle`);
+    await charger();
+  } catch (e) {
+    flash(e.message, true);
+  } finally {
+    ev.target.disabled = false;
+  }
+});
+
+$('#btn-rafraichir').addEventListener('click', () => charger());
+
+(async () => {
+  try {
+    COMPTES = await api('/api/comptes');
+    await charger();
+  } catch (e) {
+    $('#lignes').innerHTML = `<tr><td colspan="6" class="vide">
+      <div class="big">Connexion impossible</div>${e.message}</td></tr>`;
+  }
+})();
+</script>
+</body>
+</html>
