@@ -40,8 +40,10 @@ app.use('/api/bc', auth, bcSyncRouter);
 app.use('/api/trans', auth, transSyncRouter);
 app.use('/api/adjointe', auth, adjointeRouter);
 
-// Cron sync
+// Cron sync Avantage — CRON_SCHEDULE=off le désactive, pour permettre à une seconde
+// instance (Adjointe IA) de tourner sans dupliquer la synchronisation comptable.
 let lastSync = null;
+if (CRON_SCHEDULE && CRON_SCHEDULE !== 'off') {
 cron.schedule(CRON_SCHEDULE, async () => {
   console.log('[INFO] Cron déclenché — refresh des données Avantage');
   try {
@@ -70,6 +72,7 @@ cron.schedule(CRON_SCHEDULE, async () => {
     console.error('[ERROR] Cron erreur:', e.message);
   }
 });
+}
 
 // Cron Adjointe IA — balayage de projets@c-rc.ca. Désactivé tant que
 // ADJOINTE_CRON n'est pas défini : aucun accès à la boîte sans configuration explicite.
@@ -90,7 +93,7 @@ if (process.env.ADJOINTE_CRON) {
 app.listen(PORT, () => {
   console.log('[INFO] Bridge Avantage v7 démarré sur le port ' + PORT);
   console.log('[INFO] Export dir:', EXPORT_DIR);
-  console.log('[INFO] Cron:', CRON_SCHEDULE);
+  console.log('[INFO] Cron Avantage:', (CRON_SCHEDULE && CRON_SCHEDULE !== 'off') ? CRON_SCHEDULE : 'désactivé');
   console.log('[INFO] Adjointe IA — niveau', process.env.ADJOINTE_NIVEAU || '0',
     '| cron', process.env.ADJOINTE_CRON || 'désactivé',
     '| interface http://localhost:' + PORT + '/adjointe/');
