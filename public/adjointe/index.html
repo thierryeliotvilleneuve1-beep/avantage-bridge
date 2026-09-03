@@ -142,8 +142,19 @@ function afficher(texte, type) {
   if (type === 'ok') setTimeout(() => { m.className = 'msg'; }, 6000);
 }
 
-async function appeler(chemin, options) {
-  const r = await fetch(API + chemin, { headers: entetes(), ...options });
+async function appeler(chemin, options, delaiMs = 45000) {
+  const ctrl = new AbortController();
+  const minuteur = setTimeout(() => ctrl.abort(), delaiMs);
+  let r;
+  try {
+    r = await fetch(API + chemin, { headers: entetes(), signal: ctrl.signal, ...options });
+  } catch (e) {
+    throw new Error(e.name === 'AbortError'
+      ? 'aucune réponse du bridge après ' + Math.round(delaiMs / 1000) + ' s sur ' + chemin
+      : 'bridge injoignable (' + e.message + ')');
+  } finally {
+    clearTimeout(minuteur);
+  }
   const d = await r.json().catch(() => ({ erreur: 'réponse illisible' }));
   if (!r.ok) throw new Error(d.erreur || ('HTTP ' + r.status));
   return d;
@@ -160,6 +171,8 @@ const LIBELLES = {
 };
 
 async function chargerStatut() {
+  document.getElementById('acces').innerHTML =
+    '<div class="info">Vérification de l’accès à la boîte…</div>';
   try {
     const s = await appeler('/statut');
     document.getElementById('entete-boite').textContent = s.boite;
@@ -185,6 +198,8 @@ async function chargerStatut() {
         (s.derniere_execution ? ' — dernier cycle : ' + new Date(s.derniere_execution).toLocaleString('fr-CA') : '') +
         (s.vault_actif ? ' — vault connecté.' : ' — vault non configuré.') + '</div>';
   } catch (e) {
+    document.getElementById('acces').innerHTML =
+      '<div class="alerte"><b>Statut indisponible.</b> ' + echapper(e.message) + '</div>';
     afficher('Statut indisponible : ' + e.message, 'err');
   }
 }
@@ -355,6 +370,12 @@ document.getElementById('btn-cycle').onclick = async () => {
 };
 
 async function tout() {
+  if (!cle) {
+    document.getElementById('acces').innerHTML =
+      '<div class="alerte">Aucune clé API enregistrée dans ce navigateur. ' +
+      'Colle la valeur de <b>API_KEY</b> du fichier .env, puis clique « Enregistrer la clé ».</div>';
+    return;
+  }
   await chargerStatut();
   await chargerFile();
   await chargerJournal();
