@@ -1,0 +1,5 @@
+node_modules/
+exports-avantage/
+.env
+# État local de l'Adjointe IA — journal d'audit et brouillons, jamais versionnés
+data-adjointe/

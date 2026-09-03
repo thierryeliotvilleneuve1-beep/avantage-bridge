@@ -21,6 +21,9 @@ function auth(req, res, next) {
   next();
 }
 
+// Interface Adjointe IA — page servie en clair, l'API reste protégée par la clé
+app.use('/adjointe', express.static(path.resolve(__dirname, '../public/adjointe')));
+
 // Route status — publique
 app.get('/api/status', (req, res) => {
   res.json({ ok: true, service: 'avantage-bridge', version: '7.0.0', export_dir: EXPORT_DIR });
@@ -30,10 +33,12 @@ app.get('/api/status', (req, res) => {
 const budgetRouter = require('./routes/budget');
 const bcSyncRouter = require('./routes/bc-sync');
 const transSyncRouter = require('./routes/trans-sync');
+const adjointeRouter = require('./routes/adjointe');
 
 app.use('/api/budget', auth, budgetRouter);
 app.use('/api/bc', auth, bcSyncRouter);
 app.use('/api/trans', auth, transSyncRouter);
+app.use('/api/adjointe', auth, adjointeRouter);
 
 // Cron sync
 let lastSync = null;
@@ -66,8 +71,27 @@ cron.schedule(CRON_SCHEDULE, async () => {
   }
 });
 
+// Cron Adjointe IA — balayage de projets@c-rc.ca. Désactivé tant que
+// ADJOINTE_CRON n'est pas défini : aucun accès à la boîte sans configuration explicite.
+if (process.env.ADJOINTE_CRON) {
+  cron.schedule(process.env.ADJOINTE_CRON, async () => {
+    console.log('[INFO] Adjointe — cycle de triage déclenché');
+    try {
+      const rapport = await require('./adjointe/runner').executerCycle({});
+      console.log('[INFO] Adjointe — examinés:', rapport.examines, 'retenus:', rapport.retenus,
+        'escalades:', rapport.escalades, 'brouillons:', rapport.brouillons, 'envoyés:', rapport.envoyes);
+      if (rapport.erreurs.length) console.log('[WARN] Adjointe — erreurs:', rapport.erreurs.join(' | '));
+    } catch (e) {
+      console.error('[ERROR] Adjointe — cycle échoué:', e.message);
+    }
+  });
+}
+
 app.listen(PORT, () => {
   console.log('[INFO] Bridge Avantage v7 démarré sur le port ' + PORT);
   console.log('[INFO] Export dir:', EXPORT_DIR);
   console.log('[INFO] Cron:', CRON_SCHEDULE);
+  console.log('[INFO] Adjointe IA — niveau', process.env.ADJOINTE_NIVEAU || '0',
+    '| cron', process.env.ADJOINTE_CRON || 'désactivé',
+    '| interface http://localhost:' + PORT + '/adjointe/');
 });

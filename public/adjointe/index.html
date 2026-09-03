@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adjointe IA — CRC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rouge-fonce:#8D0005; --rouge-vif:#DD101B; --noir:#0A0A0A;
+    --gris:#828182; --gris-clair:#C4C4C4; --fond:#F4F4F4; --blanc:#FFFFFF;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fond);color:var(--noir);
+       font-family:'Montserrat',Calibri,Arial,sans-serif;font-weight:300;font-size:14px}
+  header{background:var(--noir);color:var(--blanc);padding:14px 22px;display:flex;
+         align-items:center;gap:16px;flex-wrap:wrap;border-bottom:3px solid var(--rouge-vif)}
+  .logo{width:40px;height:40px;background:var(--rouge-vif);display:flex;align-items:center;
+        justify-content:center;font-weight:800;font-size:15px;color:#fff;
+        clip-path:polygon(0 0,85% 0,100% 15%,100% 100%,15% 100%,0 85%)}
+  .marque div:first-child{font-size:12px;font-weight:800;letter-spacing:2px}
+  .marque div:last-child{font-size:10px;font-weight:300;letter-spacing:1px;color:var(--gris-clair)}
+  .titre{margin-left:auto;text-align:right}
+  .titre h1{margin:0;font-size:15px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+  .titre span{font-size:11px;color:var(--gris-clair)}
+  .badge{display:inline-block;padding:2px 8px;border-radius:2px;font-size:10px;font-weight:500;
+         letter-spacing:.5px;text-transform:uppercase}
+  .n0{background:var(--gris)}.n1{background:#4a4a4a}.n2{background:var(--rouge-fonce)}.n3{background:var(--rouge-vif)}
+  main{padding:18px 22px;max-width:1180px;margin:0 auto}
+  .barre{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  input,select,textarea,button{font-family:inherit;font-size:13px}
+  input,select,textarea{padding:8px 10px;border:1px solid var(--gris-clair);background:#fff;border-radius:2px}
+  textarea{width:100%;min-height:190px;line-height:1.5;resize:vertical}
+  button{padding:8px 14px;border:none;border-radius:2px;cursor:pointer;font-weight:500;letter-spacing:.3px}
+  .b-primaire{background:var(--rouge-vif);color:#fff}
+  .b-sombre{background:var(--noir);color:#fff}
+  .b-neutre{background:#fff;color:var(--noir);border:1px solid var(--gris-clair)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .stat{background:#fff;border-left:3px solid var(--rouge-fonce);padding:10px 14px;min-width:120px}
+  .stat b{display:block;font-size:20px;font-weight:800}
+  .stat span{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gris)}
+  .carte{background:#fff;margin-bottom:12px;border:1px solid #e6e6e6;border-left:4px solid var(--gris-clair)}
+  .carte.escalade{border-left-color:var(--rouge-vif)}
+  .carte.brouillon_pret{border-left-color:var(--rouge-fonce)}
+  .carte.envoye,.carte.envoye_auto,.carte.traite{border-left-color:#2e7d32}
+  .carte.sans_suite,.carte.rejete{opacity:.55}
+  .entete{padding:12px 16px;cursor:pointer;display:flex;gap:12px;align-items:flex-start}
+  .entete h3{margin:0 0 4px;font-size:13px;font-weight:500;line-height:1.35}
+  .meta{font-size:11px;color:var(--gris)}
+  .puces{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+  .puce{font-size:10px;padding:2px 7px;background:#f0f0f0;border-radius:2px;letter-spacing:.4px}
+  .puce.projet{background:var(--noir);color:#fff}
+  .puce.sensible{background:var(--rouge-vif);color:#fff}
+  .puce.urgence{background:#ffe8e8;color:var(--rouge-fonce);font-weight:500}
+  .corps{padding:0 16px 16px;border-top:1px solid #f0f0f0;display:none}
+  .carte.ouverte .corps{display:block}
+  .apercu{background:#fafafa;padding:10px 12px;font-size:12px;line-height:1.55;color:#333;
+          margin:12px 0;border-left:2px solid var(--gris-clair);white-space:pre-wrap}
+  .alerte{background:#fff4f4;border:1px solid #f2c9c9;color:var(--rouge-fonce);padding:9px 12px;
+          font-size:12px;margin:10px 0}
+  .info{background:#f5f5f5;border-left:2px solid var(--gris);padding:9px 12px;font-size:12px;margin:10px 0}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  h2{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--rouge-fonce);
+     margin:26px 0 10px;border-bottom:1px solid var(--gris-clair);padding-bottom:5px}
+  table{width:100%;border-collapse:collapse;background:#fff;font-size:12px}
+  th{background:var(--noir);color:#fff;text-align:left;padding:7px 10px;font-weight:500;font-size:11px}
+  td{padding:6px 10px;border-bottom:1px solid #f0f0f0}
+  footer{padding:16px 22px;font-size:10px;color:var(--gris);text-align:center;line-height:1.7}
+  .vide{background:#fff;padding:28px;text-align:center;color:var(--gris);font-size:13px}
+  .msg{padding:9px 12px;font-size:12px;margin-bottom:12px;display:none}
+  .msg.ok{display:block;background:#eaf4ea;border-left:3px solid #2e7d32}
+  .msg.err{display:block;background:#fff4f4;border-left:3px solid var(--rouge-vif)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">CRC</div>
+  <div class="marque">
+    <div>CONSTRUCTION RICHARD CHAMPAGNE</div>
+    <div>ENTREPRENEUR GÉNÉRAL</div>
+  </div>
+  <div class="titre">
+    <h1>Adjointe IA</h1>
+    <span id="entete-boite">projets@c-rc.ca</span>
+    <span id="entete-niveau" class="badge n0">niveau 0</span>
+  </div>
+</header>
+
+<main>
+  <div id="message" class="msg"></div>
+
+  <div class="barre">
+    <input type="password" id="cle" placeholder="Clé API du bridge" style="width:230px">
+    <button class="b-neutre" id="btn-cle">Enregistrer la clé</button>
+    <button class="b-sombre" id="btn-cycle">Lancer un cycle de triage</button>
+    <select id="filtre-statut">
+      <option value="">Tous les états</option>
+      <option value="nouveau">Nouveaux</option>
+      <option value="escalade">Escalades</option>
+      <option value="brouillon_pret">Brouillons prêts</option>
+      <option value="envoye">Envoyés</option>
+      <option value="traite">Traités</option>
+      <option value="sans_suite">Sans suite</option>
+    </select>
+    <button class="b-neutre" id="btn-rafraichir">Rafraîchir</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+  <div id="acces"></div>
+
+  <h2>File de traitement</h2>
+  <div id="file"><div class="vide">Aucun élément. Lance un cycle de triage.</div></div>
+
+  <h2>Journal d’audit</h2>
+  <table id="journal"><thead><tr><th>Horodatage</th><th>Action</th><th>Projet</th><th>Détail</th></tr></thead><tbody></tbody></table>
+</main>
+
+<footer>
+  Construction Richard Champagne inc. &nbsp;|&nbsp; Saint-Tite, Québec &nbsp;|&nbsp; Tél. : 418-365-7973<br>
+  RBQ : 8231-1127-01 &nbsp;|&nbsp; NEQ : 1180040314 &nbsp;|&nbsp; projets@c-rc.ca<br>
+  Aucun courriel ne part de cette interface sans approbation humaine explicite.
+</footer>
+
+<script>
+const API = '/api/adjointe';
+let cle = localStorage.getItem('cle-adjointe') || '';
+let elements = [];
+const ouvertes = new Set();
+
+document.getElementById('cle').value = cle;
+
+function entetes() {
+  return { 'Content-Type': 'application/json', 'x-api-key': cle };
+}
+
+function afficher(texte, type) {
+  const m = document.getElementById('message');
+  m.textContent = texte;
+  m.className = 'msg ' + type;
+  if (type === 'ok') setTimeout(() => { m.className = 'msg'; }, 6000);
+}
+
+async function appeler(chemin, options) {
+  const r = await fetch(API + chemin, { headers: entetes(), ...options });
+  const d = await r.json().catch(() => ({ erreur: 'réponse illisible' }));
+  if (!r.ok) throw new Error(d.erreur || ('HTTP ' + r.status));
+  return d;
+}
+
+function echapper(t) {
+  return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+const LIBELLES = {
+  nouveau: 'nouveau', escalade: 'escalade', brouillon_pret: 'brouillon prêt',
+  envoye: 'envoyé', envoye_auto: 'envoyé (auto)', traite: 'traité',
+  rejete: 'rejeté', sans_suite: 'sans suite',
+};
+
+async function chargerStatut() {
+  try {
+    const s = await appeler('/statut');
+    document.getElementById('entete-boite').textContent = s.boite;
+    const b = document.getElementById('entete-niveau');
+    b.textContent = 'niveau ' + s.niveau;
+    b.className = 'badge n' + s.niveau;
+
+    const c = s.par_statut || {};
+    document.getElementById('stats').innerHTML = [
+      ['Total suivi', s.total],
+      ['Nouveaux', c.nouveau || 0],
+      ['Escalades', c.escalade || 0],
+      ['Brouillons prêts', c.brouillon_pret || 0],
+      ['Envoyés', (c.envoye || 0) + (c.envoye_auto || 0)],
+      ['Sans suite', c.sans_suite || 0],
+    ].map(([t, v]) => '<div class="stat"><b>' + v + '</b><span>' + t + '</span></div>').join('');
+
+    const a = s.acces || {};
+    document.getElementById('acces').innerHTML = a.erreur
+      ? '<div class="alerte"><b>Accès Microsoft Graph indisponible.</b> ' + echapper(a.erreur) +
+        ' — l’Adjointe ne peut ni lire ni écrire tant que ce point n’est pas réglé.</div>'
+      : '<div class="info">Accès confirmé à <b>' + echapper(a.boite || s.boite) + '</b>' +
+        (s.derniere_execution ? ' — dernier cycle : ' + new Date(s.derniere_execution).toLocaleString('fr-CA') : '') +
+        (s.vault_actif ? ' — vault connecté.' : ' — vault non configuré.') + '</div>';
+  } catch (e) {
+    afficher('Statut indisponible : ' + e.message, 'err');
+  }
+}
+
+async function chargerFile() {
+  const st = document.getElementById('filtre-statut').value;
+  try {
+    const d = await appeler('/file' + (st ? '?statut=' + st : ''));
+    elements = d.elements;
+    rendreFile();
+  } catch (e) {
+    afficher('File indisponible : ' + e.message, 'err');
+  }
+}
+
+function rendreFile() {
+  const cible = document.getElementById('file');
+  if (!elements.length) {
+    cible.innerHTML = '<div class="vide">Aucun élément pour ce filtre.</div>';
+    return;
+  }
+  cible.innerHTML = elements.map((e, i) => carte(e, i)).join('');
+}
+
+function carte(e, i) {
+  const brouillon = e.brouillon || null;
+  const bloque = (e.decision && e.decision.blocages) || [];
+  const ouverte = ouvertes.has(e.id) ? ' ouverte' : '';
+
+  const puces = [
+    e.projet ? '<span class="puce projet">' + echapper(e.projet) + '</span>' : '',
+    e.projet_sensible ? '<span class="puce sensible">dossier sensible</span>' : '',
+    '<span class="puce">' + echapper(e.categorie) + '</span>',
+    e.urgence && e.urgence !== 'normale' && e.urgence !== 'nulle'
+      ? '<span class="puce urgence">urgence ' + echapper(e.urgence) + '</span>' : '',
+    '<span class="puce">' + echapper(LIBELLES[e.statut] || e.statut || 'nouveau') + '</span>',
+    e.pieces_jointes ? '<span class="puce">pièces jointes</span>' : '',
+  ].join('');
+
+  const alertes = bloque.length
+    ? '<div class="alerte"><b>Décision humaine requise</b><ul style="margin:6px 0 0 16px;padding:0">' +
+      bloque.map((b) => '<li>' + echapper(b) + '</li>').join('') + '</ul></div>' : '';
+
+  const signaux = (e.signaux || []).length
+    ? '<div class="info"><b>Signaux repérés :</b> ' + e.signaux.map(echapper).join(' · ') + '</div>' : '';
+
+  let bloc = '';
+  if (brouillon) {
+    const manques = (brouillon.manques || []).length
+      ? '<div class="info"><b>À confirmer avant envoi :</b><ul style="margin:6px 0 0 16px;padding:0">' +
+        brouillon.manques.map((m) => '<li>' + echapper(m) + '</li>').join('') + '</ul></div>' : '';
+    const err = (brouillon.erreurs || []).length
+      ? '<div class="alerte"><b>Brouillon bloqué :</b> ' + brouillon.erreurs.map(echapper).join(' ; ') + '</div>' : '';
+    bloc =
+      '<div style="margin-top:12px"><b style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8D0005">' +
+      'Brouillon de réponse</b>' + manques + err +
+      '<div style="font-size:11px;color:#828182;margin:8px 0 4px">Objet : ' + echapper(brouillon.objet) + '</div>' +
+      '<textarea id="corps-' + i + '">' + echapper(brouillon.corps) + '</textarea></div>';
+  }
+
+  const dejaTraite = ['envoye', 'envoye_auto', 'traite', 'rejete'].includes(e.statut);
+  const actions = dejaTraite ? '' :
+    '<div class="actions">' +
+      '<button class="b-neutre" onclick="preparer(' + i + ')">' +
+        (brouillon ? 'Régénérer le brouillon' : 'Préparer un brouillon') + '</button>' +
+      (brouillon ? '<button class="b-primaire" onclick="envoyer(' + i + ')">Approuver et envoyer</button>' : '') +
+      '<button class="b-neutre" onclick="traiter(' + i + ')">Marquer traité</button>' +
+      '<button class="b-neutre" onclick="rejeterElement(' + i + ')">Rejeter</button>' +
+      (e.projet_sensible ? '' : '<button class="b-neutre" onclick="consigner(' + i + ')">Consigner au vault</button>') +
+      (e.webLink ? '<a href="' + echapper(e.webLink) + '" target="_blank" rel="noopener" ' +
+        'style="align-self:center;font-size:12px;color:#8D0005">Ouvrir dans Outlook</a>' : '') +
+    '</div>';
+
+  return '<div class="carte ' + echapper(e.statut || 'nouveau') + ouverte + '" id="carte-' + i + '">' +
+    '<div class="entete" onclick="basculer(' + i + ')">' +
+      '<div style="flex:1">' +
+        '<h3>' + echapper(e.sujet) + '</h3>' +
+        '<div class="meta">' + echapper(e.expediteur) + ' — ' +
+          new Date(e.recu_le).toLocaleString('fr-CA') + '</div>' +
+        '<div class="puces">' + puces + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="corps">' + alertes + signaux +
+      '<div class="apercu">' + echapper(e.apercu) + '</div>' + bloc + actions +
+    '</div></div>';
+}
+
+function basculer(i) {
+  const e = elements[i];
+  if (ouvertes.has(e.id)) ouvertes.delete(e.id); else ouvertes.add(e.id);
+  document.getElementById('carte-' + i).classList.toggle('ouverte');
+}
+
+async function action(chemin, corps, succes) {
+  try {
+    await appeler(chemin, { method: 'POST', body: JSON.stringify(corps) });
+    afficher(succes, 'ok');
+    await chargerFile();
+    await chargerStatut();
+    await chargerJournal();
+  } catch (e) {
+    afficher(e.message, 'err');
+  }
+}
+
+async function preparer(i) {
+  const e = elements[i];
+  afficher('Rédaction en cours…', 'ok');
+  ouvertes.add(e.id);
+  await action('/brouillon', { id: e.id }, 'Brouillon préparé — à relire avant envoi.');
+}
+
+async function envoyer(i) {
+  const e = elements[i];
+  const zone = document.getElementById('corps-' + i);
+  const corps = zone ? zone.value : null;
+  if (!confirm('Envoyer cette réponse à ' + e.expediteur + ' depuis projets@c-rc.ca ?')) return;
+  await action('/envoyer', { id: e.id, corps, approuve_par: 'interface' }, 'Courriel envoyé.');
+}
+
+async function traiter(i) {
+  await action('/traite', { id: elements[i].id, par: 'interface' }, 'Élément marqué traité.');
+}
+
+async function rejeterElement(i) {
+  const motif = prompt('Motif du rejet (optionnel) :') || '';
+  await action('/rejeter', { id: elements[i].id, motif, par: 'interface' }, 'Élément rejeté.');
+}
+
+async function consigner(i) {
+  await action('/vault', { id: elements[i].id }, 'Consigné au journal du vault.');
+}
+
+async function chargerJournal() {
+  try {
+    const d = await appeler('/journal?limite=40');
+    document.querySelector('#journal tbody').innerHTML = d.entrees.map((j) =>
+      '<tr><td>' + new Date(j.ts).toLocaleString('fr-CA') + '</td>' +
+      '<td>' + echapper(j.action) + '</td>' +
+      '<td>' + echapper(j.projet || '—') + '</td>' +
+      '<td>' + echapper(j.motif || j.decision || j.categorie || (j.erreurs || []).join(' ; ') || '') + '</td></tr>'
+    ).join('') || '<tr><td colspan="4">Aucune entrée.</td></tr>';
+  } catch (e) { /* le journal est secondaire */ }
+}
+
+document.getElementById('btn-cle').onclick = () => {
+  cle = document.getElementById('cle').value.trim();
+  localStorage.setItem('cle-adjointe', cle);
+  afficher('Clé enregistrée dans ce navigateur.', 'ok');
+  tout();
+};
+document.getElementById('btn-rafraichir').onclick = tout;
+document.getElementById('filtre-statut').onchange = chargerFile;
+document.getElementById('btn-cycle').onclick = async () => {
+  const b = document.getElementById('btn-cycle');
+  b.disabled = true; b.textContent = 'Cycle en cours…';
+  try {
+    const d = await appeler('/cycle', { method: 'POST', body: JSON.stringify({}) });
+    const r = d.rapport;
+    afficher('Cycle terminé — ' + r.examines + ' examinés, ' + r.retenus + ' retenus, ' +
+      r.escalades + ' escalades, ' + r.brouillons + ' brouillons, ' + r.bruit + ' écartés.' +
+      (r.erreurs.length ? ' Erreurs : ' + r.erreurs.join(' | ') : ''), 'ok');
+    await tout();
+  } catch (e) {
+    afficher('Cycle échoué : ' + e.message, 'err');
+  }
+  b.disabled = false; b.textContent = 'Lancer un cycle de triage';
+};
+
+async function tout() {
+  await chargerStatut();
+  await chargerFile();
+  await chargerJournal();
+}
+tout();
+</script>
+</body>
+</html>
