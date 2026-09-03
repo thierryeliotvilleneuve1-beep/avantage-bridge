@@ -37,6 +37,9 @@ function decider(item, niveau = NIVEAU) {
   if (!item.projet) {
     blocages.push('aucun code de projet identifié');
   }
+  if (item.destinataire_orphelin) {
+    blocages.push('adressé à une boîte héritée — destinataire à réassigner');
+  }
 
   if (blocages.length) {
     return {

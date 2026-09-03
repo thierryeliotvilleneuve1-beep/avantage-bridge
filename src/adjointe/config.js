@@ -21,6 +21,12 @@ const PROJETS_SENSIBLES = ['P24020', 'P25007', 'P25019'];
 // Adresses internes CRC — un message interne n'est jamais une communication externe
 const DOMAINE_INTERNE = 'c-rc.ca';
 
+// Adresses dont le courrier aboutit dans cette boîte sans y être adressé : poste vacant,
+// départ, redirection. Un message qui les vise n'a plus de destinataire humain attitré —
+// l'Adjointe le signale pour réassignation. Configurable, jamais codé en dur.
+const ADRESSES_HERITEES = (process.env.ADJOINTE_ADRESSES_HERITEES || '')
+  .split(',').map((a) => a.trim().toLowerCase()).filter(Boolean);
+
 // Destinataires d'escalade
 const ESCALADE = {
   cp: process.env.ADJOINTE_CP_EMAIL || 'c.milot@c-rc.ca',
@@ -55,6 +61,6 @@ const DATA_DIR = process.env.ADJOINTE_DATA_DIR || path.resolve(__dirname, '../..
 const VAULT_DIR = process.env.VAULT_DIR || '';
 
 module.exports = {
-  MAILBOX, NIVEAU, PROJETS_ACTIFS, PROJETS_SENSIBLES, DOMAINE_INTERNE,
+  MAILBOX, NIVEAU, PROJETS_ACTIFS, PROJETS_SENSIBLES, DOMAINE_INTERNE, ADRESSES_HERITEES,
   ESCALADE, SIGNATURE, MARQUE, DATA_DIR, VAULT_DIR,
 };

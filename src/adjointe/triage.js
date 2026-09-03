@@ -1,6 +1,6 @@
 // Moteur de triage — classification déterministe des courriels de projets@c-rc.ca
 // Règles issues de Procedure-Alimentation-Courriels.md §3 (bruit), §4 (valeur), annexes.
-const { PROJETS_ACTIFS, PROJETS_SENSIBLES, DOMAINE_INTERNE } = require('./config');
+const { PROJETS_ACTIFS, PROJETS_SENSIBLES, DOMAINE_INTERNE, ADRESSES_HERITEES } = require('./config');
 
 const RE_PROJET = /\bP\s?-?(2[0-9])\s?-?(\d{3})\b/gi;
 const RE_QRT = /\bQRT\s*#?\s*(\d{1,3})?/i;
@@ -105,6 +105,14 @@ function signaux(msg) {
   return s;
 }
 
+// Un message adressé à une boîte héritée n'a plus de destinataire attitré.
+function destinataireOrphelin(msg) {
+  if (!ADRESSES_HERITEES.length) return false;
+  const cibles = [...(msg.toRecipients || []), ...(msg.ccRecipients || [])]
+    .map((r) => ((r.emailAddress && r.emailAddress.address) || '').toLowerCase());
+  return cibles.some((c) => ADRESSES_HERITEES.includes(c));
+}
+
 function trier(msg) {
   const bruit = estBruit(msg);
   const projet = detecterProjet(msg);
@@ -132,6 +140,7 @@ function trier(msg) {
     sujets_reserves: reserves,
     urgence: bruit ? 'nulle' : urgence(msg, categorie),
     signaux: bruit ? [] : signaux(msg),
+    destinataire_orphelin: !bruit && destinataireOrphelin(msg),
   };
 }
 

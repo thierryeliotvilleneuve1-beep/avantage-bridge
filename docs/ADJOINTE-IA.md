@@ -37,6 +37,9 @@ de rédaction :
 - **Catégories bloquées** — directive, ODC, bon de commande, facturation, réclamation.
 - **Dossiers sensibles** — `P24020`, `P25007`, `P25019` : aucun brouillon, aucune
   consignation automatique au vault (Procédure §6).
+- **Boîtes héritées** — tout message adressé à une adresse listée dans
+  `ADJOINTE_ADRESSES_HERITEES` (poste vacant, départ, redirection) est escaladé pour
+  réassignation, jamais répondu à l'aveugle.
 - **Filtre financier** — un brouillon destiné à l'externe portant un montant est refusé à
   l'envoi, même approuvé dans l'interface.
 - **Filtre d'engagement** — « nous confirmons », « nous nous engageons », « approuvé » :
