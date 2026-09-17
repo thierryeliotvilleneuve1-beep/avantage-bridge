@@ -1,36 +1,12 @@
-const XLSX = require('xlsx');
-const fs = require('fs');
-const path = require('path');
+// CLI: node xlsx-converter.js  — convertit exports-avantage/export.xlsx en CSV.
+// La logique vit dans src/services/convert.js (aussi utilisee par le bridge).
+require('dotenv').config();
+const cfg = require('./src/config');
+const { convertXlsx } = require('./src/services/convert');
 
-const INPUT = path.join(__dirname, 'exports-avantage', 'export.xlsx');
-const OUTPUT_DIR = path.join(__dirname, 'exports-avantage');
-
-const MAPPING = {
-  'FACTMA': 'FACTMA.csv',
-  'CONTRA': 'CONTRA.csv',
-  'ACTIVE': 'ACTIVE.csv',
-  'CONPRE': 'CONPRE.csv',
-  'CONACT': 'CONACT.csv',
-  'ACHAT':  'ACHAT.csv',
-  'SAISIE': 'SAISIE.csv',
-  'COMITE': 'COMITE.csv',
-  'TRANS':  'TRANS.csv',
-  'COMMAN': 'COMMAN.csv',
-  'PYBBIL': 'PYBBIL.csv',
-};
-
-console.log('Lecture de ' + INPUT + '...');
-const wb = XLSX.readFile(INPUT);
-console.log('Onglets trouvés :', wb.SheetNames.join(', '));
-
-let count = 0;
-for (const sheet of wb.SheetNames) {
-  if (!MAPPING[sheet]) { console.log('- ' + sheet + ' → ignoré (pas dans le mapping)'); continue; }
-  const ws = wb.Sheets[sheet];
-  const csv = XLSX.utils.sheet_to_csv(ws, { FS: ',', strip: false });
-  fs.writeFileSync(path.join(OUTPUT_DIR, MAPPING[sheet]), csv, 'latin1');
-  const lines = csv.split('\n').length - 1;
-  console.log('✓ ' + sheet + ' → ' + MAPPING[sheet] + ' (' + lines + ' lignes)');
-  count++;
-}
-console.log(count + ' fichiers CSV créés dans ' + OUTPUT_DIR);
+console.log('Lecture de ' + cfg.XLSX_PATH + '...');
+const r = convertXlsx(true);
+if (!r.ok) { console.error('ERREUR: ' + r.reason); process.exit(1); }
+if (r.sheets) console.log('Onglets trouves :', r.sheets.join(', '));
+r.files.forEach(f => console.log('OK ' + f.sheet + ' -> ' + f.file + ' (' + f.lignes + ' lignes)'));
+console.log(r.files.length + ' fichiers CSV crees dans ' + cfg.EXPORT_DIR);

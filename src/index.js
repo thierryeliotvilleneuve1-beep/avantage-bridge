@@ -5,69 +5,72 @@ const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
 
+const cfg = require('./config');
+const { runFullSync, syncState } = require('./services/fullSync');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 3000;
-const API_KEY = process.env.API_KEY || 'CHANGE_MOI_CLE_SECRETE_LONGUE';
-const EXPORT_DIR = path.resolve(__dirname, '../exports-avantage');
-const CRON_SCHEDULE = process.env.CRON_SCHEDULE || '*/15 * * * *';
-
-// Auth middleware
 function auth(req, res, next) {
   const key = req.headers['x-api-key'] || req.query.key;
-  if (key !== API_KEY) return res.status(401).json({ error: 'Clé API manquante ou invalide' });
+  if (key !== cfg.API_KEY) return res.status(401).json({ error: 'Cle API manquante ou invalide' });
   next();
 }
 
-// Route status — publique
+// Status — publique. Indique aussi la fraicheur des donnees pousees dans Manoeuvre.
 app.get('/api/status', (req, res) => {
-  res.json({ ok: true, service: 'avantage-bridge', version: '7.0.0', export_dir: EXPORT_DIR });
+  const st = syncState();
+  res.json({
+    ok: true,
+    service: 'avantage-bridge',
+    version: cfg.VERSION,
+    export_dir: cfg.EXPORT_DIR,
+    cron: cfg.CRON_SCHEDULE,
+    sync_complet_au_cron: cfg.FULL_SYNC_ON_CRON,
+    projets_cibles: cfg.SYNC_PROJETS,
+    donnees_a_jour: st.donnees_a_jour,
+    sync: st,
+  });
 });
 
-// Routes — protégées
-const budgetRouter = require('./routes/budget');
-const bcSyncRouter = require('./routes/bc-sync');
-const transSyncRouter = require('./routes/trans-sync');
+app.use('/api/sync', auth, require('./routes/sync'));
+app.use('/api/budget', auth, require('./routes/budget'));
+app.use('/api/bc', auth, require('./routes/bc-sync'));
+app.use('/api/trans', auth, require('./routes/trans-sync'));
 
-app.use('/api/budget', auth, budgetRouter);
-app.use('/api/bc', auth, bcSyncRouter);
-app.use('/api/trans', auth, transSyncRouter);
+// Cron — sync complet (et non plus seulement projets + factures).
+cron.schedule(cfg.CRON_SCHEDULE, async () => {
+  console.log('[INFO] Cron declenche —', new Date().toISOString());
+  const r = await runFullSync({ full: cfg.FULL_SYNC_ON_CRON });
+  if (r.skipped) console.log('[INFO] Cron ignore —', r.reason);
+  else console.log('[INFO] Cron termine en ' + r.duree_s + 's — projets:', r.projets_cibles, 'erreurs:', r.erreurs);
+});
 
-// Cron sync
-let lastSync = null;
-cron.schedule(CRON_SCHEDULE, async () => {
-  console.log('[INFO] Cron déclenché — refresh des données Avantage');
+// Surveillance de export.xlsx — un nouvel export Avantage declenche un sync
+// sans attendre le prochain passage du cron.
+if (cfg.WATCH_EXPORT && fs.existsSync(cfg.EXPORT_DIR)) {
+  let timer = null;
   try {
-    const { parseContra } = require('./parsers/parseContra');
-    const { parseFactma } = require('./parsers/parseFactma');
-    const { writeProjets, writeFactures } = require('./writers/base44-writer');
-    const contraPath = path.join(EXPORT_DIR, 'CONTRA.csv');
-    const factmaPath = path.join(EXPORT_DIR, 'FACTMA.csv');
-    if (!fs.existsSync(contraPath)) {
-      console.log('[WARN] CONTRA.csv absent — aucun projet chargé');
-      return;
-    }
-    const projets = parseContra(fs.readFileSync(contraPath, 'latin1'));
-    console.log('[INFO] ' + projets.length + ' projets lus depuis CONTRA.csv');
-    const pResult = await writeProjets(projets);
-    console.log('[INFO] Projets — créés:', pResult.created, 'mis à jour:', pResult.updated, 'erreurs:', pResult.errors);
-    if (fs.existsSync(factmaPath)) {
-      const factures = parseFactma(fs.readFileSync(factmaPath, 'latin1'));
-      console.log('[INFO] ' + factures.length + ' factures lues depuis FACTMA.csv');
-      const fResult = await writeFactures(factures);
-      console.log('[INFO] Factures — créées:', fResult.created, 'mises à jour:', fResult.updated, 'erreurs:', fResult.errors);
-    }
-    lastSync = new Date().toISOString();
-    console.log('[INFO] Cron terminé —', new Date().toISOString());
+    fs.watch(cfg.EXPORT_DIR, (evt, filename) => {
+      if (!filename || path.basename(filename).toLowerCase() !== 'export.xlsx') return;
+      clearTimeout(timer);
+      // Debounce: l'ecriture du fichier par Avantage/Excel genere plusieurs evenements.
+      timer = setTimeout(async () => {
+        console.log('[INFO] Nouvel export.xlsx detecte — sync declenche');
+        const r = await runFullSync({ forceConvert: true });
+        if (r.skipped) console.log('[INFO] Sync ignore —', r.reason);
+        else console.log('[INFO] Sync sur export termine en ' + r.duree_s + 's');
+      }, 60000);
+    });
+    console.log('[INFO] Surveillance active sur', cfg.XLSX_PATH);
   } catch (e) {
-    console.error('[ERROR] Cron erreur:', e.message);
+    console.error('[WARN] Surveillance impossible:', e.message);
   }
-});
+}
 
-app.listen(PORT, () => {
-  console.log('[INFO] Bridge Avantage v7 démarré sur le port ' + PORT);
-  console.log('[INFO] Export dir:', EXPORT_DIR);
-  console.log('[INFO] Cron:', CRON_SCHEDULE);
+app.listen(cfg.PORT, () => {
+  console.log('[INFO] Bridge Avantage v' + cfg.VERSION + ' demarre sur le port ' + cfg.PORT);
+  console.log('[INFO] Export dir:', cfg.EXPORT_DIR);
+  console.log('[INFO] Cron:', cfg.CRON_SCHEDULE, '| sync complet:', cfg.FULL_SYNC_ON_CRON, '| projets:', cfg.SYNC_PROJETS);
 });
