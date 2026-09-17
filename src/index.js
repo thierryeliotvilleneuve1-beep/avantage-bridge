@@ -7,6 +7,7 @@ const path = require('path');
 
 const cfg = require('./config');
 const { runFullSync, syncState } = require('./services/fullSync');
+const { choisir } = require('./sources');
 
 const app = express();
 app.use(cors());
@@ -25,6 +26,7 @@ app.get('/api/status', (req, res) => {
     ok: true,
     service: 'avantage-bridge',
     version: cfg.VERSION,
+    source: choisir(),
     export_dir: cfg.EXPORT_DIR,
     cron: cfg.CRON_SCHEDULE,
     sync_complet_au_cron: cfg.FULL_SYNC_ON_CRON,
@@ -49,7 +51,7 @@ cron.schedule(cfg.CRON_SCHEDULE, async () => {
 
 // Surveillance de export.xlsx — un nouvel export Avantage declenche un sync
 // sans attendre le prochain passage du cron.
-if (cfg.WATCH_EXPORT && fs.existsSync(cfg.EXPORT_DIR)) {
+if (cfg.WATCH_EXPORT && choisir() === 'xlsx' && fs.existsSync(cfg.EXPORT_DIR)) {
   let timer = null;
   try {
     fs.watch(cfg.EXPORT_DIR, (evt, filename) => {
@@ -71,6 +73,7 @@ if (cfg.WATCH_EXPORT && fs.existsSync(cfg.EXPORT_DIR)) {
 
 app.listen(cfg.PORT, () => {
   console.log('[INFO] Bridge Avantage v' + cfg.VERSION + ' demarre sur le port ' + cfg.PORT);
+  console.log('[INFO] Source Avantage:', choisir() === 'odbc' ? 'BD directe (ODBC)' : 'export.xlsx');
   console.log('[INFO] Export dir:', cfg.EXPORT_DIR);
   console.log('[INFO] Cron:', cfg.CRON_SCHEDULE, '| sync complet:', cfg.FULL_SYNC_ON_CRON, '| projets:', cfg.SYNC_PROJETS);
 });

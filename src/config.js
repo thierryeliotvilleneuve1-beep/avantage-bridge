@@ -18,8 +18,13 @@ module.exports = {
   MAX_EXPORT_AGE_HOURS: parseFloat(process.env.MAX_EXPORT_AGE_HOURS) || 24,
   // Relance un sync des qu'un nouvel export.xlsx est depose.
   WATCH_EXPORT: process.env.WATCH_EXPORT !== 'false',
+  // Source des donnees Avantage: 'odbc' (lecture directe de la BD),
+  // 'xlsx' (export Excel), 'auto' (odbc des qu'un DSN est configure).
+  AVANTAGE_SOURCE: (process.env.AVANTAGE_SOURCE || 'auto').trim(),
+  // Repli sur l'export Excel si la BD est injoignable.
+  FALLBACK_XLSX: process.env.FALLBACK_XLSX !== 'false',
   // Saute les projets dont aucune donnee Avantage n'a change depuis le dernier sync.
   SKIP_UNCHANGED: process.env.SKIP_UNCHANGED !== 'false',
   STATE_FILE: require('path').resolve(__dirname, '../.sync-state.json'),
-  VERSION: '7.1.0',
+  VERSION: '7.2.0',
 };

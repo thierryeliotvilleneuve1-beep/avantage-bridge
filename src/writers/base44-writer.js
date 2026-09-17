@@ -82,12 +82,12 @@ async function writeProjets(projets) {
   const existingArr = await apiGetAll('Projet');
 
   for (const p of projets) {
-    if (!p.numero_projet) continue;
-    const code = p.numero_projet.replace(/^0+/, '').padStart(5, '0').slice(-5);
-    const found = existingArr.find(x => (x.code_projet || '').includes(code) || (x.code_projet || '') === p.numero_projet);
+    if (!p.numero) continue;
+    const code = p.numero.replace(/^0+/, '').padStart(5, '0').slice(-5);
+    const found = existingArr.find(x => (x.code_projet || '').includes(code) || (x.code_projet || '') === p.numero);
     const payload = {
-      code_projet: p.numero_projet,
-      nom: p.nom_projet || p.numero_projet,
+      code_projet: p.numero,
+      nom: p.nom || p.numero,
       statut: p.statut || 'actif',
       sync_avantage_ts: new Date().toISOString(),
     };
@@ -107,13 +107,13 @@ async function writeFactures(factures) {
     const found = existingArr.find(x => x.numero_facture === f.numero_facture);
     const payload = {
       numero_facture: f.numero_facture,
-      code_projet: f.numero_projet,
-      client_nom: f.client_nom,
-      date_facture: f.date_facture,
-      total_facture: f.total_facture,
-      solde_ouvert: f.solde_ouvert,
-      retenue_total: f.retenue_total,
-      statut_paiement: f.statut_paiement,
+      code_projet: f.projet,
+      client_nom: f.client,
+      date_facture: f.date,
+      total_facture: f.total,
+      solde_ouvert: f.solde,
+      retenue_total: f.retenue,
+      statut_paiement: f.solde > 0 ? 'ouvert' : 'paye',
       sync_avantage_ts: new Date().toISOString(),
     };
     const r = await upsert('FactureClient', found ? idOf(found) : null, payload);

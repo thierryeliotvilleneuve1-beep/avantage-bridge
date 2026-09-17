@@ -1,11 +1,12 @@
 {
   "name": "avantage-bridge",
-  "version": "7.1.0",
+  "version": "7.2.0",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node tests/run.js",
-    "convert": "node xlsx-converter.js"
+    "test": "node tests/run.js && node tests/odbc.js",
+    "convert": "node xlsx-converter.js",
+    "discover": "node discover-db.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -14,5 +15,8 @@
     "express": "^4.18.2",
     "node-cron": "^3.0.3",
     "xlsx": "^0.18.5"
+  },
+  "optionalDependencies": {
+    "odbc": "^2.4.9"
   }
 }
