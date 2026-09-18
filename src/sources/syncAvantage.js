@@ -15,28 +15,36 @@ async function preparer(forcer) {
   try { return await dav.autoMapper(forcer); } catch (e) { return []; }
 }
 
-// Projets + factures client, prêts pour writeProjets / writeFactures.
-async function chargerEntetes() {
-  const projetsMap = await dav.chargerProjets();
-  const projets = Object.entries(projetsMap).map(([num, info]) => ({
-    numero_projet: num,
-    nom_projet: (info && info.nom) || num,
-    statut: 'actif',
-  }));
+const { estLisibleEnBd } = require('../config/colonnes-avantage');
+const depotDbf = require('./depotDbf');
 
-  const facturesBrutes = await dav.chargerRevenus();
-  const factures = facturesBrutes.map(f => ({
-    numero_facture: f.numeroFacture,
-    numero_projet: f.numeroProjet,
-    client_nom: f.client,
-    date_facture: f.date,
-    total_facture: f.montant,
-    solde_ouvert: f.soldeOuvert,
-    retenue_total: f.retenue,
-    statut_paiement: f.soldeOuvert > 0 ? 'ouvert' : 'paye',
-  })).filter(f => f.numero_facture);
+// Noms de projets depuis CONTRA — uniquement si la table est lisible. Chiffree, on
+// renvoie {} et les projets seront nommes par leur numero.
+async function chargerNomsProjets() {
+  try {
+    if (depotDbf.disponible() && depotDbf.aTable('CONTRA') && !estLisibleEnBd('CONTRA')) return {};
+    return await dav.chargerProjets();
+  } catch (e) { return {}; }
+}
 
-  return { projets, factures };
+// Factures client — SEULEMENT depuis FACTMA (ou son CSV). Jamais depuis le grand livre :
+// dumper les comptes de produits comme des milliers de fausses factures est inutile et lent.
+// FACTMA chiffree -> aucune facture (on le signale, on n'invente rien).
+async function chargerFacturesLisibles() {
+  try {
+    if (depotDbf.disponible() && depotDbf.aTable('FACTMA') && !estLisibleEnBd('FACTMA')) {
+      return { chiffree: true, factures: [] };
+    }
+    const brut = await dav.chargerRevenus();
+    const prov = dav.provenance().revenus;
+    if (prov && /TRANS|grand livre/i.test(prov.detail || '')) return { chiffree: true, factures: [] };
+    const factures = brut.map(f => ({
+      numero_facture: f.numeroFacture, numero_projet: f.numeroProjet, client_nom: f.client,
+      date_facture: f.date, total_facture: f.montant, solde_ouvert: f.soldeOuvert,
+      retenue_total: f.retenue, statut_paiement: f.soldeOuvert > 0 ? 'ouvert' : 'paye',
+    })).filter(f => f.numero_facture);
+    return { chiffree: false, factures };
+  } catch (e) { return { chiffree: true, factures: [] }; }
 }
 
 // Transactions regroupées par numéro de projet normalisé.
@@ -130,4 +138,4 @@ function transactionsDe(parProjet, code) {
   return [];
 }
 
-module.exports = { preparer, chargerEntetes, chargerTransactionsParProjet, transactionsDe, provenance: dav.provenance };
+module.exports = { preparer, chargerNomsProjets, chargerFacturesLisibles, chargerTransactionsParProjet, transactionsDe, provenance: dav.provenance };

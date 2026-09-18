@@ -111,12 +111,12 @@ https.request = function (o, cb) {
 
   console.log('\n--- Résultat du sync ---');
   check('sync ok', r.ok, true);
-  check('projets créés', r.etapes.projets.created, 2);
+  check('projets créés (dérivés des transactions)', r.etapes.projets.created, 2);
   check('factures créées', r.etapes.factures.created, 2);
 
   const parNum = {};
   store.Projet.forEach(p => { parNum[p.code_projet] = p._id; });
-  check('projet 25007 présent', !!parNum['25007'], true);
+  check('projet P25007 présent', !!parNum['P25007'], true);
 
   const t = {};
   store.TransactionAvantage.forEach(x => { t[x.numero_journal] = x; });
@@ -135,8 +135,8 @@ https.request = function (o, cb) {
   check('frais général sans projet (P2001) absent', !!t['P2001'], false);
 
   // Rattachement au bon projet
-  check('transactions de 25007', store.TransactionAvantage.filter(x => x.projet_id === parNum['25007']).map(x => x.numero_journal).sort(), ['E000101', 'P1001']);
-  check('transactions de 26004', store.TransactionAvantage.filter(x => x.projet_id === parNum['26004']).map(x => x.numero_journal).sort(), ['P1002']);
+  check('transactions de 25007', store.TransactionAvantage.filter(x => x.projet_id === parNum['P25007']).map(x => x.numero_journal).sort(), ['E000101', 'P1001']);
+  check('transactions de 26004', store.TransactionAvantage.filter(x => x.projet_id === parNum['P26004']).map(x => x.numero_journal).sort(), ['P1002']);
 
   // Deuxième passage : différentiel — rien n'a changé, donc aucune écriture.
   console.log('\n--- Deuxième passage (différentiel) ---');
@@ -151,7 +151,7 @@ https.request = function (o, cb) {
   check('aucun doublon de transaction', store.TransactionAvantage.length, avant);
   check('transactions toutes inchangées', r2.transactions.unchanged, avant);
   check('aucune transaction réécrite', [r2.transactions.created, r2.transactions.updated], [0, 0]);
-  check('projets inchangés', r2.etapes.projets.unchanged, 2);
+  check('projets déjà existants au 2e passage', r2.etapes.projets.created, 0);
   check('factures inchangées', r2.etapes.factures.unchanged, 2);
   check('aucune écriture réseau (POST/PUT) au 2e passage', ecritures, 0);
 
