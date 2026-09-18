@@ -27,7 +27,14 @@ function auth(req, res, next) {
 
 // Route status — publique
 app.get('/api/status', (req, res) => {
-  res.json({ ok: true, service: 'avantage-bridge', version: '7.0.0', export_dir: EXPORT_DIR });
+  let depotDbf = null;
+  try { depotDbf = require('./sources/depotDbf').disponible() ? require('./sources/depotDbf').repertoire() : null; } catch (e) {}
+  const { etat } = require('./services/syncComplet');
+  res.json({
+    ok: true, service: 'avantage-bridge', version: '7.2.0', export_dir: EXPORT_DIR,
+    source: depotDbf ? ('dbf:' + depotDbf) : 'csv',
+    sync: etat(),
+  });
 });
 
 // Routes — protégées
@@ -42,36 +49,24 @@ app.use('/api/trans', auth, transSyncRouter);
 // État des résultats — lecture seule dans Avantage, n'écrit rien.
 app.use('/api/etat-resultats', auth, etatResultatsRouter);
 
-// Cron sync
-let lastSync = null;
+// Cron sync — cycle complet : projets, factures, transactions, lus dans la base .DBF.
+const { syncComplet } = require('./services/syncComplet');
 cron.schedule(CRON_SCHEDULE, async () => {
-  console.log('[INFO] Cron déclenché — refresh des données Avantage');
-  try {
-    const { parseContra } = require('./parsers/parseContra');
-    const { parseFactma } = require('./parsers/parseFactma');
-    const { writeProjets, writeFactures } = require('./writers/base44-writer');
-    const contraPath = path.join(EXPORT_DIR, 'CONTRA.csv');
-    const factmaPath = path.join(EXPORT_DIR, 'FACTMA.csv');
-    if (!fs.existsSync(contraPath)) {
-      console.log('[WARN] CONTRA.csv absent — aucun projet chargé');
-      return;
-    }
-    const projets = parseContra(fs.readFileSync(contraPath, 'latin1'));
-    console.log('[INFO] ' + projets.length + ' projets lus depuis CONTRA.csv');
-    const pResult = await writeProjets(projets);
-    console.log('[INFO] Projets — créés:', pResult.created, 'mis à jour:', pResult.updated, 'erreurs:', pResult.errors);
-    if (fs.existsSync(factmaPath)) {
-      const factures = parseFactma(fs.readFileSync(factmaPath, 'latin1'));
-      console.log('[INFO] ' + factures.length + ' factures lues depuis FACTMA.csv');
-      const fResult = await writeFactures(factures);
-      console.log('[INFO] Factures — créées:', fResult.created, 'mises à jour:', fResult.updated, 'erreurs:', fResult.errors);
-    }
-    lastSync = new Date().toISOString();
-    console.log('[INFO] Cron terminé —', new Date().toISOString());
-  } catch (e) {
-    console.error('[ERROR] Cron erreur:', e.message);
-  }
+  console.log('[INFO] Cron déclenché —', new Date().toISOString());
+  const r = await syncComplet();
+  if (r.skipped) console.log('[INFO] Cron ignoré —', r.reason);
+  else console.log('[INFO] Cron terminé en ' + r.duree_s + 's — ok:', r.ok);
 });
+
+// Sync manuel complet
+app.post('/api/sync/all', auth, async (req, res) => {
+  const codes = req.query.projets ? req.query.projets.split(',') : null;
+  res.json(await syncComplet({ codes }));
+});
+app.post('/api/sync/projet/:code', auth, async (req, res) => {
+  res.json(await syncComplet({ codes: [req.params.code] }));
+});
+app.get('/api/sync/etat', auth, (req, res) => res.json(require('./services/syncComplet').etat()));
 
 app.listen(PORT, () => {
   console.log('[INFO] Bridge Avantage v7 démarré sur le port ' + PORT);

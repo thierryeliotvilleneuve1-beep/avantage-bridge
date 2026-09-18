@@ -24,11 +24,59 @@ function api(method, path, body) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+function toArray(raw) {
+  try { const d = JSON.parse(raw); return Array.isArray(d) ? d : (d.items || []); } catch (e) { return []; }
+}
+
+function idOf(x) { return x._id || x.id; }
+
+// GET pagine. Indispensable : au-dela de 500 enregistrements, un simple limit=500 ne voit
+// pas les lignes existantes et l'upsert recree des doublons a chaque sync.
+async function apiGetAll(entity, extraQuery) {
+  const PAGE = 500;
+  const out = [];
+  const vus = new Set();
+  let skip = 0;
+  for (let page = 0; page < 500; page++) {
+    const q = '/entities/' + entity + '?limit=' + PAGE + '&skip=' + skip + (extraQuery ? '&' + extraQuery : '');
+    let r = await api('GET', q);
+    if (r.status === 429) { await sleep(1500); r = await api('GET', q); }
+    if (r.status !== 200) break;
+    const arr = toArray(r.data);
+    if (!arr.length) break;
+    let neufs = 0;
+    for (const x of arr) {
+      const id = idOf(x);
+      if (id && vus.has(id)) continue;
+      if (id) vus.add(id);
+      out.push(x); neufs++;
+    }
+    if (neufs === 0 || arr.length < PAGE) break;
+    skip += PAGE;
+    await sleep(120);
+  }
+  return out;
+}
+
+// Upsert avec reprise sur 429 et erreur reseau transitoire.
+async function upsert(entity, existingId, payload) {
+  for (let essai = 0; essai < 6; essai++) {
+    const r = existingId
+      ? await api('PUT', '/entities/' + entity + '/' + existingId, payload)
+      : await api('POST', '/entities/' + entity, payload);
+    if (r.status === 200 || r.status === 201) {
+      let body = null; try { body = JSON.parse(r.data); } catch (e) {}
+      return { ok: true, status: r.status, body };
+    }
+    if (r.status === 429 || r.status === 0 || r.status >= 500) { await sleep(1500 * (essai + 1)); continue; }
+    return { ok: false, status: r.status, data: r.data };
+  }
+  return { ok: false, status: 429 };
+}
+
 async function writeProjets(projets) {
   let created = 0, updated = 0, errors = 0;
-  const existing = await api('GET', '/entities/Projet?limit=500');
-  let existingArr = [];
-  try { const d = JSON.parse(existing.data); existingArr = Array.isArray(d) ? d : (d.items || []); } catch (e) {}
+  const existingArr = await apiGetAll('Projet');
 
   for (const p of projets) {
     if (!p.numero_projet) continue;
@@ -56,9 +104,7 @@ async function writeProjets(projets) {
 
 async function writeFactures(factures) {
   let created = 0, updated = 0, errors = 0;
-  const existing = await api('GET', '/entities/FactureClient?limit=500');
-  let existingArr = [];
-  try { const d = JSON.parse(existing.data); existingArr = Array.isArray(d) ? d : (d.items || []); } catch (e) {}
+  const existingArr = await apiGetAll('FactureClient');
 
   for (const f of factures) {
     if (!f.numero_facture) continue;
@@ -88,4 +134,4 @@ async function writeFactures(factures) {
   return { created, updated, errors };
 }
 
-module.exports = { writeProjets, writeFactures, api, sleep };
+module.exports = { writeProjets, writeFactures, api, apiGetAll, upsert, toArray, idOf, sleep };
