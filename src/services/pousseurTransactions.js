@@ -2,7 +2,12 @@
 // Rattache chaque transaction à sa division (ControleBudgetaire) et à son bon de commande
 // quand ils existent déjà dans Manoeuvre — sinon la transaction est créée sans lien.
 
-const { api, apiGetAll, upsert, idOf, sleep } = require('../writers/base44-writer');
+const { apiGetAll, upsert, idOf, inchange, sleep } = require('../writers/base44-writer');
+
+// Champs comparés pour décider si une transaction a changé (le reste = métadonnées).
+const CHAMPS_TRANS = ['date_transaction', 'code_division', 'numero_facture', 'fournisseur',
+  'description', 'montant', 'type_transaction', 'numero_gl', 'is_mo',
+  'numero_commande_avantage', 'controle_budgetaire_id', 'bon_de_commande_id'];
 
 function trouverProjet(projets, code) {
   const c = String(code).replace(/^P/i, '').trim();
@@ -39,24 +44,29 @@ async function pousserProjet(code, payloads, ctx) {
 
   const existingMap = {};
   ctx.transactions.filter(x => x.projet_id === projetId).forEach(x => {
-    if (x.numero_journal) existingMap[x.numero_journal] = idOf(x);
+    if (x.numero_journal) existingMap[x.numero_journal] = x;
   });
 
-  let created = 0, updated = 0, errors = 0;
+  let created = 0, updated = 0, unchanged = 0, errors = 0;
   for (const p of payloads) {
     const payload = Object.assign({}, p, {
       projet_id: projetId,
       controle_budgetaire_id: p.code_division ? (divMap[p.code_division] || null) : null,
       bon_de_commande_id: p.numero_commande_avantage ? (bcMap[p.numero_commande_avantage] || null) : null,
-      sync_avantage_ts: new Date().toISOString(),
     });
-    const existingId = existingMap[payload.numero_journal];
-    const r = await upsert('TransactionAvantage', existingId || null, payload);
-    if (r.ok) { existingId ? updated++ : created++; } else errors++;
+    const existant = existingMap[payload.numero_journal];
+
+    // Différentiel : si la transaction est déjà identique dans Manoeuvre, on ne la
+    // réécrit pas. Seuls les nouveaux et les modifiés partent sur le réseau.
+    if (inchange(existant, payload, CHAMPS_TRANS)) { unchanged++; continue; }
+
+    payload.sync_avantage_ts = new Date().toISOString();
+    const r = await upsert('TransactionAvantage', existant ? idOf(existant) : null, payload);
+    if (r.ok) { existant ? updated++ : created++; } else errors++;
     await sleep(50);
   }
 
-  return { ok: true, projet: code, projet_id: projetId, total: payloads.length, created, updated, errors };
+  return { ok: true, projet: code, projet_id: projetId, total: payloads.length, created, updated, unchanged, errors };
 }
 
 module.exports = { chargerContexte, pousserProjet, trouverProjet };

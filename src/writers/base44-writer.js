@@ -30,6 +30,21 @@ function toArray(raw) {
 
 function idOf(x) { return x._id || x.id; }
 
+// Deux valeurs equivalentes ? Tolerance numerique pour les montants, '' == null pour le reste.
+function memeValeur(x, y) {
+  if (typeof x === 'number' || typeof y === 'number') {
+    return Math.abs((Number(x) || 0) - (Number(y) || 0)) < 0.005;
+  }
+  return String(x == null ? '' : x) === String(y == null ? '' : y);
+}
+
+// L'enregistrement existant porte-t-il deja exactement ces valeurs ? Si oui, ne rien
+// reecrire : c'est ce qui rend la synchro differentielle (on ne pousse que ce qui change).
+function inchange(existant, payload, champs) {
+  if (!existant) return false;
+  return champs.every(c => memeValeur(existant[c], payload[c]));
+}
+
 // GET pagine. Indispensable : au-dela de 500 enregistrements, un simple limit=500 ne voit
 // pas les lignes existantes et l'upsert recree des doublons a chaque sync.
 async function apiGetAll(entity, extraQuery) {
@@ -75,7 +90,7 @@ async function upsert(entity, existingId, payload) {
 }
 
 async function writeProjets(projets) {
-  let created = 0, updated = 0, errors = 0;
+  let created = 0, updated = 0, unchanged = 0, errors = 0;
   const existingArr = await apiGetAll('Projet');
 
   for (const p of projets) {
@@ -86,25 +101,20 @@ async function writeProjets(projets) {
       code_projet: p.numero_projet,
       nom: p.nom_projet || p.numero_projet,
       statut: p.statut || 'actif',
-      sync_avantage_ts: new Date().toISOString(),
     };
-    let st = 429;
-    while (st === 429) {
-      const r = found
-        ? await api('PUT', '/entities/Projet/' + found._id, payload)
-        : await api('POST', '/entities/Projet', payload);
-      st = r.status;
-      if (st === 429) await sleep(1000);
-    }
-    if (st === 200 || st === 201) { found ? updated++ : created++; } else errors++;
-    await sleep(100);
+    if (inchange(found, payload, ['code_projet', 'nom', 'statut'])) { unchanged++; continue; }
+    payload.sync_avantage_ts = new Date().toISOString();
+    const r = await upsert('Projet', found ? idOf(found) : null, payload);
+    if (r.ok) { found ? updated++ : created++; } else errors++;
+    await sleep(80);
   }
-  return { created, updated, errors };
+  return { created, updated, unchanged, errors };
 }
 
 async function writeFactures(factures) {
-  let created = 0, updated = 0, errors = 0;
+  let created = 0, updated = 0, unchanged = 0, errors = 0;
   const existingArr = await apiGetAll('FactureClient');
+  const CHAMPS = ['numero_facture', 'code_projet', 'client_nom', 'date_facture', 'total_facture', 'solde_ouvert', 'retenue_total', 'statut_paiement'];
 
   for (const f of factures) {
     if (!f.numero_facture) continue;
@@ -118,20 +128,14 @@ async function writeFactures(factures) {
       solde_ouvert: f.solde_ouvert,
       retenue_total: f.retenue_total,
       statut_paiement: f.statut_paiement,
-      sync_avantage_ts: new Date().toISOString(),
     };
-    let st = 429;
-    while (st === 429) {
-      const r = found
-        ? await api('PUT', '/entities/FactureClient/' + found._id, payload)
-        : await api('POST', '/entities/FactureClient', payload);
-      st = r.status;
-      if (st === 429) await sleep(1000);
-    }
-    if (st === 200 || st === 201) { found ? updated++ : created++; } else errors++;
-    await sleep(100);
+    if (inchange(found, payload, CHAMPS)) { unchanged++; continue; }
+    payload.sync_avantage_ts = new Date().toISOString();
+    const r = await upsert('FactureClient', found ? idOf(found) : null, payload);
+    if (r.ok) { found ? updated++ : created++; } else errors++;
+    await sleep(80);
   }
-  return { created, updated, errors };
+  return { created, updated, unchanged, errors };
 }
 
-module.exports = { writeProjets, writeFactures, api, apiGetAll, upsert, toArray, idOf, sleep };
+module.exports = { writeProjets, writeFactures, api, apiGetAll, upsert, toArray, idOf, inchange, memeValeur, sleep };

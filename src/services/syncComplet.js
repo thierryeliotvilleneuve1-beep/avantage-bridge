@@ -33,15 +33,15 @@ async function syncComplet(opts) {
       ? options.codes.map(c => normaliserProjet(String(c).replace(/^P/i, '')))
       : [...parProjet.keys()];
 
-    let created = 0, updated = 0, errors = 0, total = 0;
+    let created = 0, updated = 0, unchanged = 0, errors = 0, total = 0;
     for (const code of codes) {
       const payloads = syncAvantage.transactionsDe(parProjet, code);
       if (!payloads.length) continue;
       const pr = await pousserProjet(code, payloads, ctx);
       r.projets.push(pr);
-      created += pr.created || 0; updated += pr.updated || 0; errors += pr.errors || 0; total += pr.total || 0;
+      created += pr.created || 0; updated += pr.updated || 0; unchanged += pr.unchanged || 0; errors += pr.errors || 0; total += pr.total || 0;
     }
-    r.transactions = { projets_avec_transactions: r.projets.length, total, created, updated, errors };
+    r.transactions = { projets_avec_transactions: r.projets.length, total, created, updated, unchanged, errors };
     r.source = syncAvantage.provenance();
     r.ok = true;
     console.log('[SYNC] transactions', JSON.stringify(r.transactions));

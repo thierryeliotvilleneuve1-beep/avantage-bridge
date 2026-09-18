@@ -138,12 +138,22 @@ https.request = function (o, cb) {
   check('transactions de 25007', store.TransactionAvantage.filter(x => x.projet_id === parNum['25007']).map(x => x.numero_journal).sort(), ['E000101', 'P1001']);
   check('transactions de 26004', store.TransactionAvantage.filter(x => x.projet_id === parNum['26004']).map(x => x.numero_journal).sort(), ['P1002']);
 
-  // Deuxième passage : upsert, aucun doublon
-  console.log('\n--- Deuxième passage (upsert) ---');
+  // Deuxième passage : différentiel — rien n'a changé, donc aucune écriture.
+  console.log('\n--- Deuxième passage (différentiel) ---');
   const avant = store.TransactionAvantage.length;
+  let ecritures = 0;
+  const httpReq = https.request;
+  https.request = function (o, cb) {
+    if (o.method === 'POST' || o.method === 'PUT') ecritures++;
+    return httpReq(o, cb);
+  };
   const r2 = await syncComplet();
   check('aucun doublon de transaction', store.TransactionAvantage.length, avant);
-  check('2e passage en mise à jour', r2.transactions.updated, avant);
+  check('transactions toutes inchangées', r2.transactions.unchanged, avant);
+  check('aucune transaction réécrite', [r2.transactions.created, r2.transactions.updated], [0, 0]);
+  check('projets inchangés', r2.etapes.projets.unchanged, 2);
+  check('factures inchangées', r2.etapes.factures.unchanged, 2);
+  check('aucune écriture réseau (POST/PUT) au 2e passage', ecritures, 0);
 
   fs.rmSync(DIR, { recursive: true, force: true });
   console.log(echecs ? '\n' + echecs + ' ÉCHEC(S)' : '\nTous les tests passent');
