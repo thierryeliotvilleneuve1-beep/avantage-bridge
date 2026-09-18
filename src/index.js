@@ -51,12 +51,19 @@ app.use('/api/etat-resultats', auth, etatResultatsRouter);
 
 // Cron sync — cycle complet : projets, factures, transactions, lus dans la base .DBF.
 const { syncComplet } = require('./services/syncComplet');
-cron.schedule(CRON_SCHEDULE, async () => {
-  console.log('[INFO] Cron déclenché —', new Date().toISOString());
-  const r = await syncComplet();
-  if (r.skipped) console.log('[INFO] Cron ignoré —', r.reason);
-  else console.log('[INFO] Cron terminé en ' + r.duree_s + 's — ok:', r.ok);
-});
+// CRON_ACTIF=false met le sync automatique en pause (utile pendant le chargement
+// initial ou les tests manuels). Le bridge répond toujours aux appels manuels.
+const CRON_ACTIF = process.env.CRON_ACTIF !== 'false';
+if (CRON_ACTIF) {
+  cron.schedule(CRON_SCHEDULE, async () => {
+    console.log('[INFO] Cron déclenché —', new Date().toISOString());
+    const r = await syncComplet();
+    if (r.skipped) console.log('[INFO] Cron ignoré —', r.reason);
+    else console.log('[INFO] Cron terminé en ' + r.duree_s + 's — ok:', r.ok);
+  });
+} else {
+  console.log('[INFO] Cron en pause (CRON_ACTIF=false) — sync manuel seulement');
+}
 
 // Sync manuel complet
 app.post('/api/sync/all', auth, async (req, res) => {
@@ -71,5 +78,5 @@ app.get('/api/sync/etat', auth, (req, res) => res.json(require('./services/syncC
 app.listen(PORT, () => {
   console.log('[INFO] Bridge Avantage v7 démarré sur le port ' + PORT);
   console.log('[INFO] Export dir:', EXPORT_DIR);
-  console.log('[INFO] Cron:', CRON_SCHEDULE);
+  console.log('[INFO] Cron:', CRON_ACTIF ? CRON_SCHEDULE : 'PAUSE (CRON_ACTIF=false)');
 });
