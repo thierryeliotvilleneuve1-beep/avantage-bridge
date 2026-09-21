@@ -1,4 +1,4 @@
-# Bridge Avantage → Manœuvre — Déploiement et gestion (v7.2)
+# Bridge Avantage → Manœuvre — Déploiement et gestion (v7.3)
 
 > Mise à jour majeure septembre 2026. Remplace la version v7 basée sur l'export CSV.
 > Le bridge lit maintenant la **base Avantage en direct** et reconstruit le contrôle
@@ -77,6 +77,34 @@ La colonne « Dépense » (ambre) a été ajoutée au tableau
 `src/components/controle-budgetaire/TableauControleBudgetaire.jsx` de l'app Manœuvre,
 entre Budget et Engagé PO (11 → 12 colonnes ; colSpans ajustés).
 
+## Détail des transactions par division (sections drill-down)
+
+Chaque division du tableau ouvre trois sections qui lisent `TransactionAvantage` :
+
+- **Transactions Avantage sans BC** (`TransactionsAvantageDrilldown.jsx`) filtre
+  `controle_budgetaire_id === divisionId` **et** `bon_de_commande_id` vide.
+- **Bons de commande** liste les entités `BonDeCommande` du projet.
+- **Main-d'œuvre** : lue depuis `SaisieHeure` (TempoBuild) côté Manœuvre, PAS depuis
+  les écritures E d'Avantage. Le total MO du tableau vient de `mo_total` (TRANS E),
+  mais le détail heure par heure reste la saisie interne — c'est voulu.
+
+**Attribution de division des factures fournisseurs sans BC** (corrigé sept. 2026) :
+une facture `PYBBIL` sans bon de commande n'a pas de division propre. On la rattache
+au **journal P homologue dans `TRANS`**, qui porte le code d'activité (`TANUM`).
+`depotDbf.divisionParJournalP()` construit `journal 'P######' → activité dominante`
+(par montant) et `syncAvantage` l'utilise en repli après le rattachement par BC
+(`commandeDiv[commande] || journalDiv[journal]`). Sans ce repli, ces transactions
+arrivaient avec `code_division` vide → `controle_budgetaire_id` nul → la section
+« sans BC » restait vide. Le n° de journal PYBBIL (`'P'+PBF00`) et le `TNOSEQ` de TRANS
+partagent la même chaîne.
+
+**Bons de commande** : l'entité `BonDeCommande` vient de la table `COMMAN` (en-tête de
+commande). La route historique `/api/bc/sync-bc/:code` la lit encore depuis l'export
+Excel — à remplacer par un lecteur `.DBF` direct une fois la structure de `COMMAN`
+cartographiée via `/api/inspect/COMMAN` (voir routes). Tant que les `BonDeCommande` ne
+sont pas synchronisés, la section « Bons de commande » d'une division reste vide même
+si les transactions, elles, sont bien attribuées.
+
 ## Contournement des tables chiffrées
 
 - **Projets** : dérivés du numéro de projet porté EN CLAIR par les transactions.
@@ -132,6 +160,7 @@ CRON_SCHEDULE=*/15 * * * *
 | POST | `/api/sync/all` | Sync complet de tous les projets actifs (différentiel) |
 | POST | `/api/sync/projet/:code` | Sync complet d'un projet |
 | GET | `/api/budget/apercu/:code` | **Aperçu lecture seule** du contrôle budgétaire (validation) |
+| GET | `/api/inspect/:table?n=5` | **Inspection lecture seule** d'une table `.DBF` (colonnes, lisibilité, échantillon) — pour cartographier `COMMAN` etc. |
 | POST | `/api/trans/sync-trans/:code` | Transactions seulement |
 
 Commandes PowerShell (clé lue depuis .env) :
@@ -164,5 +193,8 @@ Le premier chargement écrit tout ; ensuite le cron (15 min) n'entretient que le
 
 ## Prochaines évolutions possibles
 
+- **Lecteur `.DBF` direct de `COMMAN`** pour synchroniser `BonDeCommande` dans le cycle
+  complet (remplace `/api/bc/sync-bc` basé sur Excel). Cartographier d'abord avec
+  `/api/inspect/COMMAN`.
 - Route de réconciliation listant les écarts BD ↔ Manœuvre au lieu de les écraser.
 - Flux inverse (bons de commande Manœuvre → Avantage) si un jour le SDK devient accessible.
