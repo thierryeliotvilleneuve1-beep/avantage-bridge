@@ -35,6 +35,7 @@
 | Grand livre projet (dépense, engagé) | `TRANS` (TCONUM, TNOGL, TNOSEQ, TMNT, TANUM) | ✅ lisible |
 | Factures fournisseurs (ventilation) | `PYBBIL` | ✅ lisible |
 | Commande → division | `COMITE` (CINOCMD/…, activité) | ✅ lisible |
+| Paiements fournisseurs | `PYBACM` (PANOPAI, PADATE, PAMONT, PACHEQ, PASEQ) | ✅ lisible |
 | Activités (noms de divisions) | `ACTIVE` | ✅ lisible |
 | **Projets (noms, clients)** | `CONTRA` | ❌ **chiffré** |
 | **Factures client** | `FACTMA` | ❌ **chiffré** |
@@ -135,6 +136,19 @@ la valeur du facturé (meilleure valeur connue), et le BC est marqué
 Branché dans `syncComplet` APRÈS le contrôle budgétaire (pour la division) et AVANT les
 transactions (pour que `bon_de_commande_id` se rattache).
 
+**Paiements fournisseurs** (`pousseurPaiements.js`, sept. 2026) : la table `PYBACM` est
+**lisible**. Chaque ligne est un versement : `PANOPAI` (« ######-NN », préfixe = n° de
+facture, suffixe = n° de versement), `PADATE`, `PAMONT`, `PACHEQ` (n° de chèque), `PASEQ`
+(séquentiel). Le **préfixe de PANOPAI = le n° de facture = `numero_journal` 'P######'** de
+la transaction → c'est le lien. On pousse chaque paiement dans l'entité
+`PaiementFournisseur` (dont le schéma attend justement `reference_paiement` = PANOPAI et
+`reference_cheque` = n° de chèque), rattaché à la transaction (`transaction_id`) et à son
+BC. Branché en fin de cycle, APRÈS les transactions (on recharge leurs `_id` Manoeuvre).
+On ne crée un paiement que pour les transactions déjà présentes dans Manoeuvre → volume
+borné au périmètre synchronisé. Le panneau « PAIEMENTS » du drill-down se remplit alors.
+*(Note : les colonnes « Solde à payer / Retenue » sur la ligne de transaction ne sont pas
+encore calculées — voir prochaines évolutions.)*
+
 ## Contournement des tables chiffrées
 
 - **Projets** : dérivés du numéro de projet porté EN CLAIR par les transactions.
@@ -156,6 +170,7 @@ src/sources/budgetDbf.js        Aperçu budgétaire par division (CONPRE/TRANS/C
 src/services/syncBudgetControle.js  Écrit ControleBudgetaire (différentiel)
 src/services/pousseurBonsCommande.js Reconstruit BonDeCommande (PYBBIL+COMITE, différentiel)
 src/services/pousseurTransactions.js Écrit TransactionAvantage (différentiel)
+src/services/pousseurPaiements.js   Écrit PaiementFournisseur (PYBACM, différentiel)
 src/services/syncComplet.js     Cycle complet : projets → factures → budget → transactions
 src/writers/base44-writer.js    GET paginé + upsert + différentiel (inchange)
 ```
@@ -226,5 +241,8 @@ Le premier chargement écrit tout ; ensuite le cron (15 min) n'entretient que le
 
 - **Total PO réel** : import Excel ponctuel de `COMMAN` (chiffrée) pour remplacer le
   `montant_prevu` approximé par le facturé, si l'écart engagé-vs-facturé par PO devient utile.
+- **Solde à payer / Retenue par transaction** : dériver `solde_a_payer` = net facture −
+  Σ paiements nets, et la retenue, à partir de PYBACM (champs de taxes PATVQ1/PATVQ2/PATPS,
+  drapeau PARET). À valider : complétude de PYBACM et net-vs-brut avant d'afficher un solde.
 - Route de réconciliation listant les écarts BD ↔ Manœuvre au lieu de les écraser.
 - Flux inverse (bons de commande Manœuvre → Avantage) si un jour le SDK devient accessible.
