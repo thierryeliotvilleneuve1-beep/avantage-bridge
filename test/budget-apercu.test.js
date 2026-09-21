@@ -25,6 +25,7 @@ ecrire('CONPRE.DBF', [
 ], [
   { CPCONUM: '0000026004', CPACT: '00400', CPPOSTE: '33200', CPMNT: '120261.45' },
   { CPCONUM: '0000026004', CPACT: '00401', CPPOSTE: '33200', CPMNT: '20277.50' },
+  { CPCONUM: '0000026004', CPACT: '00501', CPPOSTE: '33200', CPMNT: '6363.64' },
   { CPCONUM: '0000099999', CPACT: '00400', CPPOSTE: '33200', CPMNT: '999999.00' }, // autre projet
 ]);
 
@@ -47,8 +48,9 @@ ecrire('CONACT.DBF', [
   { nom: 'CAFACT', type: 'N', longueur: 14, decimales: 2 }, { nom: 'CAVENIR', type: 'N', longueur: 14, decimales: 2 },
   { nom: 'CAPROFIT', type: 'N', longueur: 14, decimales: 2 },
 ], [
-  { CACONUM: '0000026004', CAANUM: '00400', CAFACT: '92601.32', CAVENIR: '0.00', CAPROFIT: '12026.15' },
-  { CACONUM: '0000026004', CAANUM: '00401', CAFACT: '22305.25', CAVENIR: '0.00', CAPROFIT: '2027.75' },
+  { CACONUM: '0000026004', CAANUM: '00400', CAFACT: '92601.32', CAVENIR: '0.00', CAPROFIT: '0.00' },
+  { CACONUM: '0000026004', CAANUM: '00401', CAFACT: '22305.25', CAVENIR: '0.00', CAPROFIT: '0.00' },
+  { CACONUM: '0000026004', CAANUM: '00501', CAFACT: '0.00', CAVENIR: '0.00', CAPROFIT: '834.35' },
 ]);
 
 const { apercu } = require('../src/sources/budgetDbf');
@@ -57,14 +59,15 @@ const parDiv = Object.fromEntries(r.divisions.map(d => [d.division, d]));
 
 console.log('--- Aperçu P26004 ---');
 check('division 00400 budget coût', parDiv['00400'].budget_cout, 120261.45);
-check('division 00400 budget revenu (coût + profit)', parDiv['00400'].budget_revenu, 132287.60);
+check('division 00400 budget revenu (markup 10%)', parDiv['00400'].budget_revenu, 132287.6);
 check('division 00400 dépense (P, taxe exclue)', parDiv['00400'].depense, 15719.38);
 check('division 00400 engagé (journal C)', parDiv['00400'].engage, 50000);
 check('division 00400 facturé (CONACT)', parDiv['00400'].facture, 92601.32);
 check('division 00401 dépense (E)', parDiv['00401'].depense, 10000);
 check('revenu R non compté en dépense', r.divisions.every(d => d.depense >= 0), true);
-check('autre projet 99999 exclu', !!parDiv['00400'] && r.totaux.budget_cout, 140538.95); // 120261.45 + 20277.50
-check('total facturé', r.totaux.facture, 114906.57); // 92601.32 + 22305.25
+check('autre projet 99999 exclu', r.totaux.budget_cout, 146902.59); // 120261.45+20277.50+6363.64
+check('division 00501 revenu (override CAPROFIT)', parDiv['00501'].budget_revenu, 7197.99);
+  check('total facturé', r.totaux.facture, 114906.57); // 92601.32 + 22305.25
 
 fs.rmSync(DIR, { recursive: true, force: true });
 console.log(echecs ? '\n' + echecs + ' ÉCHEC(S)' : '\nTous les tests passent');

@@ -103,10 +103,14 @@ function apercu(codeRaw) {
   const divisions = [...codes].sort().map(a => {
     const b = budget[a] || {}, ce = couts[a] || {}, f = fa[a] || {};
     const budget_cout = (b.budget_cout || 0) + (b.budget_revenu || 0); // CONPRE = budget de coûts
+    // Revenus budgétés = coûts + profit. Le profit par division est le montant saisi
+    // (CONACT.CAPROFIT) s'il existe, sinon le markup standard sur les coûts (défaut 10 %,
+    // configurable via AVANTAGE_TAUX_PROFIT). Le taux par contrat vit dans CONTRA, chiffré.
+    const profit = (f.profit && f.profit !== 0) ? f.profit : budget_cout * TAUX_PROFIT;
     return {
       division: a,
       budget_cout: r2(budget_cout),
-      budget_revenu: r2(budget_cout + (f.profit || 0)),
+      budget_revenu: r2(budget_cout + profit),
       depense: r2(ce.depense), engage: r2(ce.engage),
       facture: r2(f.facture), a_venir: r2(f.avenir),
     };
@@ -124,6 +128,7 @@ function apercu(codeRaw) {
   }};
 }
 
+const TAUX_PROFIT = parseFloat(process.env.AVANTAGE_TAUX_PROFIT) || 0.10;
 function r2(n) { return Math.round((n || 0) * 100) / 100; }
 
 module.exports = { apercu, lireBudget, lireCoutsEngages, lireFactureAvenir, resoudre };
