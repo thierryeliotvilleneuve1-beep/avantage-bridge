@@ -55,6 +55,17 @@ async function chargerTransactionsParProjet() {
   const charges = await dav.chargerCharges();
   const commandeDiv = await dav.chargerCommandeDivisions();
 
+  // Repli d'attribution de division pour les factures fournisseurs (PYBBIL) sans BC :
+  // le journal 'P######' est rattaché, dans TRANS, à l'activité qui porte le plus gros
+  // montant. Sans ce repli, ces transactions arrivent dans Manoeuvre sans division et
+  // les sections de détail par division restent vides.
+  let journalDiv = {};
+  try {
+    if (depotDbf.disponible() && depotDbf.aTable('TRANS')) {
+      journalDiv = depotDbf.divisionParJournalP();
+    }
+  } catch (e) { journalDiv = {}; }
+
   const pybbil = new Map();   // clé journal|projet → accumulateur net
   const ecritures = [];
 
@@ -78,7 +89,9 @@ async function chargerTransactionsParProjet() {
 
   for (const a of pybbil.values()) {
     const numCommande = a.numeroCommande ? String(a.numeroCommande).padStart(9, '0') : '';
-    const codeDivision = numCommande ? (commandeDiv[numCommande] || '') : '';
+    const parBc = numCommande ? (commandeDiv[numCommande] || '') : '';
+    const parJournal = a.numeroJournal ? (journalDiv[String(a.numeroJournal).trim()] || '') : '';
+    const codeDivision = parBc || parJournal;
     ajouter(a.numeroProjet, {
       code_division: codeDivision,
       date_transaction: a.date,

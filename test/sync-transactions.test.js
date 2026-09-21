@@ -43,12 +43,18 @@ ecrireDbf('PYBBIL.DBF', aide.champsPybbil(), [
   // Projet présent dans les transactions mais ABSENT de Manoeuvre → doit être ignoré
   aide.lignePybbil({ seq: '3001', date: '20260201', noFourn: 'F09', facture: 'X-1', desc: 'Vieux projet',
     total: '10000.00', projet: '0000099999', nom: 'ANCIEN', gl: [['33500', '10000.00']] }),
+  // Facture fournisseur SANS bon de commande : la division vient du journal P
+  // homologue dans TRANS (P070244 → activité 07200).
+  aide.lignePybbil({ seq: '070244', date: '20260315', noFourn: 'F10', facture: 'LOC-1', desc: 'Location grue',
+    total: '15000.00', projet: '0000026004', nom: 'GROUPE LOU-TEC', gl: [['33200', '15000.00']] }),
 ]);
 
 ecrireDbf('TRANS.DBF', aide.CHAMPS_TRANS, [
   aide.ligneTrans({ projet: '0000025007', compte: '34100', date: '20260301', type: 'E', seq: 101, montant: '100000.00', activite: '06100' }),
   aide.ligneTrans({ projet: '', compte: '43100', date: '20260201', type: 'E', seq: 102, montant: '80000.00' }),
   aide.ligneTrans({ projet: '0000025007', compte: '34100', date: '20260302', type: 'X', seq: 103, montant: '55555.00', activite: '06100' }),
+  // Contrepartie au journal P de la facture LOC-1 sans BC : porte le code d'activité.
+  aide.ligneTrans({ projet: '0000026004', compte: '33200', date: '20260315', type: 'P', seq: '70244', montant: '15000.00', activite: '07200' }),
 ]);
 
 ecrireDbf('FACTMA.DBF', [
@@ -145,7 +151,9 @@ https.request = function (o, cb) {
 
   // Rattachement au bon projet
   check('transactions de 25007', store.TransactionAvantage.filter(x => x.projet_id === parNum['P25007']).map(x => x.numero_journal).sort(), ['E000101', 'P1001']);
-  check('transactions de 26004', store.TransactionAvantage.filter(x => x.projet_id === parNum['P26004']).map(x => x.numero_journal).sort(), ['P1002']);
+  check('transactions de 26004', store.TransactionAvantage.filter(x => x.projet_id === parNum['P26004']).map(x => x.numero_journal).sort(), ['P070244', 'P1002']);
+  check('facture sans BC LOC-1 : division via journal P (07200)', t['P070244'] && t['P070244'].code_division, '07200');
+  check('LOC-1 net = 15000', t['P070244'] && t['P070244'].montant, 15000);
 
   // Deuxième passage : différentiel — rien n'a changé, donc aucune écriture.
   console.log('\n--- Deuxième passage (différentiel) ---');

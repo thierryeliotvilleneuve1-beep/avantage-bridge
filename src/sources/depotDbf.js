@@ -353,6 +353,33 @@ function lireCommandeDivisions() {
   return map;
 }
 
+// Division (activite) de chaque facture fournisseur, deduite du grand livre TRANS.
+// Une facture PYBBIL sans bon de commande n'a pas de division; mais sa contrepartie
+// au journal P de TRANS porte le code d'activite (TANUM). On construit donc
+// journal ('P######') -> activite dominante (par montant), pour rattacher le detail.
+function divisionParJournalP() {
+  const m = meta('TRANS');
+  const cJournal = champ('TRANS', 'journal') || m.champs[3] && m.champs[3].nom;
+  const cAct = champ('TRANS', 'codeActivite') || m.champs[5] && m.champs[5].nom;
+  const cMnt = champ('TRANS', 'montant') || m.champs[4] && m.champs[4].nom;
+  const acc = {};
+  dbf.lireTable(fichier('TRANS'), { meta: m, filtre: l => {
+    const journal = String(l[cJournal] || '').trim();
+    if (journal.charAt(0).toUpperCase() !== 'P') return false;
+    const act = gl.normaliserActivite(l[cAct]);
+    if (!journal || !act) return false;
+    const mnt = Math.abs(gl.nombre(l[cMnt]));
+    if (!acc[journal]) acc[journal] = {};
+    acc[journal][act] = (acc[journal][act] || 0) + mnt;
+    return false;
+  }});
+  const map = {};
+  for (const [j, acts] of Object.entries(acc)) {
+    map[j] = Object.entries(acts).sort((a, b) => b[1] - a[1])[0][0];
+  }
+  return map;
+}
+
 function inventaire() {
   return { repertoire: repertoire(), tables: dbf.inventaire(repertoire(), TABLES_ATTENDUES) };
 }
@@ -370,6 +397,6 @@ function lisibilite(table) {
 module.exports = {
   disponible, raisonIndisponible, repertoire, aTable, listerColonnes, echantillonner,
   lireFactures, lireRevenusGrandLivre, lireChargesFournisseurs, lireEcritures, lireProjets,
-  lireActivites, lireCommandeDivisions, totauxParJournal, inventaire, lisibilite, meta,
+  lireActivites, lireCommandeDivisions, divisionParJournalP, totauxParJournal, inventaire, lisibilite, meta,
   TABLES_ATTENDUES, JOURNAUX_CHARGE, JOURNAUX_ECARTES,
 };
