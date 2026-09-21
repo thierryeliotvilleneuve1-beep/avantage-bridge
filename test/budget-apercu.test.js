@@ -67,7 +67,8 @@ check('division 00401 dépense (E)', parDiv['00401'].depense, 10000);
 check('revenu R non compté en dépense', r.divisions.every(d => d.depense >= 0), true);
 check('autre projet 99999 exclu', r.totaux.budget_cout, 146902.59); // 120261.45+20277.50+6363.64
 check('division 00501 revenu (override CAPROFIT)', parDiv['00501'].budget_revenu, 7197.99);
-  check('total facturé', r.totaux.facture, 114906.57); // 92601.32 + 22305.25
+  check('total facturé', r.totaux.facture, 114906.57);
+  check('total dépense (P+E, taxe exclue)', r.totaux.depense, 25719.38); // 15719.38 (00400 P) + 10000 (00401 E) // 92601.32 + 22305.25
 
 fs.rmSync(DIR, { recursive: true, force: true });
 console.log(echecs ? '\n' + echecs + ' ÉCHEC(S)' : '\nTous les tests passent');

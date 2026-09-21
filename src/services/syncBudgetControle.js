@@ -12,7 +12,7 @@ const { upsert, idOf, inchange, sleep } = require('../writers/base44-writer');
 const { trouverProjet } = require('./pousseurTransactions');
 
 // Champs comparés pour le différentiel (on ne réécrit que si un a changé).
-const CHAMPS = ['montant_initial', 'budget_revenus', 'facture', 'engage', 'mo_total', 'nom_division'];
+const CHAMPS = ['montant_initial', 'budget_revenus', 'facture', 'engage', 'depense', 'mo_total', 'nom_division'];
 
 async function syncBudgetControle(code, ctx, actMap) {
   const projet = trouverProjet(ctx.projets, code);
@@ -36,6 +36,7 @@ async function syncBudgetControle(code, ctx, actMap) {
       budget_revenus: d.budget_revenu,
       facture: d.facture,
       engage: d.engage,
+      depense: d.depense,
       mo_total: d.mo,
     };
     if (ex && inchange(ex, payload, CHAMPS)) { unchanged++; continue; }
