@@ -38,6 +38,7 @@
 | Activités (noms de divisions) | `ACTIVE` | ✅ lisible |
 | **Projets (noms, clients)** | `CONTRA` | ❌ **chiffré** |
 | **Factures client** | `FACTMA` | ❌ **chiffré** |
+| **En-têtes de commande (Total PO)** | `COMMAN` | ❌ **chiffré** (champ `CRYPTED`, verdict « illisible ») |
 
 ## Modèle du contrôle budgétaire (reproduit l'écran « Suivi de projet » d'Avantage)
 
@@ -117,12 +118,22 @@ arrivaient avec `code_division` vide → `controle_budgetaire_id` nul → la sec
 « sans BC » restait vide. Le n° de journal PYBBIL (`'P'+PBF00`) et le `TNOSEQ` de TRANS
 partagent la même chaîne.
 
-**Bons de commande** : l'entité `BonDeCommande` vient de la table `COMMAN` (en-tête de
-commande). La route historique `/api/bc/sync-bc/:code` la lit encore depuis l'export
-Excel — à remplacer par un lecteur `.DBF` direct une fois la structure de `COMMAN`
-cartographiée via `/api/inspect/COMMAN` (voir routes). Tant que les `BonDeCommande` ne
-sont pas synchronisés, la section « Bons de commande » d'une division reste vide même
-si les transactions, elles, sont bien attribuées.
+**Bons de commande** (`pousseurBonsCommande.js`, sept. 2026) : la table `COMMAN` (en-têtes
+de commande, avec le **Total PO** réel) est **chiffrée** par Avantage — illisible en direct
+(champ `CRYPTED`, `/api/inspect/COMMAN` renvoie « illisible », valeurs binaires). On
+**reconstruit** donc chaque `BonDeCommande` à partir des données lisibles :
+- `reference_avantage` / `numero_po` = n° de commande porté EN CLAIR par les factures PYBBIL ;
+- `fournisseur_avantage` = nom du fournisseur sur la facture ;
+- `controle_budgetaire_id` = division via COMITE (commande → activité) ;
+- `montant_facture` = Σ des factures PYBBIL de la commande.
+
+Le **Total PO réel (montant engagé) reste inconnu** (COMMAN chiffrée) : `montant_prevu` prend
+la valeur du facturé (meilleure valeur connue), et le BC est marqué
+`source_bc = 'avantage-transactions'`. Pour obtenir le vrai montant engagé, il faudrait un
+**export Excel de COMMAN** (Avantage déchiffre à l'export) — la route historique
+`/api/bc/sync-bc/:code` le fait déjà et peut écraser `montant_prevu` avec la vraie valeur.
+Branché dans `syncComplet` APRÈS le contrôle budgétaire (pour la division) et AVANT les
+transactions (pour que `bon_de_commande_id` se rattache).
 
 ## Contournement des tables chiffrées
 
@@ -143,6 +154,7 @@ src/sources/donneesAvantage.js  Orchestrateur DBF → (ODBC) → CSV, auto-mappa
 src/sources/syncAvantage.js     Assemble projets / factures / transactions par projet
 src/sources/budgetDbf.js        Aperçu budgétaire par division (CONPRE/TRANS/CONACT)
 src/services/syncBudgetControle.js  Écrit ControleBudgetaire (différentiel)
+src/services/pousseurBonsCommande.js Reconstruit BonDeCommande (PYBBIL+COMITE, différentiel)
 src/services/pousseurTransactions.js Écrit TransactionAvantage (différentiel)
 src/services/syncComplet.js     Cycle complet : projets → factures → budget → transactions
 src/writers/base44-writer.js    GET paginé + upsert + différentiel (inchange)
@@ -212,8 +224,7 @@ Le premier chargement écrit tout ; ensuite le cron (15 min) n'entretient que le
 
 ## Prochaines évolutions possibles
 
-- **Lecteur `.DBF` direct de `COMMAN`** pour synchroniser `BonDeCommande` dans le cycle
-  complet (remplace `/api/bc/sync-bc` basé sur Excel). Cartographier d'abord avec
-  `/api/inspect/COMMAN`.
+- **Total PO réel** : import Excel ponctuel de `COMMAN` (chiffrée) pour remplacer le
+  `montant_prevu` approximé par le facturé, si l'écart engagé-vs-facturé par PO devient utile.
 - Route de réconciliation listant les écarts BD ↔ Manœuvre au lieu de les écraser.
 - Flux inverse (bons de commande Manœuvre → Avantage) si un jour le SDK devient accessible.
