@@ -58,6 +58,13 @@ Par division, tout est reconstruit depuis les tables lisibles :
 Journaux `TRANS` écartés : **R** (produits → revenus), **P** en double de PYBBIL au besoin,
 **X** (exceptions). Validé au cent près contre l'écran Avantage du projet 26004.
 
+⚠️ **La Dépense contient DÉJÀ la MO** (journaux P **+ E** + B). La MO (journal E) est un
+sous-ensemble affiché à part pour information, PAS un montant à ajouter. Le coût réel se
+calcule donc `Coût = Dépense + Engagé` — jamais `Dépense + Engagé + MO`, sinon la paie est
+comptée deux fois. Corrigé dans `TableauControleBudgetaire.jsx` (ligne de division + ligne
+des totaux + récup.) en sept. 2026 ; la section drill-down « Dépenses Avantage (grand livre) »
+a été retirée car ses lignes sont déjà réparties dans Bons de commande / sans BC / MO.
+
 ## Mapping vers l'entité `ControleBudgetaire` (Manœuvre)
 
 Le bridge écrit **seulement** les champs dont Avantage est la source de vérité, et
