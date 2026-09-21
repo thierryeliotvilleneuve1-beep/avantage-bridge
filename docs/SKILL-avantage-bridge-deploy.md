@@ -84,9 +84,14 @@ Chaque division du tableau ouvre trois sections qui lisent `TransactionAvantage`
 - **Transactions Avantage sans BC** (`TransactionsAvantageDrilldown.jsx`) filtre
   `controle_budgetaire_id === divisionId` **et** `bon_de_commande_id` vide.
 - **Bons de commande** liste les entités `BonDeCommande` du projet.
-- **Main-d'œuvre** : lue depuis `SaisieHeure` (TempoBuild) côté Manœuvre, PAS depuis
-  les écritures E d'Avantage. Le total MO du tableau vient de `mo_total` (TRANS E),
-  mais le détail heure par heure reste la saisie interne — c'est voulu.
+- **Main-d'œuvre** (`MODrilldownAvantage.jsx`, ajouté sept. 2026) : affiche d'abord les
+  **écritures de paie E d'Avantage** de la division (les `TransactionAvantage` avec
+  `type_transaction === 'E'` / `is_mo`), qui sont la source du total MO (`mo_total` =
+  TRANS journal E), puis les saisies `SaisieHeure` (TempoBuild) en dessous.
+  ⚠️ Le total MO affiché par `ControleBudgetaireTab` fait `mo_total = mo_avantage
+  (Avantage E) + mo_local (heures TempoBuild × taux)` : si les mêmes heures sont saisies
+  dans Avantage ET TempoBuild, il y a double compte. À trancher avec Thierry si le total
+  doit devenir « Avantage seulement ».
 
 **Attribution de division des factures fournisseurs sans BC** (corrigé sept. 2026) :
 une facture `PYBBIL` sans bon de commande n'a pas de division propre. On la rattache
