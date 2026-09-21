@@ -232,6 +232,32 @@ Le premier chargement écrit tout ; ensuite le cron (15 min) n'entretient que le
 - Valider les chiffres avec `/api/budget/apercu/:code` contre l'écran Suivi de projet
   d'Avantage AVANT de conclure.
 
+## Notifications, alertes budgétaires et résumé hebdo IA (sept. 2026)
+
+Canal unique : **webhook entrant Teams** (`TEAMS_WEBHOOK_URL`). Si non défini, tout devient
+un no-op silencieux — le bridge tourne sans alertes. Payload générique `{ text }` (Markdown),
+compatible connecteur « Incoming Webhook » classique ou flux Power Automate lisant `text`.
+
+1. **Surveillance du sync** (`notificateur.js` + boucle de fraîcheur dans `index.js`) : alerte
+   Teams si le cycle **échoue**, se termine **avec des erreurs**, ou si **aucun sync réussi
+   depuis `MONITEUR_FRAICHEUR_MIN` min** (défaut 45 ; réarmée au rétablissement). Garde-fou
+   contre un bridge silencieusement mort (PC en veille, Base44 down, A:\AVA01 inaccessible).
+2. **Alertes budgétaires par exception** (`alertesBudget.js`) : à chaque cycle, signale les
+   divisions en **dépassement** (coût = dépense + engagé > budget) ou au **seuil**
+   (`BUDGET_ALERTE_SEUIL`, défaut 0.9). Anti-spam : n'alerte que sur apparition ou aggravation ;
+   état persistant dans `data/alertes-budget.json` (ignoré par git). Une division revenue sous
+   le seuil est retirée → un re-dépassement futur re-notifie.
+3. **Résumé hebdomadaire IA** (`resumeHebdo.js`) : Claude (HTTPS brut, `ANTHROPIC_API_KEY`,
+   modèle `ANTHROPIC_MODEL` défaut `claude-opus-5`) rédige un briefing par projet, hiérarchisé
+   par risque, envoyé sur Teams. Cron `RESUME_HEBDO_CRON` (défaut lundi 07h) + route manuelle
+   `POST /api/resume-hebdo`. Le bridge fournit les chiffres agrégés par projet, Claude rédige.
+
+Config : voir `.env.example` (section Notifications). Routes de test : `POST /api/test-alerte`
+(envoi de test) et `POST /api/resume-hebdo` (génère le résumé à la demande).
+
+Mise en route Teams : dans le canal voulu → connecteur/flux « webhook entrant » → copier l'URL
+dans `TEAMS_WEBHOOK_URL`. Pour le résumé IA : ajouter `ANTHROPIC_API_KEY` (console Anthropic).
+
 ## Résidus connus
 
 - Écart ≈ 1 $ possible sur la dépense de certaines divisions (arrondi isolé).
