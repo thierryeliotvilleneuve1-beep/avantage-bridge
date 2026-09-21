@@ -8,8 +8,9 @@
 // transactions. Les factures client ne sont synchronisées que si FACTMA est lisible.
 
 const syncAvantage = require('../sources/syncAvantage');
-const { writeFactures } = require('../writers/base44-writer');
+const { writeFactures, apiGetAll } = require('../writers/base44-writer');
 const { chargerContexte, pousserProjet, trouverProjet } = require('./pousseurTransactions');
+const { syncBudgetControle } = require('./syncBudgetControle');
 const { normaliserProjet } = require('../parsers/parseGrandLivre');
 
 let enCours = false;
@@ -64,7 +65,25 @@ async function syncComplet(opts) {
     }
     console.log('[SYNC] factures', JSON.stringify(r.etapes.factures));
 
-    // 5. Transactions par projet.
+    // 5. Contrôle budgétaire par division (budget, revenus, facturé, engagé, MO) — AVANT
+    // les transactions, pour que les divisions existent et que les transactions s'y
+    // rattachent dès le premier passage. Validé au cent près contre l'écran Avantage.
+    let actMap = {};
+    try { actMap = require('../sources/depotDbf').lireActivites(); } catch (e) {}
+    const cb = { projets: 0, created: 0, updated: 0, unchanged: 0, errors: 0 };
+    for (const n of aTraiter) {
+      try {
+        const rb = await syncBudgetControle(n, ctx, actMap);
+        if (rb.ok) { cb.projets++; cb.created += rb.created || 0; cb.updated += rb.updated || 0; cb.unchanged += rb.unchanged || 0; cb.errors += rb.errors || 0; }
+      } catch (e) { cb.errors++; console.error('[SYNC] budget', n, e.message); }
+    }
+    r.controle_budgetaire = cb;
+    console.log('[SYNC] contrôle budgétaire', JSON.stringify(cb));
+
+    // Recharger les divisions : le rattachement des transactions en dépend.
+    if (cb.created || cb.updated) ctx.divisions = await apiGetAll('ControleBudgetaire');
+
+    // 6. Transactions par projet (rattachées aux divisions qui existent maintenant).
     let created = 0, updated = 0, unchanged = 0, errors = 0, total = 0;
     for (const n of aTraiter) {
       const payloads = syncAvantage.transactionsDe(parProjet, n);
@@ -88,7 +107,7 @@ async function syncComplet(opts) {
     dernier = {
       ok: r.ok, duree_s: r.duree_s, fin: r.fin,
       projets: r.etapes.projets || null, factures: r.etapes.factures || null,
-      transactions: r.transactions || null, error: r.error || null,
+      transactions: r.transactions || null, controle_budgetaire: r.controle_budgetaire || null, error: r.error || null,
     };
   }
   return r;

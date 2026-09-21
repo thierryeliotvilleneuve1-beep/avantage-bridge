@@ -66,9 +66,10 @@ function lireCoutsEngages(code) {
     if (estCompteRevenu(gl) || GL_TAXES.includes(gl)) return false;
     const a = act(l[c.activite]); if (!a) return false;
     const montant = num(l[c.montant]);
-    if (!div[a]) div[a] = { depense: 0, engage: 0 };
+    if (!div[a]) div[a] = { depense: 0, engage: 0, mo: 0 };
     if (type === 'P' || type === 'E' || type === 'B') div[a].depense += montant;
-    else if (type === 'C') div[a].engage += montant;
+    if (type === 'E') div[a].mo += montant;
+    if (type === 'C') div[a].engage += montant;
     return false;
   }});
   return div;
@@ -111,20 +112,20 @@ function apercu(codeRaw) {
       division: a,
       budget_cout: r2(budget_cout),
       budget_revenu: r2(budget_cout + profit),
-      depense: r2(ce.depense), engage: r2(ce.engage),
+      depense: r2(ce.depense), engage: r2(ce.engage), mo: r2(ce.mo),
       facture: r2(f.facture), a_venir: r2(f.avenir),
     };
   });
 
   const t = divisions.reduce((s, d) => ({
     budget_cout: s.budget_cout + d.budget_cout, budget_revenu: s.budget_revenu + d.budget_revenu,
-    depense: s.depense + d.depense, engage: s.engage + d.engage,
+    depense: s.depense + d.depense, engage: s.engage + d.engage, mo: s.mo + (d.mo || 0),
     facture: s.facture + d.facture, a_venir: s.a_venir + d.a_venir,
-  }), { budget_cout: 0, budget_revenu: 0, depense: 0, engage: 0, facture: 0, a_venir: 0 });
+  }), { budget_cout: 0, budget_revenu: 0, depense: 0, engage: 0, mo: 0, facture: 0, a_venir: 0 });
 
   return { projet: code, divisions, totaux: {
     budget_cout: r2(t.budget_cout), budget_revenu: r2(t.budget_revenu),
-    depense: r2(t.depense), engage: r2(t.engage), facture: r2(t.facture), a_venir: r2(t.a_venir),
+    depense: r2(t.depense), engage: r2(t.engage), mo: r2(t.mo), facture: r2(t.facture), a_venir: r2(t.a_venir),
   }};
 }
 
