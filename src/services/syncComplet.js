@@ -10,6 +10,7 @@
 const syncAvantage = require('../sources/syncAvantage');
 const { writeFactures, apiGetAll } = require('../writers/base44-writer');
 const { chargerContexte, pousserProjet, trouverProjet } = require('./pousseurTransactions');
+const { pousserBonsProjet } = require('./pousseurBonsCommande');
 const { syncBudgetControle } = require('./syncBudgetControle');
 const { normaliserProjet } = require('../parsers/parseGrandLivre');
 
@@ -80,10 +81,28 @@ async function syncComplet(opts) {
     r.controle_budgetaire = cb;
     console.log('[SYNC] contrôle budgétaire', JSON.stringify(cb));
 
-    // Recharger les divisions : le rattachement des transactions en dépend.
+    // Recharger les divisions : le rattachement des BC et des transactions en dépend.
     if (cb.created || cb.updated) ctx.divisions = await apiGetAll('ControleBudgetaire');
 
-    // 6. Transactions par projet (rattachées aux divisions qui existent maintenant).
+    // 6. Bons de commande reconstruits (PYBBIL + COMITE) — AVANT les transactions, pour que
+    // chaque transaction puisse se rattacher à son BC. COMMAN (montant engagé réel) est
+    // chiffrée : le Total PO est approximé par le facturé (voir pousseurBonsCommande).
+    const bc = { projets: 0, created: 0, updated: 0, unchanged: 0, errors: 0 };
+    for (const n of aTraiter) {
+      const payloads = syncAvantage.transactionsDe(parProjet, n);
+      if (!payloads.length) continue;
+      try {
+        const rbc = await pousserBonsProjet(n, payloads, ctx);
+        if (rbc.ok) { bc.projets++; bc.created += rbc.created || 0; bc.updated += rbc.updated || 0; bc.unchanged += rbc.unchanged || 0; bc.errors += rbc.errors || 0; }
+      } catch (e) { bc.errors++; console.error('[SYNC] bons de commande', n, e.message); }
+    }
+    r.bons_de_commande = bc;
+    console.log('[SYNC] bons de commande', JSON.stringify(bc));
+
+    // Recharger les BC : le rattachement bon_de_commande_id des transactions en dépend.
+    if (bc.created || bc.updated) ctx.bcs = await apiGetAll('BonDeCommande');
+
+    // 7. Transactions par projet (rattachées aux divisions et aux BC qui existent maintenant).
     let created = 0, updated = 0, unchanged = 0, errors = 0, total = 0;
     for (const n of aTraiter) {
       const payloads = syncAvantage.transactionsDe(parProjet, n);
@@ -107,7 +126,8 @@ async function syncComplet(opts) {
     dernier = {
       ok: r.ok, duree_s: r.duree_s, fin: r.fin,
       projets: r.etapes.projets || null, factures: r.etapes.factures || null,
-      transactions: r.transactions || null, controle_budgetaire: r.controle_budgetaire || null, error: r.error || null,
+      transactions: r.transactions || null, controle_budgetaire: r.controle_budgetaire || null,
+      bons_de_commande: r.bons_de_commande || null, error: r.error || null,
     };
   }
   return r;

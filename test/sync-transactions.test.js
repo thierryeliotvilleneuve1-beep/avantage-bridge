@@ -155,6 +155,17 @@ https.request = function (o, cb) {
   check('facture sans BC LOC-1 : division via journal P (07200)', t['P070244'] && t['P070244'].code_division, '07200');
   check('LOC-1 net = 15000', t['P070244'] && t['P070244'].montant, 15000);
 
+  // Bons de commande reconstruits (COMMAN chiffrée) depuis PYBBIL + COMITE.
+  // Seule ST-1 porte une commande (000002087) ; LOC-1 et MT-1 n'en ont pas → pas de BC.
+  check('un seul BC reconstruit', r.bons_de_commande.created, 1);
+  const bc = store.BonDeCommande.find(x => x.reference_avantage === '000002087');
+  check('BC 000002087 existe', !!bc, true);
+  check('BC rattaché au projet 25007', !!bc && bc.projet_id === parNum['P25007'], true);
+  check('BC fournisseur = GROUPE JLF', !!bc && bc.fournisseur_avantage, 'GROUPE JLF');
+  check('BC facturé = 300000', !!bc && bc.montant_facture, 300000);
+  check('BC marqué reconstruit depuis transactions', !!bc && bc.source_bc, 'avantage-transactions');
+  check('transaction ST-1 rattachée à son BC', !!bc && t['P1001'] && t['P1001'].bon_de_commande_id === (bc._id || bc.id), true);
+
   // Deuxième passage : différentiel — rien n'a changé, donc aucune écriture.
   console.log('\n--- Deuxième passage (différentiel) ---');
   const avant = store.TransactionAvantage.length;
@@ -170,6 +181,8 @@ https.request = function (o, cb) {
   check('aucune transaction réécrite', [r2.transactions.created, r2.transactions.updated], [0, 0]);
   check('2e passage: aucun projet créé', r2.etapes.projets.created, 0);
   check('factures inchangées', r2.etapes.factures.unchanged, 2);
+  check('2e passage: BC inchangé', r2.bons_de_commande.unchanged, 1);
+  check('2e passage: aucun BC réécrit', [r2.bons_de_commande.created, r2.bons_de_commande.updated], [0, 0]);
   check('aucune écriture réseau (POST/PUT) au 2e passage', ecritures, 0);
 
   fs.rmSync(DIR, { recursive: true, force: true });
