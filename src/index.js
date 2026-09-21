@@ -113,6 +113,11 @@ app.post('/api/test-alerte', auth, async (req, res) => {
   const r = await notificateur.envoyer('Test alerte bridge', 'Ceci est un test du canal de notification Teams.', { emoji: '✅' });
   res.json(r);
 });
+// Prend la photo hebdomadaire du budget à la demande (normalement déclenchée par le sync).
+app.post('/api/snapshot-budget', auth, async (req, res) => {
+  try { res.json(await require('./services/snapshotBudget').prendreSnapshot()); }
+  catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
 
 // Sync manuel complet
 app.post('/api/sync/all', auth, async (req, res) => {

@@ -14,6 +14,7 @@ const { pousserBonsProjet } = require('./pousseurBonsCommande');
 const pousseurPaiements = require('./pousseurPaiements');
 const { syncBudgetControle } = require('./syncBudgetControle');
 const alertesBudget = require('./alertesBudget');
+const snapshotBudget = require('./snapshotBudget');
 const notificateur = require('./notificateur');
 const { normaliserProjet } = require('../parsers/parseGrandLivre');
 
@@ -138,6 +139,14 @@ async function syncComplet(opts) {
     // 9. Alertes budgétaires par exception (dépassements / seuils) sur l'état à jour.
     try { r.alertes_budget = await alertesBudget.verifier(ctx.divisions, ctx.projets); }
     catch (e) { console.error('[SYNC] alertes budget', e.message); }
+
+    // 10. Photo hebdomadaire du budget (WIP, récupération, tendance). Idempotent : une seule
+    // photo par projet par semaine ISO, donc s'écrit au premier sync de la semaine puis se met
+    // à jour sans se dupliquer. SNAPSHOT_ACTIF=false pour désactiver.
+    if (process.env.SNAPSHOT_ACTIF !== 'false') {
+      try { r.snapshot = await snapshotBudget.prendreSnapshot(ctx); console.log('[SYNC] snapshot', JSON.stringify(r.snapshot)); }
+      catch (e) { console.error('[SYNC] snapshot', e.message); }
+    }
 
     r.source = syncAvantage.provenance();
     r.ok = true;
