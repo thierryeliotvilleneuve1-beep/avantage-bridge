@@ -8,7 +8,7 @@
 // transactions. Les factures client ne sont synchronisées que si FACTMA est lisible.
 
 const syncAvantage = require('../sources/syncAvantage');
-const { writeProjets, writeFactures, apiGetAll } = require('../writers/base44-writer');
+const { writeFactures } = require('../writers/base44-writer');
 const { chargerContexte, pousserProjet, trouverProjet } = require('./pousseurTransactions');
 const { normaliserProjet } = require('../parsers/parseGrandLivre');
 
@@ -35,21 +35,23 @@ async function syncComplet(opts) {
       ? options.codes.map(c => normaliserProjet(String(c).replace(/^P/i, '')))
       : [...parProjet.keys()];
 
-    // 3. Créer les projets manquants (CONTRA chiffré → nom = numéro, à renommer dans Manoeuvre).
-    const noms = await syncAvantage.chargerNomsProjets();
-    const manquants = numeros.filter(n => n && !trouverProjet(ctx.projets, n));
-    if (manquants.length) {
-      const nouveaux = manquants.map(n => ({
-        numero_projet: 'P' + n,
-        nom_projet: (noms[n] && noms[n].nom) || ('Projet ' + n),
-        statut: 'actif',
-      }));
-      r.etapes.projets = await writeProjets(nouveaux);
-      ctx.projets = await apiGetAll('Projet'); // recharger pour le rattachement
-      console.log('[SYNC] projets manquants créés:', JSON.stringify(r.etapes.projets));
-    } else {
-      r.etapes.projets = { created: 0, note: 'tous les projets existent déjà' };
-    }
+    // 3. On ne CRÉE PAS de projets. L'historique des transactions contient des centaines
+    // de projets clos ; les créer inonderait Manoeuvre de fiches vides. La liste des projets
+    // vient de Manoeuvre (créés par l'équipe, ou importés de CONTRA en clair via un CSV).
+    // On synchronise donc les transactions des seuls projets déjà présents dans Manoeuvre.
+    const presents = new Set(ctx.projets.map(p => (p.code_projet || '').replace(/^P/i, '')));
+    const aTraiter = numeros.filter(n => n && trouverProjet(ctx.projets, n));
+    const absents = numeros.filter(n => n && !trouverProjet(ctx.projets, n));
+    r.etapes.projets = {
+      created: 0,
+      dans_manoeuvre: aTraiter.length,
+      absents: absents.length,
+      note: absents.length
+        ? absents.length + ' projet(s) de l\'historique absents de Manoeuvre — transactions ignorées (créer le projet dans Manoeuvre pour les importer)'
+        : 'tous les projets à synchroniser existent dans Manoeuvre',
+    };
+    r.projets_absents_codes = absents.slice(0, 30);
+    console.log('[SYNC] projets:', aTraiter.length, 'dans Manoeuvre,', absents.length, 'absents (ignorés)');
 
     // 4. Factures client — seulement si FACTMA est lisible.
     const fac = await syncAvantage.chargerFacturesLisibles();
@@ -63,17 +65,16 @@ async function syncComplet(opts) {
     console.log('[SYNC] factures', JSON.stringify(r.etapes.factures));
 
     // 5. Transactions par projet.
-    let created = 0, updated = 0, unchanged = 0, errors = 0, total = 0, absents = 0;
-    for (const n of numeros) {
+    let created = 0, updated = 0, unchanged = 0, errors = 0, total = 0;
+    for (const n of aTraiter) {
       const payloads = syncAvantage.transactionsDe(parProjet, n);
       if (!payloads.length) continue;
       const pr = await pousserProjet(n, payloads, ctx);
-      if (pr.ok === false) { absents++; r.projets.push(pr); continue; }
       r.projets.push(pr);
       created += pr.created || 0; updated += pr.updated || 0; unchanged += pr.unchanged || 0;
       errors += pr.errors || 0; total += pr.total || 0;
     }
-    r.transactions = { projets: r.projets.length, projets_absents: absents, total, created, updated, unchanged, errors };
+    r.transactions = { projets: r.projets.length, projets_absents: absents.length, total, created, updated, unchanged, errors };
     r.source = syncAvantage.provenance();
     r.ok = true;
     console.log('[SYNC] transactions', JSON.stringify(r.transactions));

@@ -40,6 +40,9 @@ ecrireDbf('PYBBIL.DBF', aide.champsPybbil(), [
   // Frais général sans projet : hors transactions de projet
   aide.lignePybbil({ seq: '2001', date: '20260120', noFourn: 'G01', facture: 'FG-1', desc: 'Info',
     total: '50000.00', nom: 'BLACKWARE', gl: [['42120', '50000.00']] }),
+  // Projet présent dans les transactions mais ABSENT de Manoeuvre → doit être ignoré
+  aide.lignePybbil({ seq: '3001', date: '20260201', noFourn: 'F09', facture: 'X-1', desc: 'Vieux projet',
+    total: '10000.00', projet: '0000099999', nom: 'ANCIEN', gl: [['33500', '10000.00']] }),
 ]);
 
 ecrireDbf('TRANS.DBF', aide.CHAMPS_TRANS, [
@@ -76,6 +79,9 @@ ecrireDbf('COMITE.DBF', champsComite, [ { CMCMD: '000002087', CMACT: '06100' } ]
 
 // ── Base44 simulé ────────────────────────────────────────────────────────────
 const store = { Projet: [], FactureClient: [], ControleBudgetaire: [], BonDeCommande: [], TransactionAvantage: [] };
+// Les projets doivent PRÉ-EXISTER dans Manoeuvre — le bridge ne les crée plus.
+store.Projet.push({ _id: 'proj-25007', code_projet: 'P25007', nom: 'TV-18 Atikamekw', statut: 'actif' });
+store.Projet.push({ _id: 'proj-26004', code_projet: 'P26004', nom: 'BD-50 Eglise', statut: 'actif' });
 let seq = 0;
 https.request = function (o, cb) {
   const req = new EventEmitter(); let body = '';
@@ -111,12 +117,15 @@ https.request = function (o, cb) {
 
   console.log('\n--- Résultat du sync ---');
   check('sync ok', r.ok, true);
-  check('projets créés (dérivés des transactions)', r.etapes.projets.created, 2);
+  check('aucun projet créé (ils préexistent)', r.etapes.projets.created, 0);
+  check('projets synchronisés = 2', r.etapes.projets.dans_manoeuvre, 2);
+  check('projet 99999 absent, ignoré', r.etapes.projets.absents, 1);
   check('factures créées', r.etapes.factures.created, 2);
 
   const parNum = {};
   store.Projet.forEach(p => { parNum[p.code_projet] = p._id; });
   check('projet P25007 présent', !!parNum['P25007'], true);
+  check('transactions du projet absent 99999 non poussées', store.TransactionAvantage.some(x=>x.numero_journal==='P3001'), false);
 
   const t = {};
   store.TransactionAvantage.forEach(x => { t[x.numero_journal] = x; });
@@ -151,7 +160,7 @@ https.request = function (o, cb) {
   check('aucun doublon de transaction', store.TransactionAvantage.length, avant);
   check('transactions toutes inchangées', r2.transactions.unchanged, avant);
   check('aucune transaction réécrite', [r2.transactions.created, r2.transactions.updated], [0, 0]);
-  check('projets déjà existants au 2e passage', r2.etapes.projets.created, 0);
+  check('2e passage: aucun projet créé', r2.etapes.projets.created, 0);
   check('factures inchangées', r2.etapes.factures.unchanged, 2);
   check('aucune écriture réseau (POST/PUT) au 2e passage', ecritures, 0);
 
