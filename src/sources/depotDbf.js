@@ -380,6 +380,41 @@ function divisionParJournalP() {
   return map;
 }
 
+// Paiements fournisseurs lus dans PYBACM (lisible). Chaque ligne = un versement sur une
+// facture : reference_paiement PANOPAI « ######-NN » (préfixe = n° de facture, suffixe =
+// versement), montant PAMONT, n° de chèque PACHEQ, date PADATE, séquentiel PASEQ.
+// On expose facture_seq (le préfixe numérique) pour rattacher au numero_journal 'P######'
+// des transactions.
+function lirePaiements() {
+  if (!aTable('PYBACM')) return [];
+  const m = meta('PYBACM');
+  const nom = {};
+  m.champs.forEach(c => { nom[c.nom.replace(/[^A-Za-z0-9]/g, '').toUpperCase()] = c.nom; });
+  const cRef = nom['PANOPAI'] || (m.champs[0] && m.champs[0].nom);
+  const cDate = nom['PADATE'] || (m.champs[1] && m.champs[1].nom);
+  const cMont = nom['PAMONT'] || (m.champs[3] && m.champs[3].nom);
+  const cCheq = nom['PACHEQ'] || (m.champs[4] && m.champs[4].nom);
+  const cSeq = nom['PASEQ'] || (m.champs[5] && m.champs[5].nom);
+  const out = [];
+  dbf.lireTable(fichier('PYBACM'), { meta: m, filtre: l => {
+    const ref = String(l[cRef] == null ? '' : l[cRef]).trim();
+    if (!ref) return false;
+    const facture = parseInt(String(ref).split('-')[0], 10);
+    if (!Number.isFinite(facture)) return false;
+    const cheq = String(l[cCheq] == null ? '' : l[cCheq]).trim().replace(/\.0+$/, '');
+    out.push({
+      reference_paiement: ref,
+      facture_seq: facture,
+      numero_paiement: parseInt(String(l[cSeq] == null ? '' : l[cSeq]).trim(), 10) || null,
+      date_paiement: String(l[cDate] == null ? '' : l[cDate]).trim().replace(/\//g, '-'),
+      montant_paiement: Math.round(gl.nombre(l[cMont]) * 100) / 100,
+      reference_cheque: cheq && cheq !== '0' ? cheq : '',
+    });
+    return false;
+  }});
+  return out;
+}
+
 function inventaire() {
   return { repertoire: repertoire(), tables: dbf.inventaire(repertoire(), TABLES_ATTENDUES) };
 }
@@ -397,6 +432,6 @@ function lisibilite(table) {
 module.exports = {
   disponible, raisonIndisponible, repertoire, aTable, listerColonnes, echantillonner,
   lireFactures, lireRevenusGrandLivre, lireChargesFournisseurs, lireEcritures, lireProjets,
-  lireActivites, lireCommandeDivisions, divisionParJournalP, totauxParJournal, inventaire, lisibilite, meta,
+  lireActivites, lireCommandeDivisions, divisionParJournalP, lirePaiements, totauxParJournal, inventaire, lisibilite, meta,
   TABLES_ATTENDUES, JOURNAUX_CHARGE, JOURNAUX_ECARTES,
 };

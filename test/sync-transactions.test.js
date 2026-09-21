@@ -83,8 +83,19 @@ const champsComite = [];
 for (let i = 0; i < 18; i++) champsComite.push(i === 16 ? { nom: 'CMCMD', type: 'C', longueur: 9 } : (i === 17 ? { nom: 'CMACT', type: 'C', longueur: 10 } : { nom: 'CMF' + i, type: 'C', longueur: 4 }));
 ecrireDbf('COMITE.DBF', champsComite, [ { CMCMD: '000002087', CMACT: '06100' } ]);
 
+// PYBACM : paiements fournisseurs. PANOPAI « ######-NN », préfixe = n° facture (= seq PYBBIL).
+// ST-1 (seq 1001) est payée en deux versements ; MT-1 (seq 1002) reste impayée.
+ecrireDbf('PYBACM.DBF', [
+  { nom: 'PANOPAI', type: 'C', longueur: 9 }, { nom: 'PADATE', type: 'C', longueur: 10 },
+  { nom: 'PABNQ', type: 'C', longueur: 5 }, { nom: 'PAMONT', type: 'N', longueur: 14, decimales: 2 },
+  { nom: 'PACHEQ', type: 'N', longueur: 7 }, { nom: 'PASEQ', type: 'C', longueur: 6 },
+], [
+  { PANOPAI: '001001-01', PADATE: '2026/03/01', PABNQ: '11110', PAMONT: '200000.00', PACHEQ: '5551', PASEQ: '000050' },
+  { PANOPAI: '001001-02', PADATE: '2026/03/15', PABNQ: '11110', PAMONT: '100000.00', PACHEQ: '5552', PASEQ: '000051' },
+]);
+
 // ── Base44 simulé ────────────────────────────────────────────────────────────
-const store = { Projet: [], FactureClient: [], ControleBudgetaire: [], BonDeCommande: [], TransactionAvantage: [] };
+const store = { Projet: [], FactureClient: [], ControleBudgetaire: [], BonDeCommande: [], TransactionAvantage: [], PaiementFournisseur: [] };
 // Les projets doivent PRÉ-EXISTER dans Manoeuvre — le bridge ne les crée plus.
 store.Projet.push({ _id: 'proj-25007', code_projet: 'P25007', nom: 'TV-18 Atikamekw', statut: 'actif' });
 store.Projet.push({ _id: 'proj-26004', code_projet: 'P26004', nom: 'BD-50 Eglise', statut: 'actif' });
@@ -166,6 +177,15 @@ https.request = function (o, cb) {
   check('BC marqué reconstruit depuis transactions', !!bc && bc.source_bc, 'avantage-transactions');
   check('transaction ST-1 rattachée à son BC', !!bc && t['P1001'] && t['P1001'].bon_de_commande_id === (bc._id || bc.id), true);
 
+  // Paiements fournisseurs (PYBACM) rattachés à la transaction par n° de facture.
+  check('deux paiements créés', r.paiements.created, 2);
+  const paysST1 = store.PaiementFournisseur.filter(p => p.transaction_id === (t['P1001']._id || t['P1001'].id));
+  check('les 2 paiements rattachés à ST-1', paysST1.length, 2);
+  check('total payé ST-1 = 300000', paysST1.reduce((s, p) => s + (p.montant_paiement || 0), 0), 300000);
+  check('n° de chèque conservé', paysST1.map(p => p.reference_cheque).sort(), ['5551', '5552']);
+  check('paiement hérite du BC de la transaction', paysST1.every(p => p.bon_de_commande_id === (bc._id || bc.id)), true);
+  check('MT-1 (impayée) sans paiement', store.PaiementFournisseur.some(p => p.transaction_id === (t['P1002'] && (t['P1002']._id || t['P1002'].id))), false);
+
   // Deuxième passage : différentiel — rien n'a changé, donc aucune écriture.
   console.log('\n--- Deuxième passage (différentiel) ---');
   const avant = store.TransactionAvantage.length;
@@ -183,6 +203,8 @@ https.request = function (o, cb) {
   check('factures inchangées', r2.etapes.factures.unchanged, 2);
   check('2e passage: BC inchangé', r2.bons_de_commande.unchanged, 1);
   check('2e passage: aucun BC réécrit', [r2.bons_de_commande.created, r2.bons_de_commande.updated], [0, 0]);
+  check('2e passage: paiements inchangés', r2.paiements.unchanged, 2);
+  check('2e passage: aucun paiement réécrit', [r2.paiements.created, r2.paiements.updated], [0, 0]);
   check('aucune écriture réseau (POST/PUT) au 2e passage', ecritures, 0);
 
   fs.rmSync(DIR, { recursive: true, force: true });

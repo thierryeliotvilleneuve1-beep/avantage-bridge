@@ -11,6 +11,7 @@ const syncAvantage = require('../sources/syncAvantage');
 const { writeFactures, apiGetAll } = require('../writers/base44-writer');
 const { chargerContexte, pousserProjet, trouverProjet } = require('./pousseurTransactions');
 const { pousserBonsProjet } = require('./pousseurBonsCommande');
+const pousseurPaiements = require('./pousseurPaiements');
 const { syncBudgetControle } = require('./syncBudgetControle');
 const { normaliserProjet } = require('../parsers/parseGrandLivre');
 
@@ -113,9 +114,27 @@ async function syncComplet(opts) {
       errors += pr.errors || 0; total += pr.total || 0;
     }
     r.transactions = { projets: r.projets.length, projets_absents: absents.length, total, created, updated, unchanged, errors };
+    console.log('[SYNC] transactions', JSON.stringify(r.transactions));
+
+    // 8. Paiements fournisseurs (PYBACM) rattachés à chaque transaction. On recharge les
+    // transactions (pour leur _id Manoeuvre) et les paiements existants, puis on pousse.
+    const pf = { projets: 0, created: 0, updated: 0, unchanged: 0, errors: 0 };
+    try {
+      pousseurPaiements.reset();
+      if (pousseurPaiements.chargerPaiements().size) {
+        ctx.transactions = await apiGetAll('TransactionAvantage');
+        ctx.paiements = await apiGetAll('PaiementFournisseur');
+        for (const n of aTraiter) {
+          const rp = await pousseurPaiements.pousserPaiementsProjet(n, ctx);
+          if (rp.ok) { pf.projets++; pf.created += rp.created || 0; pf.updated += rp.updated || 0; pf.unchanged += rp.unchanged || 0; pf.errors += rp.errors || 0; }
+        }
+      }
+    } catch (e) { pf.errors++; console.error('[SYNC] paiements', e.message); }
+    r.paiements = pf;
+    console.log('[SYNC] paiements', JSON.stringify(pf));
+
     r.source = syncAvantage.provenance();
     r.ok = true;
-    console.log('[SYNC] transactions', JSON.stringify(r.transactions));
   } catch (e) {
     r.ok = false; r.error = e.message;
     console.error('[SYNC] échec:', e.message);
@@ -127,7 +146,7 @@ async function syncComplet(opts) {
       ok: r.ok, duree_s: r.duree_s, fin: r.fin,
       projets: r.etapes.projets || null, factures: r.etapes.factures || null,
       transactions: r.transactions || null, controle_budgetaire: r.controle_budgetaire || null,
-      bons_de_commande: r.bons_de_commande || null, error: r.error || null,
+      bons_de_commande: r.bons_de_commande || null, paiements: r.paiements || null, error: r.error || null,
     };
   }
   return r;
