@@ -82,6 +82,23 @@ app.get('/api/budget/apercu/:code', auth, (req, res) => {
   catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Inspection d'une table .DBF (LECTURE SEULE) — colonnes, lisibilité et quelques
+// enregistrements. Sert à cartographier une table (ex. COMMAN) avant d'écrire son
+// lecteur, sans jamais exporter vers Excel ni écrire dans Avantage.
+app.get('/api/inspect/:table', auth, async (req, res) => {
+  try {
+    const depot = require('./sources/depotDbf');
+    if (!depot.disponible()) return res.status(503).json({ ok: false, error: depot.raisonIndisponible() });
+    const table = req.params.table.toUpperCase();
+    if (!depot.aTable(table)) return res.status(404).json({ ok: false, error: 'Table ' + table + ' introuvable dans ' + depot.repertoire() });
+    const n = Math.min(parseInt(req.query.n, 10) || 5, 50);
+    const colonnes = await depot.listerColonnes(table);
+    let lisibilite = null; try { lisibilite = depot.lisibilite(table); } catch (e) {}
+    let echantillon = []; try { echantillon = (await depot.echantillonner(table, n)).slice(0, n); } catch (e) {}
+    res.json({ ok: true, table, repertoire: depot.repertoire(), colonnes, lisibilite, echantillon });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 app.listen(PORT, () => {
   console.log('[INFO] Bridge Avantage v7 démarré sur le port ' + PORT);
   console.log('[INFO] Export dir:', EXPORT_DIR);
