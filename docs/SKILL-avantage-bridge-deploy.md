@@ -88,10 +88,10 @@ Chaque division du tableau ouvre trois sections qui lisent `TransactionAvantage`
   **écritures de paie E d'Avantage** de la division (les `TransactionAvantage` avec
   `type_transaction === 'E'` / `is_mo`), qui sont la source du total MO (`mo_total` =
   TRANS journal E), puis les saisies `SaisieHeure` (TempoBuild) en dessous.
-  ⚠️ Le total MO affiché par `ControleBudgetaireTab` fait `mo_total = mo_avantage
-  (Avantage E) + mo_local (heures TempoBuild × taux)` : si les mêmes heures sont saisies
-  dans Avantage ET TempoBuild, il y a double compte. À trancher avec Thierry si le total
-  doit devenir « Avantage seulement ».
+  Le total MO de `ControleBudgetaireTab` = **Avantage seulement** (`mo_total = mo_avantage`,
+  journal E = paie réellement versée, vérité comptable). `mo_local` (heures TempoBuild ×
+  taux) reste calculé pour le détail mais n'est PAS additionné au total, pour éviter le
+  double compte des heures présentes dans Avantage ET TempoBuild (décidé sept. 2026).
 
 **Attribution de division des factures fournisseurs sans BC** (corrigé sept. 2026) :
 une facture `PYBBIL` sans bon de commande n'a pas de division propre. On la rattache
