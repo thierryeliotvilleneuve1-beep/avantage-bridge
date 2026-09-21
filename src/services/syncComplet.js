@@ -13,6 +13,8 @@ const { chargerContexte, pousserProjet, trouverProjet } = require('./pousseurTra
 const { pousserBonsProjet } = require('./pousseurBonsCommande');
 const pousseurPaiements = require('./pousseurPaiements');
 const { syncBudgetControle } = require('./syncBudgetControle');
+const alertesBudget = require('./alertesBudget');
+const notificateur = require('./notificateur');
 const { normaliserProjet } = require('../parsers/parseGrandLivre');
 
 let enCours = false;
@@ -133,11 +135,26 @@ async function syncComplet(opts) {
     r.paiements = pf;
     console.log('[SYNC] paiements', JSON.stringify(pf));
 
+    // 9. Alertes budgétaires par exception (dépassements / seuils) sur l'état à jour.
+    try { r.alertes_budget = await alertesBudget.verifier(ctx.divisions, ctx.projets); }
+    catch (e) { console.error('[SYNC] alertes budget', e.message); }
+
     r.source = syncAvantage.provenance();
     r.ok = true;
+
+    // Notifier si des erreurs sont survenues malgré un cycle « ok ».
+    const totalErreurs = (cb.errors || 0) + (bc.errors || 0) + (pf.errors || 0) + (errors || 0)
+      + ((r.etapes.factures && r.etapes.factures.errors) || 0);
+    if (totalErreurs > 0 && notificateur.disponible()) {
+      await notificateur.envoyer('Sync Avantage terminé avec des erreurs',
+        totalErreurs + ' erreur(s) durant le cycle (budget ' + (cb.errors || 0) + ', BC ' + (bc.errors || 0) +
+        ', transactions ' + (errors || 0) + ', paiements ' + (pf.errors || 0) + '). Vérifier les journaux PM2.',
+        { emoji: '⚠️' });
+    }
   } catch (e) {
     r.ok = false; r.error = e.message;
     console.error('[SYNC] échec:', e.message);
+    try { if (notificateur.disponible()) await notificateur.envoyer('Sync Avantage EN ÉCHEC', 'Le cycle a échoué : ' + e.message + '. Le contrôle budgétaire de Manoeuvre n\'est plus à jour tant que ce n\'est pas corrigé.', { emoji: '🔴' }); } catch (e2) {}
   } finally {
     enCours = false;
     r.duree_s = Math.round((Date.now() - t0) / 1000);

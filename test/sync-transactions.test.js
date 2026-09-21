@@ -14,6 +14,7 @@ const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'sync-dbf-'));
 process.env.AVANTAGE_DBF_DIR = DIR;
 process.env.AVANTAGE_EXPORT_DIR = path.join(DIR, 'aucun-export');
 process.env.AVANTAGE_BD_ACTIVE = 'false';
+process.env.ALERTES_ACTIF = 'false'; // pas d'écriture d'état d'alertes pendant le test
 process.env.BASE44_API_KEY = 'test';
 process.env.BASE44_APP_ID = 'test';
 

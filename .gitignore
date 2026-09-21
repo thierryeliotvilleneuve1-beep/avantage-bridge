@@ -3,3 +3,6 @@ exports-avantage/
 .env
 *.log
 decouverte-bd-avantage.txt
+
+# État runtime des alertes budgétaires
+data/

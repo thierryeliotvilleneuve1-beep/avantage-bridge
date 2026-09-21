@@ -65,6 +65,55 @@ if (CRON_ACTIF) {
   console.log('[INFO] Cron en pause (CRON_ACTIF=false) — sync manuel seulement');
 }
 
+// ── Notifications, alertes budgétaires et résumé hebdo IA ────────────────────────
+const notificateur = require('./services/notificateur');
+const resumeHebdo = require('./services/resumeHebdo');
+
+// Surveillance de fraîcheur : si le dernier sync réussi est trop vieux alors que le cron
+// est censé tourner, on alerte une fois (et on réarme quand ça repart). Garde-fou contre
+// un bridge « silencieusement mort » (DBF illisible, Base44 down, PC en veille prolongée).
+const FRAICHEUR_MIN = parseInt(process.env.MONITEUR_FRAICHEUR_MIN, 10) || 45;
+let alerteStaleEnvoyee = false;
+if (CRON_ACTIF) {
+  setInterval(async () => {
+    try {
+      const d = require('./services/syncComplet').etat().dernier;
+      if (!d || !d.fin) return; // jamais tourné depuis le démarrage : on attend
+      const ageMin = (Date.now() - new Date(d.fin).getTime()) / 60000;
+      if (ageMin > FRAICHEUR_MIN && !alerteStaleEnvoyee) {
+        alerteStaleEnvoyee = true;
+        if (notificateur.disponible()) await notificateur.envoyer('Sync Avantage en retard',
+          'Aucun sync réussi depuis ' + Math.round(ageMin) + ' min (seuil ' + FRAICHEUR_MIN + ' min). ' +
+          'Vérifier PM2, la connexion Base44 et l\'accès A:\\AVA01.', { emoji: '🟠' });
+      } else if (ageMin <= FRAICHEUR_MIN && alerteStaleEnvoyee) {
+        alerteStaleEnvoyee = false; // repart : on réarme l'alerte
+        if (notificateur.disponible()) await notificateur.envoyer('Sync Avantage rétabli', 'Le sync a repris normalement.', { emoji: '🟢' });
+      }
+    } catch (e) {}
+  }, Math.max(5, Math.floor(FRAICHEUR_MIN / 3)) * 60 * 1000);
+}
+
+// Résumé hebdomadaire IA (par défaut lundi 7h). Nécessite ANTHROPIC_API_KEY.
+const RESUME_HEBDO_CRON = process.env.RESUME_HEBDO_CRON || '0 7 * * 1';
+if (resumeHebdo.actif()) {
+  cron.schedule(RESUME_HEBDO_CRON, async () => {
+    console.log('[INFO] Résumé hebdo déclenché —', new Date().toISOString());
+    try { const r = await resumeHebdo.genererEtEnvoyer(); console.log('[INFO] Résumé hebdo:', r.ok ? (r.projets + ' projets') : r.raison); }
+    catch (e) { console.error('[INFO] Résumé hebdo échec:', e.message); }
+  });
+  console.log('[INFO] Résumé hebdo IA:', RESUME_HEBDO_CRON, '(modèle', (process.env.ANTHROPIC_MODEL || 'claude-opus-5') + ')');
+}
+
+// Déclencheurs manuels (tests / à la demande)
+app.post('/api/resume-hebdo', auth, async (req, res) => {
+  try { res.json(await resumeHebdo.genererEtEnvoyer()); }
+  catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+app.post('/api/test-alerte', auth, async (req, res) => {
+  const r = await notificateur.envoyer('Test alerte bridge', 'Ceci est un test du canal de notification Teams.', { emoji: '✅' });
+  res.json(r);
+});
+
 // Sync manuel complet
 app.post('/api/sync/all', auth, async (req, res) => {
   const codes = req.query.projets ? req.query.projets.split(',') : null;
