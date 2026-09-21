@@ -65,6 +65,13 @@ comptée deux fois. Corrigé dans `TableauControleBudgetaire.jsx` (ligne de divi
 des totaux + récup.) en sept. 2026 ; la section drill-down « Dépenses Avantage (grand livre) »
 a été retirée car ses lignes sont déjà réparties dans Bons de commande / sans BC / MO.
 
+**Affichage « MO à part » (sept. 2026)** : le champ stocké `depense` reste = P+E+B (identique
+à l'écran Avantage, au cent près). Mais dans le tableau Manœuvre, la **colonne Dépense affiche
+`depense − mo_total`** (donc P+B, matériaux/achats) et la **colonne M.O. affiche `mo_total`**
+(E, paie), pour que la main-d'œuvre n'apparaisse pas deux fois. On garde ainsi
+`Dépense_affichée + M.O. + Engagé = Coût Total`. La donnée brute n'est pas touchée (pas de
+resync requis) — c'est un choix d'affichage propre à Manœuvre.
+
 ## Mapping vers l'entité `ControleBudgetaire` (Manœuvre)
 
 Le bridge écrit **seulement** les champs dont Avantage est la source de vérité, et
