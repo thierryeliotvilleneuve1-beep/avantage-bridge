@@ -136,6 +136,19 @@ app.get('/api/budget/apercu/:code', auth, (req, res) => {
   catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Aperçu d'une demande de paiement reconstruite depuis CONFIT (LECTURE SEULE), pour
+// comparaison au cent près avec l'écran « demande de paiement » d'Avantage avant tout
+// écriture dans Manoeuvre.
+app.get('/api/demandes-paiement/apercu/:code', auth, (req, res) => {
+  try {
+    const dp = require('./sources/demandesPaiementDbf');
+    if (!dp.disponible()) return res.status(503).json({ ok: false, error: 'CONFIT introuvable dans ' + dp.repertoire() });
+    const r = dp.lireProjet(req.params.code);
+    if (!r) return res.status(404).json({ ok: false, error: 'Aucune ligne CONFIT pour le projet ' + req.params.code });
+    res.json({ ok: true, projet: req.params.code, ...r });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Inspection d'une table .DBF (LECTURE SEULE) — colonnes, lisibilité et quelques
 // enregistrements. Sert à cartographier une table (ex. COMMAN) avant d'écrire son
 // lecteur, sans jamais exporter vers Excel ni écrire dans Avantage.
