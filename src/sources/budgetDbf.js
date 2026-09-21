@@ -78,14 +78,15 @@ function lireCoutsEngages(code) {
 function lireFactureAvenir(code) {
   const f = fichier('CONACT'); if (!f) return {};
   const meta = dbf.lireEnTete(f);
-  const c = resoudre(meta, { projet: 'CACONUM', activite: 'CAANUM', facture: 'CAFACT', avenir: 'CAVENIR' });
+  const c = resoudre(meta, { projet: 'CACONUM', activite: 'CAANUM', facture: 'CAFACT', avenir: 'CAVENIR', profit: 'CAPROFIT' });
   const div = {};
   dbf.lireTable(f, { meta, filtre: l => {
     if (!projMatch(l[c.projet], code)) return false;
     const a = act(l[c.activite]); if (!a) return false;
-    if (!div[a]) div[a] = { facture: 0, avenir: 0 };
+    if (!div[a]) div[a] = { facture: 0, avenir: 0, profit: 0 };
     div[a].facture += num(l[c.facture]);
     div[a].avenir += num(l[c.avenir]);
+    div[a].profit += num(l[c.profit]);
     return false;
   }});
   return div;
@@ -101,9 +102,11 @@ function apercu(codeRaw) {
   const codes = new Set([...Object.keys(budget), ...Object.keys(couts), ...Object.keys(fa)]);
   const divisions = [...codes].sort().map(a => {
     const b = budget[a] || {}, ce = couts[a] || {}, f = fa[a] || {};
+    const budget_cout = (b.budget_cout || 0) + (b.budget_revenu || 0); // CONPRE = budget de coûts
     return {
       division: a,
-      budget_cout: r2(b.budget_cout), budget_revenu: r2(b.budget_revenu),
+      budget_cout: r2(budget_cout),
+      budget_revenu: r2(budget_cout + (f.profit || 0)),
       depense: r2(ce.depense), engage: r2(ce.engage),
       facture: r2(f.facture), a_venir: r2(f.avenir),
     };

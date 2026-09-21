@@ -24,7 +24,6 @@ ecrire('CONPRE.DBF', [
   { nom: 'CPPOSTE', type: 'C', longueur: 6 }, { nom: 'CPMNT', type: 'N', longueur: 14, decimales: 2 },
 ], [
   { CPCONUM: '0000026004', CPACT: '00400', CPPOSTE: '33200', CPMNT: '120261.45' },
-  { CPCONUM: '0000026004', CPACT: '00400', CPPOSTE: '31100', CPMNT: '132287.60' },
   { CPCONUM: '0000026004', CPACT: '00401', CPPOSTE: '33200', CPMNT: '20277.50' },
   { CPCONUM: '0000099999', CPACT: '00400', CPPOSTE: '33200', CPMNT: '999999.00' }, // autre projet
 ]);
@@ -46,9 +45,10 @@ ecrire('TRANS.DBF', [
 ecrire('CONACT.DBF', [
   { nom: 'CACONUM', type: 'C', longueur: 10 }, { nom: 'CAANUM', type: 'C', longueur: 6 },
   { nom: 'CAFACT', type: 'N', longueur: 14, decimales: 2 }, { nom: 'CAVENIR', type: 'N', longueur: 14, decimales: 2 },
+  { nom: 'CAPROFIT', type: 'N', longueur: 14, decimales: 2 },
 ], [
-  { CACONUM: '0000026004', CAANUM: '00400', CAFACT: '92601.32', CAVENIR: '0.00' },
-  { CACONUM: '0000026004', CAANUM: '00401', CAFACT: '22305.25', CAVENIR: '0.00' },
+  { CACONUM: '0000026004', CAANUM: '00400', CAFACT: '92601.32', CAVENIR: '0.00', CAPROFIT: '12026.15' },
+  { CACONUM: '0000026004', CAANUM: '00401', CAFACT: '22305.25', CAVENIR: '0.00', CAPROFIT: '2027.75' },
 ]);
 
 const { apercu } = require('../src/sources/budgetDbf');
@@ -57,7 +57,7 @@ const parDiv = Object.fromEntries(r.divisions.map(d => [d.division, d]));
 
 console.log('--- Aperçu P26004 ---');
 check('division 00400 budget coût', parDiv['00400'].budget_cout, 120261.45);
-check('division 00400 budget revenu', parDiv['00400'].budget_revenu, 132287.60);
+check('division 00400 budget revenu (coût + profit)', parDiv['00400'].budget_revenu, 132287.60);
 check('division 00400 dépense (P, taxe exclue)', parDiv['00400'].depense, 15719.38);
 check('division 00400 engagé (journal C)', parDiv['00400'].engage, 50000);
 check('division 00400 facturé (CONACT)', parDiv['00400'].facture, 92601.32);
