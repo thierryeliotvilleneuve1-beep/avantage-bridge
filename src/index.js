@@ -75,6 +75,13 @@ app.post('/api/sync/projet/:code', auth, async (req, res) => {
 });
 app.get('/api/sync/etat', auth, (req, res) => res.json(require('./services/syncComplet').etat()));
 
+// Aperçu budgétaire (LECTURE SEULE) — reconstruit le « Suivi de projet » d'Avantage
+// depuis la BD, pour comparaison avec l'écran avant tout écriture dans Manoeuvre.
+app.get('/api/budget/apercu/:code', auth, (req, res) => {
+  try { res.json(require('./sources/budgetDbf').apercu(req.params.code)); }
+  catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 app.listen(PORT, () => {
   console.log('[INFO] Bridge Avantage v7 démarré sur le port ' + PORT);
   console.log('[INFO] Export dir:', EXPORT_DIR);
