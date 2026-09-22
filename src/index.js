@@ -201,6 +201,19 @@ app.get('/api/sdk/engage/:code', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Écrit l'engagé réel (COMMAN/COMITE) dans ControleBudgetaire. DRY-RUN par défaut ;
+// ?apply=true pour écrire. Ne touche que le champ `engage`.
+app.post('/api/sdk/engage-divisions/sync/:code', auth, async (req, res) => {
+  try {
+    const { apiGetAll } = require('./writers/base44-writer');
+    const [projets, divisions] = await Promise.all([apiGetAll('Projet'), apiGetAll('ControleBudgetaire')]);
+    const dryRun = String(req.query.apply || '') !== 'true';
+    const r = await require('./services/syncEngageControle').syncEngageControle(req.params.code, { projets, divisions }, { dryRun });
+    if (!r.ok) return res.status(502).json(r);
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Engagé réel VENTILÉ PAR DIVISION (COMITE via R09). LECTURE SEULE — à valider avant écriture.
 app.get('/api/sdk/engage-divisions/:code', auth, async (req, res) => {
   try {
