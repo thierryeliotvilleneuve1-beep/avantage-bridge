@@ -192,6 +192,31 @@ app.get('/api/sdk/diagnostic-projets', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Engagé réel d'un projet (COMMAN via R09, LECTURE SEULE) : BC fournisseurs + total engagé.
+app.get('/api/sdk/engage/:code', auth, async (req, res) => {
+  try {
+    const r = await require('./services/lectureEngage').lireEngage(req.params.code);
+    if (!r.ok) return res.status(502).json(r);
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+// Lecteur générique de table Avantage (R09 = lit toute table par nom). LECTURE SEULE.
+// GET /api/sdk/table/:nom?index=IDX&valeur=VAL&op=R09
+app.get('/api/sdk/table/:nom', auth, async (req, res) => {
+  try {
+    const { interroger, parseCsv } = require('./services/maintcpClient');
+    const r = await interroger({
+      op: req.query.op || 'R09',
+      mnemonique: String(req.params.nom).toUpperCase(),
+      index: req.query.index,
+      valeur: req.query.valeur,
+    });
+    if (!r.ok) return res.status(502).json(r);
+    res.json({ ok: true, count: r.count, lignes: r.lignes.map(parseCsv) });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Explorateur SDK (LECTURE SEULE) : cartographie l'op/mnémonique de FACTMA & COMMAN.
 // Corps attendu : { "combinaisons": [ { "op":"R02", "mnemonique":"FMA", "index":"FFCONT", "valeur":"0000026008" }, ... ] }
 app.post('/api/sdk/explorer', auth, async (req, res) => {
