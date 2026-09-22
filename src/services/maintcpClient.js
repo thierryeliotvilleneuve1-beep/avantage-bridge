@@ -43,10 +43,12 @@ function parseCsv(ligne) {
   return out;
 }
 
-// Découpe le bloc de réponse en enregistrements. Chaque enregistrement se termine par ,"AVANTAGE".
+// Découpe le bloc de réponse en enregistrements. Universel : un enregistrement par ligne.
+// (CONTRA/COMMAN terminent chaque ligne par ,"AVANTAGE" ; COMITE non — le découpage par
+// saut de ligne fonctionne dans les deux cas. Les champs Avantage n'ont pas de \n interne.)
 function decouperEnregistrements(bloc) {
   if (!bloc) return [];
-  return bloc.split(/,"AVANTAGE"\r?\n?/).map(s => s.trim()).filter(Boolean).map(s => s + ',"AVANTAGE"');
+  return bloc.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
 }
 
 // Requête de lecture. valeur optionnelle = filtre exact sur l'index (clé zéro-paddée au besoin).
