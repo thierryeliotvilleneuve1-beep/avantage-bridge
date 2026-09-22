@@ -16,6 +16,8 @@ const { interroger, parseCsv, actif } = require('./maintcpClient');
 const FF_CNUM = parseInt(process.env.AVANTAGE_SDK_COL_FF_CNUM, 10) || 0;
 const FF_CNOM = parseInt(process.env.AVANTAGE_SDK_COL_FF_CNOM, 10) || 1;
 const FF_SSTAX = parseInt(process.env.AVANTAGE_SDK_COL_FF_SSTAX, 10) || 17;
+const FF_TAXF = parseInt(process.env.AVANTAGE_SDK_COL_FF_TAXF, 10) || 18;  // FFTAXF : TPS (fédéral)
+const FF_TAXP = parseInt(process.env.AVANTAGE_SDK_COL_FF_TAXP, 10) || 19;  // FFTAXP : TVQ (provincial)
 const FF_SOLDE = parseInt(process.env.AVANTAGE_SDK_COL_FF_SOLDE, 10) || 21;
 const FF_TOTDU = parseInt(process.env.AVANTAGE_SDK_COL_FF_TOTDU, 10) || 22;
 const FF_NOFACT = parseInt(process.env.AVANTAGE_SDK_COL_FF_NOFACT, 10) || 24;
@@ -57,6 +59,8 @@ async function lireFactures(code) {
       client_nom: String(c[FF_CNOM] || '').trim(),
       date_facture: String(c[FF_DATE] || '').trim(),
       sous_total_ht: nombre(c[FF_SSTAX]),
+      montant_tps: nombre(c[FF_TAXF]),   // fédéral
+      montant_tvq: nombre(c[FF_TAXP]),   // provincial
       total_facture: total,
       solde_ouvert: solde,
       retenue_total: nombre(c[FF_TOTRET]),   // FFTOTRET : retenue totale (avec taxes)
