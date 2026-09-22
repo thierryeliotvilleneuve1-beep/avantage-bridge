@@ -133,6 +133,23 @@ app.get('/api/sdk-probe', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Dialogue LECTURE SEULE avec la passerelle SDK (maintcp). POST JSON :
+//   { "port":2131, "commandes":["<cmd1>","<cmd2>"], "timeoutMs":8000, "attenteMs":900 }
+// GARDE-FOU : toute commande contenant un op d'écriture (W..) est REFUSÉE.
+app.post('/api/sdk-dialogue', auth, async (req, res) => {
+  try {
+    const b = req.body || {};
+    const commandes = Array.isArray(b.commandes) ? b.commandes : (b.commandes ? [b.commandes] : []);
+    if (!commandes.length) return res.status(400).json({ ok: false, error: 'commandes[] requis' });
+    const ecriture = commandes.find(c => /(^|,)\s*W\d/i.test(String(c)));
+    if (ecriture) return res.status(400).json({ ok: false, error: 'Commande d\'écriture BLOQUÉE (op W..) : ' + ecriture });
+    res.json(await require('./services/maintcpClient').dialoguer({
+      host: b.host, port: b.port || 2131, commandes,
+      timeoutMs: b.timeoutMs, attenteMs: b.attenteMs, finLigne: b.finLigne,
+    }));
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Recopie les demandes de paiement (CONFIT) à la demande (normalement déclenchée par le sync).
 app.post('/api/demandes-paiement/sync', auth, async (req, res) => {
   try {
