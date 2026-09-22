@@ -60,14 +60,24 @@ async function syncComplet(opts) {
     r.projets_absents_codes = absents.slice(0, 30);
     console.log('[SYNC] projets:', aTraiter.length, 'dans Manoeuvre,', absents.length, 'absents (ignorés)');
 
-    // 4. Factures client — seulement si FACTMA est lisible.
-    const fac = await syncAvantage.chargerFacturesLisibles();
-    if (fac.chiffree) {
-      r.etapes.factures = { skipped: true, raison: 'FACTMA chiffrée par Avantage — factures client non lisibles en direct' };
-    } else if (fac.factures.length) {
-      r.etapes.factures = await writeFactures(fac.factures);
+    // 4. Factures client. Voie OFFICIELLE : la passerelle SDK déchiffre FACTMA (n° de facture,
+    // date, taxes, retenue). On l'utilise si elle est active ; sinon on retombe sur la lecture
+    // directe (qui échoue tant que FACTMA est chiffrée). Gardé : une passerelle tombée ne casse
+    // pas le cycle (l'étape est simplement notée en échec doux).
+    const factSDK = require('./syncFacturesSDK');
+    const lectFact = require('./lectureFactures');
+    if (lectFact.actif()) {
+      try {
+        r.etapes.factures = await factSDK.syncFacturesSDK({ projets: ctx.projets }, { dryRun: false });
+      } catch (e) {
+        r.etapes.factures = { ok: false, voie: 'SDK', erreur: e.message };
+        console.error('[SYNC] factures SDK', e.message);
+      }
     } else {
-      r.etapes.factures = { created: 0, note: 'aucune facture lisible' };
+      const fac = await syncAvantage.chargerFacturesLisibles();
+      if (fac.chiffree) r.etapes.factures = { skipped: true, raison: 'FACTMA chiffrée — activer la passerelle SDK (AVANTAGE_SDK_ACTIF)' };
+      else if (fac.factures.length) r.etapes.factures = await writeFactures(fac.factures);
+      else r.etapes.factures = { created: 0, note: 'aucune facture lisible' };
     }
     console.log('[SYNC] factures', JSON.stringify(r.etapes.factures));
 
