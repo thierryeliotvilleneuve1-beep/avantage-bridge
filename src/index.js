@@ -201,6 +201,18 @@ app.get('/api/sdk/factures/:code', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Écrit les factures client (FACTMA) dans FactureClient. DRY-RUN par défaut ; ?apply=true pour écrire.
+app.post('/api/sdk/factures/sync', auth, async (req, res) => {
+  try {
+    const { apiGetAll } = require('./writers/base44-writer');
+    const [projets, factures] = await Promise.all([apiGetAll('Projet'), apiGetAll('FactureClient')]);
+    const dryRun = String(req.query.apply || '') !== 'true';
+    const r = await require('./services/syncFacturesSDK').syncFacturesSDK({ projets, factures }, { dryRun });
+    if (!r.ok) return res.status(502).json(r);
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Engagé réel d'un projet (COMMAN via R09, LECTURE SEULE) : BC fournisseurs + total engagé.
 app.get('/api/sdk/engage/:code', auth, async (req, res) => {
   try {

@@ -9,6 +9,7 @@
 //   [0] FFCNUM (n° client)  [1] FFCNOM (nom client)  [17] FFSS_TAX (sous-total HT)
 //   [21] FFSOLDE (solde)  [22] FFTOTDU (total à payer)  [24] FFNOFACT (n° facture)
 //   [25] FFDATE (date facture)  [26] FFCREDIT (note de crédit T/F)
+//   [62] FFPRCRET (% retenue)  [67] FFMNTRET (retenue HT)  [68] FFTOTRET (retenue totale)
 
 const { interroger, parseCsv, actif } = require('./maintcpClient');
 
@@ -20,6 +21,9 @@ const FF_TOTDU = parseInt(process.env.AVANTAGE_SDK_COL_FF_TOTDU, 10) || 22;
 const FF_NOFACT = parseInt(process.env.AVANTAGE_SDK_COL_FF_NOFACT, 10) || 24;
 const FF_DATE = parseInt(process.env.AVANTAGE_SDK_COL_FF_DATE, 10) || 25;
 const FF_CREDIT = parseInt(process.env.AVANTAGE_SDK_COL_FF_CREDIT, 10) || 26;
+const FF_PRCRET = parseInt(process.env.AVANTAGE_SDK_COL_FF_PRCRET, 10) || 62;
+const FF_MNTRET = parseInt(process.env.AVANTAGE_SDK_COL_FF_MNTRET, 10) || 67;
+const FF_TOTRET = parseInt(process.env.AVANTAGE_SDK_COL_FF_TOTRET, 10) || 68;
 
 function nombre(v) {
   const n = parseFloat(String(v == null ? '' : v).replace(/[^\d.-]/g, ''));
@@ -55,6 +59,9 @@ async function lireFactures(code) {
       sous_total_ht: nombre(c[FF_SSTAX]),
       total_facture: total,
       solde_ouvert: solde,
+      retenue_total: nombre(c[FF_TOTRET]),   // FFTOTRET : retenue totale (avec taxes)
+      retenue_ht: nombre(c[FF_MNTRET]),      // FFMNTRET : retenue sans taxe
+      retenue_pct: Math.round(nombre(c[FF_PRCRET]) * 10000) / 100, // FFPRCRET : ex. 0,10 → 10 %
       note_credit: credit,
       statut_paiement: credit ? 'Note de crédit' : (Math.abs(solde) < 0.01 ? 'Payée' : 'Ouverte'),
     });
