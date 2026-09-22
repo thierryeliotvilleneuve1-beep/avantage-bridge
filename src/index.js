@@ -118,6 +118,16 @@ app.post('/api/snapshot-budget', auth, async (req, res) => {
   try { res.json(await require('./services/snapshotBudget').prendreSnapshot()); }
   catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
+// Recopie les demandes de paiement (CONFIT) à la demande (normalement déclenchée par le sync).
+app.post('/api/demandes-paiement/sync', auth, async (req, res) => {
+  try {
+    const { chargerContexte } = require('./services/pousseurTransactions');
+    const { apiGetAll } = require('./writers/base44-writer');
+    const ctx = await chargerContexte();
+    ctx.divisions = await apiGetAll('ControleBudgetaire');
+    res.json(await require('./services/pousseurDemandesPaiement').pousserToutesDemandes(ctx));
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
 
 // Sync manuel complet
 app.post('/api/sync/all', auth, async (req, res) => {

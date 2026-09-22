@@ -15,6 +15,7 @@ const pousseurPaiements = require('./pousseurPaiements');
 const { syncBudgetControle } = require('./syncBudgetControle');
 const alertesBudget = require('./alertesBudget');
 const snapshotBudget = require('./snapshotBudget');
+const pousseurDemandesPaiement = require('./pousseurDemandesPaiement');
 const notificateur = require('./notificateur');
 const { normaliserProjet } = require('../parsers/parseGrandLivre');
 
@@ -139,6 +140,12 @@ async function syncComplet(opts) {
     // 9. Alertes budgétaires par exception (dépassements / seuils) sur l'état à jour.
     try { r.alertes_budget = await alertesBudget.verifier(ctx.divisions, ctx.projets); }
     catch (e) { console.error('[SYNC] alertes budget', e.message); }
+
+    // 11. Demandes de paiement (CONFIT) — état courant par projet actif, recopié tel quel.
+    if (process.env.DP_ACTIF !== 'false') {
+      try { r.demandes_paiement = await pousseurDemandesPaiement.pousserToutesDemandes(ctx); console.log('[SYNC] demandes paiement', JSON.stringify(r.demandes_paiement)); }
+      catch (e) { console.error('[SYNC] demandes paiement', e.message); }
+    }
 
     // 10. Photo hebdomadaire du budget (WIP, récupération, tendance). Idempotent : une seule
     // photo par projet par semaine ISO, donc s'écrit au premier sync de la semaine puis se met
