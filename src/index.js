@@ -139,14 +139,27 @@ app.get('/api/sdk-probe', auth, async (req, res) => {
 app.post('/api/sdk-dialogue', auth, async (req, res) => {
   try {
     const b = req.body || {};
-    const commandes = Array.isArray(b.commandes) ? b.commandes : (b.commandes ? [b.commandes] : []);
+    let commandes = Array.isArray(b.commandes) ? b.commandes : (b.commandes ? [b.commandes] : []);
     if (!commandes.length) return res.status(400).json({ ok: false, error: 'commandes[] requis' });
+    // Sentinel {{LOGIN}} → commande LOGIN construite depuis le .env, jamais exposée.
+    const comp = process.env.AVANTAGE_SDK_COMPAGNIE || '01';
+    const user = process.env.AVANTAGE_SDK_USER || '';
+    const pass = process.env.AVANTAGE_SDK_PASS || '';
+    commandes = commandes.map(c => String(c) === '{{LOGIN}}' ? ('LOGIN,' + comp + ',' + user + ',' + pass) : c);
     const ecriture = commandes.find(c => /(^|,)\s*W\d/i.test(String(c)));
-    if (ecriture) return res.status(400).json({ ok: false, error: 'Commande d\'écriture BLOQUÉE (op W..) : ' + ecriture });
-    res.json(await require('./services/maintcpClient').dialoguer({
+    if (ecriture) return res.status(400).json({ ok: false, error: 'Commande d\'écriture BLOQUÉE (op W..) : ' + (String(ecriture).replace(pass || '\0', '****')) });
+    const r = await require('./services/maintcpClient').dialoguer({
       host: b.host, port: b.port || 2131, commandes,
       timeoutMs: b.timeoutMs, attenteMs: b.attenteMs, finLigne: b.finLigne,
-    }));
+    });
+    // Rédaction : le mot de passe ne doit jamais ressortir dans la réponse.
+    if (pass) {
+      const red = (s) => (typeof s === 'string' ? s.split(pass).join('****') : s);
+      if (r.banniere) r.banniere = red(r.banniere);
+      if (Array.isArray(r.echanges)) r.echanges.forEach(e => { e.envoye = red(e.envoye); e.recu = red(e.recu); });
+      if (r.reste) r.reste = red(r.reste);
+    }
+    res.json(r);
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
