@@ -25,6 +25,7 @@ async function syncFacturesSDK(ctx, opts) {
 
   let lues = 0, nouvelles = 0, a_modifier = 0, inchangees = 0, creees = 0, maj = 0, erreurs = 0;
   const apercu = [];
+  const echantillon_erreurs = [];
 
   for (const p of projets) {
     const code = codeNum(p); if (!code) continue;
@@ -53,7 +54,11 @@ async function syncFacturesSDK(ctx, opts) {
       if (!dryRun) {
         payload.sync_avantage_ts = new Date().toISOString();
         const w = await upsert('FactureClient', ex ? idOf(ex) : null, payload);
-        if (w.ok) { ex ? maj++ : creees++; } else erreurs++;
+        if (w.ok) { ex ? maj++ : creees++; }
+        else {
+          erreurs++;
+          if (echantillon_erreurs.length < 3) echantillon_erreurs.push({ numero_facture: f.numero_facture, operation: ex ? 'PUT' : 'POST', status: w.status, data: String(w.data || '').slice(0, 300) });
+        }
         await sleep(70);
       }
     }
@@ -64,6 +69,7 @@ async function syncFacturesSDK(ctx, opts) {
     projets_avec_factures: apercu.length, factures_lues: lues,
     factures_nouvelles: nouvelles, a_modifier, inchangees,
     creees: dryRun ? 0 : creees, mises_a_jour: dryRun ? 0 : maj, erreurs,
+    echantillon_erreurs,
     apercu,
   };
 }
