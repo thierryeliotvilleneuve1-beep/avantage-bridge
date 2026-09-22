@@ -192,6 +192,15 @@ app.get('/api/sdk/diagnostic-projets', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Factures client d'un projet (FACTMA via R09, LECTURE SEULE) : n° de facture, date, montants.
+app.get('/api/sdk/factures/:code', auth, async (req, res) => {
+  try {
+    const r = await require('./services/lectureFactures').lireFactures(req.params.code);
+    if (!r.ok) return res.status(502).json(r);
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Engagé réel d'un projet (COMMAN via R09, LECTURE SEULE) : BC fournisseurs + total engagé.
 app.get('/api/sdk/engage/:code', auth, async (req, res) => {
   try {
