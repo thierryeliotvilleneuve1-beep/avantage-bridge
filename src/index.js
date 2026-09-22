@@ -201,6 +201,15 @@ app.get('/api/sdk/engage/:code', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Engagé réel VENTILÉ PAR DIVISION (COMITE via R09). LECTURE SEULE — à valider avant écriture.
+app.get('/api/sdk/engage-divisions/:code', auth, async (req, res) => {
+  try {
+    const r = await require('./services/lectureEngage').lireEngageDivisions(req.params.code);
+    if (!r.ok) return res.status(502).json(r);
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Lecteur générique de table Avantage (R09 = lit toute table par nom). LECTURE SEULE.
 // GET /api/sdk/table/:nom?index=IDX&valeur=VAL&op=R09
 app.get('/api/sdk/table/:nom', auth, async (req, res) => {
