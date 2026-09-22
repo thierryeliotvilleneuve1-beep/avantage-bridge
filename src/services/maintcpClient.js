@@ -134,4 +134,26 @@ function dialoguer(opts) {
   });
 }
 
-module.exports = { interroger, dialoguer, parseCsv, decouperEnregistrements, actif, cfg };
+// Explorateur : essaie une matrice de combinaisons {op,mnemonique,index,valeur} et rapporte,
+// pour chacune, si la passerelle répond (ok/count/échantillon) ou l'erreur exacte. Sert à
+// cartographier l'op/le mnémonique de lecture de FACTMA et COMMAN. LECTURE SEULE (les W.. sont bloqués).
+async function explorer(combinaisons, opts) {
+  const o = opts || {};
+  const max = o.maxEchantillon != null ? o.maxEchantillon : 1;
+  const resultats = [];
+  for (const combo of (combinaisons || [])) {
+    const r = await interroger(Object.assign({ op: 'R01', timeoutMs: o.timeoutMs || 15000 }, combo));
+    resultats.push({
+      requete: 'RQ01,' + (combo.op || 'R01') + ',,' + (combo.mnemonique || '') + ',' + (combo.index || '') +
+        (combo.valeur ? (',"' + combo.valeur + '"') : ''),
+      ok: r.ok,
+      count: r.ok ? r.count : undefined,
+      erreur: r.ok ? undefined : r.erreur,
+      echantillon: r.ok ? (r.lignes || []).slice(0, max) : undefined,
+    });
+    await new Promise((res) => setTimeout(res, 120));
+  }
+  return { ok: true, essais: resultats.length, resultats };
+}
+
+module.exports = { interroger, dialoguer, explorer, parseCsv, decouperEnregistrements, actif, cfg };

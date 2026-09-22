@@ -183,6 +183,27 @@ app.post('/api/sdk/noms-projets', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Diagnostic : quels projets actifs ne matchent aucun contrat CONTRA (les « introuvables »).
+app.get('/api/sdk/diagnostic-projets', auth, async (req, res) => {
+  try {
+    const { apiGetAll } = require('./writers/base44-writer');
+    const ctx = { projets: await apiGetAll('Projet') };
+    res.json(await require('./services/syncContraNoms').diagnostiquer(ctx));
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+// Explorateur SDK (LECTURE SEULE) : cartographie l'op/mnémonique de FACTMA & COMMAN.
+// Corps attendu : { "combinaisons": [ { "op":"R02", "mnemonique":"FMA", "index":"FFCONT", "valeur":"0000026008" }, ... ] }
+app.post('/api/sdk/explorer', auth, async (req, res) => {
+  try {
+    const { explorer } = require('./services/maintcpClient');
+    const body = req.body || {};
+    const combinaisons = Array.isArray(body.combinaisons) ? body.combinaisons : [];
+    if (!combinaisons.length) return res.status(400).json({ ok: false, error: 'combinaisons[] requis' });
+    res.json(await explorer(combinaisons, { maxEchantillon: body.maxEchantillon }));
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Recopie les demandes de paiement (CONFIT) à la demande (normalement déclenchée par le sync).
 app.post('/api/demandes-paiement/sync', auth, async (req, res) => {
   try {

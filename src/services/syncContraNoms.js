@@ -59,4 +59,26 @@ async function synchroniser(ctx) {
   return { ok: true, contrats_avantage: c.count, projets_actifs: vus, noms_mis_a_jour: maj, deja_nommes: inchange, introuvables: introuvable, erreurs };
 }
 
-module.exports = { synchroniser, chargerContrats, estGenerique, actif };
+// Diagnostic : pour chaque projet ACTIF de Manœuvre, indique s'il matche un contrat CONTRA
+// et le nom trouvé. Sert à identifier les projets « introuvables » (code sans correspondance).
+async function diagnostiquer(ctx) {
+  if (!actif()) return { ok: false, raison: 'AVANTAGE_SDK_ACTIF≠true ou identifiants absents' };
+  const projets = (ctx && ctx.projets) || await apiGetAll('Projet');
+  const c = await chargerContrats();
+  if (!c.ok) return { ok: false, erreur: c.erreur };
+
+  const introuvables = [], apparies = [];
+  for (const p of projets) {
+    if (p.statut && /(termine|annule|archiv|ferm|clos|inactif)/i.test(p.statut)) continue;
+    const brut = String(p.code_projet || '').trim();
+    const code = parseInt(brut.replace(/^P/i, ''), 10);
+    const conum = code ? String(code).padStart(10, '0') : null;
+    const rec = conum ? c.map.get(conum) : null;
+    const ligne = { code_projet: brut, nom_manoeuvre: p.nom || '', conum };
+    if (rec && rec.nom) apparies.push(Object.assign(ligne, { nom_contra: rec.nom, client: rec.client }));
+    else introuvables.push(Object.assign(ligne, { raison: !code ? 'code non numérique' : 'aucun contrat CONTRA pour ce numéro' }));
+  }
+  return { ok: true, contrats_avantage: c.count, projets_actifs: apparies.length + introuvables.length, apparies: apparies.length, introuvables };
+}
+
+module.exports = { synchroniser, diagnostiquer, chargerContrats, estGenerique, actif };
