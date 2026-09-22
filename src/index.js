@@ -118,6 +118,21 @@ app.post('/api/snapshot-budget', auth, async (req, res) => {
   try { res.json(await require('./services/snapshotBudget').prendreSnapshot()); }
   catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
+// Sonde TCP LECTURE SEULE de la passerelle SDK Avantage (maintcp.exe). N'ÉCRIT JAMAIS dans
+// Avantage : envoie un jeton invalide et rapporte la connexion + la réponse éventuelle.
+// Ex.: /api/sdk-probe?ports=3000,5000,9100  (ou ?port=XXXX). host=127.0.0.1 par défaut.
+app.get('/api/sdk-probe', auth, async (req, res) => {
+  try {
+    const host = req.query.host || '127.0.0.1';
+    const ports = (req.query.ports || req.query.port || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (!ports.length) return res.status(400).json({ ok: false, error: 'Préciser ?port=XXXX ou ?ports=a,b,c' });
+    const timeoutMs = Math.min(parseInt(req.query.timeout, 10) || 4000, 15000);
+    // payload optionnel ; par défaut jeton bidon (lecture seule, jamais une requête d'écriture).
+    const payload = req.query.payload != null ? req.query.payload : undefined;
+    res.json(await require('./services/sdkProbe').sonder({ host, ports, payload, timeoutMs }));
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Recopie les demandes de paiement (CONFIT) à la demande (normalement déclenchée par le sync).
 app.post('/api/demandes-paiement/sync', auth, async (req, res) => {
   try {
