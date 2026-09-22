@@ -163,6 +163,26 @@ app.post('/api/sdk-dialogue', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Lecture d'un contrat CONTRA en clair via la passerelle SDK (LECTURE SEULE).
+app.get('/api/sdk/contrat/:code', auth, async (req, res) => {
+  try {
+    const { interroger, parseCsv } = require('./services/maintcpClient');
+    const conum = String(req.params.code).replace(/^P/i, '').trim().padStart(10, '0');
+    const r = await interroger({ op: 'R01', mnemonique: 'CNT', index: 'CONUM', valeur: conum });
+    if (!r.ok) return res.status(502).json(r);
+    res.json({ ok: true, conum, count: r.count, contrats: r.lignes.map(parseCsv) });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+// Synchronise les noms de projets depuis CONTRA (via SDK) — LECTURE SEULE, non destructif.
+app.post('/api/sdk/noms-projets', auth, async (req, res) => {
+  try {
+    const { apiGetAll } = require('./writers/base44-writer');
+    const ctx = { projets: await apiGetAll('Projet') };
+    res.json(await require('./services/syncContraNoms').synchroniser(ctx));
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Recopie les demandes de paiement (CONFIT) à la demande (normalement déclenchée par le sync).
 app.post('/api/demandes-paiement/sync', auth, async (req, res) => {
   try {
