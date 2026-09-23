@@ -52,7 +52,7 @@ function lireParProjet() {
   if (!f) return new Map();
   const meta = dbf.lireEnTete(f);
   const c = resoudre(meta, {
-    contrat: 'CICONT', division: 'CIANUM', prix: 'CIREV',
+    contrat: 'CICONT', division: 'CIANUM', seq: 'CISEQ', prix: 'CIREV',
     anterieur: 'CIANTMNT', cumulatif: 'CICUMMNT', montant: 'CIMNT', pct: 'CIPRC',
   });
 
@@ -62,14 +62,21 @@ function lireParProjet() {
     const div = act(l[c.division]); if (!div) return false;
     let g = parContrat.get(p);
     if (!g) { g = new Map(); parContrat.set(p, g); }
-    // Une ligne par contrat+division ; on somme par prudence si Avantage en a plusieurs.
-    let d = g.get(div);
-    if (!d) { d = { code_division: div, prix_contractuel: 0, montant_anterieur: 0, montant_cumulatif: 0, montant_dp: 0, pct_dp_frac: 0 }; g.set(div, d); }
-    d.prix_contractuel += num(l[c.prix]);
-    d.montant_anterieur += num(l[c.anterieur]);
-    d.montant_cumulatif += num(l[c.cumulatif]);
-    d.montant_dp += num(l[c.montant]);
-    d.pct_dp_frac = num(l[c.pct]); // fraction de la dernière ligne (0,1 = 10 %)
+    // CONFIT porte UNE ligne par division ET par cycle de DP (seq). L'état COURANT d'une division
+    // est la DP la plus récente : on garde la ligne au plus grand CISEQ (zéro-paddé → comparaison
+    // texte). NE PAS additionner les cycles (sinon montants ×N cycles).
+    const seq = String(l[c.seq] == null ? '' : l[c.seq]).trim();
+    const d = g.get(div);
+    if (!d || seq > d._seq) {
+      g.set(div, {
+        code_division: div, _seq: seq,
+        prix_contractuel: num(l[c.prix]),
+        montant_anterieur: num(l[c.anterieur]),
+        montant_cumulatif: num(l[c.cumulatif]),
+        montant_dp: num(l[c.montant]),
+        pct_dp_frac: num(l[c.pct]),
+      });
+    }
     return false; // effet de bord : on n'accumule pas dans `sorties`
   }});
 
