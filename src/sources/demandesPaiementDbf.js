@@ -154,4 +154,32 @@ function lireBrut(codeRaw) {
   return { ok: true, projet: code, total_lignes: lignes.length, divisions_distinctes: Object.keys(parDivision).length, divisions_multi_lignes: multi, lignes };
 }
 
-module.exports = { disponible, lireParProjet, lireProjet, lireBrut, repertoire, resoudre };
+// DIAGNOSTIC : en-têtes de demandes de paiement d'un projet (table CONFAC). Chaque ligne = une
+// DP numérotée réelle (CFNOD) avec sa date et son n° de facture (CFFACT). LECTURE SEULE via DBF.
+function lireEntetes(codeRaw) {
+  const code = parseInt(String(codeRaw).replace(/^P/i, '').trim(), 10);
+  const f = dbf.trouverFichier(repertoire(), 'CONFAC');
+  if (!f) return { ok: false, raison: 'CONFAC introuvable' };
+  const meta = dbf.lireEnTete(f);
+  const c = resoudre(meta, {
+    contrat: 'CFCONT', numero: 'CFNOD', date: 'CFDATE', facture: 'CFFACT',
+    date_facture: 'CFDATEF', seq: 'CFSEQ', date_prec: 'CFDATEC',
+  });
+  const entetes = [];
+  dbf.lireTable(f, { meta, filtre: (l) => {
+    const p = projNum(l[c.contrat]); if (p !== code) return false;
+    entetes.push({
+      numero_dp: String(l[c.numero] == null ? '' : l[c.numero]).trim(),
+      date: String(l[c.date] == null ? '' : l[c.date]).trim(),
+      numero_facture: String(l[c.facture] == null ? '' : l[c.facture]).trim(),
+      date_facture: String(l[c.date_facture] == null ? '' : l[c.date_facture]).trim(),
+      seq: String(l[c.seq] == null ? '' : l[c.seq]).trim(),
+      date_precedente: String(l[c.date_prec] == null ? '' : l[c.date_prec]).trim(),
+    });
+    return false;
+  }});
+  entetes.sort((a, b) => a.seq.localeCompare(b.seq));
+  return { ok: true, projet: code, nb_dp: entetes.length, entetes };
+}
+
+module.exports = { disponible, lireParProjet, lireProjet, lireBrut, lireEntetes, repertoire, resoudre };
