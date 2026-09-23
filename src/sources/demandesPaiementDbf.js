@@ -182,4 +182,50 @@ function lireEntetes(codeRaw) {
   return { ok: true, projet: code, nb_dp: entetes.length, entetes };
 }
 
-module.exports = { disponible, lireParProjet, lireProjet, lireBrut, lireEntetes, repertoire, resoudre };
+// Reconstruit les DEMANDES DE PAIEMENT NUMÉROTÉES d'un projet : une DP par en-tête CONFAC
+// (n° CFNOD, date, n° de facture CFFACT), avec ses lignes CONFIT (jointure CFSEQ ↔ CISEQ).
+// L'état de chaque ligne est celui de CE cycle (pas de sommation entre cycles). LECTURE SEULE.
+function lireDPNumerotees(codeRaw) {
+  const code = parseInt(String(codeRaw).replace(/^P/i, '').trim(), 10);
+  const en = lireEntetes(code);
+  if (!en.ok) return en;
+  const brut = lireBrut(code);
+  if (!brut.ok) return brut;
+
+  const lignesParSeq = new Map();
+  for (const l of brut.lignes) {
+    if (!lignesParSeq.has(l.seq)) lignesParSeq.set(l.seq, []);
+    lignesParSeq.get(l.seq).push(l);
+  }
+
+  const dps = en.entetes.map((h) => {
+    const divisions = (lignesParSeq.get(h.seq) || []).map((l) => ({
+      code_division: l.division,
+      prix_contractuel: l.prix_contractuel,
+      montant_anterieur: l.montant_anterieur,
+      montant_cumulatif: l.montant_cumulatif,
+      montant_dp: l.montant_dp,
+      pourcentage_dp: r2((l.pct || 0) * 100),
+      pourcentage_cumulatif: l.prix_contractuel ? r2((l.montant_cumulatif / l.prix_contractuel) * 100) : 0,
+    })).sort((a, b) => a.code_division.localeCompare(b.code_division));
+    const montant_dp = r2(divisions.reduce((s, d) => s + d.montant_dp, 0));
+    const montant_cumulatif = r2(divisions.reduce((s, d) => s + d.montant_cumulatif, 0));
+    return {
+      numero_dp: parseInt(h.numero_dp, 10) || 0,
+      numero_dp_texte: h.numero_dp,
+      date_demande: h.date,
+      numero_facture: h.numero_facture,
+      date_facture: h.date_facture,
+      statut: h.numero_facture ? 'Facturée' : 'Brouillon',
+      seq: h.seq,
+      montant_total: montant_dp,          // réclamé dans CETTE DP
+      montant_cumulatif,                  // facturé à date à la fin de cette DP
+      nb_divisions: divisions.length,
+      divisions,
+    };
+  }).sort((a, b) => a.seq.localeCompare(b.seq));
+
+  return { ok: true, projet: code, nb_dp: dps.length, dps };
+}
+
+module.exports = { disponible, lireParProjet, lireProjet, lireBrut, lireEntetes, lireDPNumerotees, repertoire, resoudre };

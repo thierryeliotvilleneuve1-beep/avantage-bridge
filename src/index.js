@@ -285,6 +285,12 @@ app.get('/api/demandes-paiement/entetes/:code', auth, (req, res) => {
   catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// APERÇU : DP numérotées reconstruites (CONFAC + CONFIT) — lecture seule, avant écriture.
+app.get('/api/demandes-paiement/numerotees/:code', auth, (req, res) => {
+  try { res.json(require('./sources/demandesPaiementDbf').lireDPNumerotees(req.params.code)); }
+  catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Recopie les demandes de paiement (CONFIT) à la demande (normalement déclenchée par le sync).
 app.post('/api/demandes-paiement/sync', auth, async (req, res) => {
   try {
