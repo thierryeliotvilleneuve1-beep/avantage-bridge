@@ -6,3 +6,6 @@ decouverte-bd-avantage.txt
 
 # État runtime des alertes budgétaires
 data/
+
+# Repère mtime du gating incrémental (état local, propre à chaque poste)
+.sync-etat-fichiers.json

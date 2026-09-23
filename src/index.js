@@ -286,12 +286,22 @@ app.post('/api/demandes-paiement/sync', auth, async (req, res) => {
 // Sync manuel complet
 app.post('/api/sync/all', auth, async (req, res) => {
   const codes = req.query.projets ? req.query.projets.split(',') : null;
-  res.json(await syncComplet({ codes }));
+  // Sync manuel = cycle complet (ignore le gating mtime) sauf ?force=false explicite.
+  const force = String(req.query.force || '') !== 'false';
+  res.json(await syncComplet({ codes, force }));
 });
 app.post('/api/sync/projet/:code', auth, async (req, res) => {
-  res.json(await syncComplet({ codes: [req.params.code] }));
+  res.json(await syncComplet({ codes: [req.params.code], force: true }));
 });
 app.get('/api/sync/etat', auth, (req, res) => res.json(require('./services/syncComplet').etat()));
+
+// État du gating incrémental (dates de modif suivies vs mémorisées).
+app.get('/api/sync/gating', auth, (req, res) => {
+  const m = require('./services/moniteurFichiers');
+  const tables = ['TRANS', 'PYBBIL', 'CONPRE', 'CONACT', 'COMITE', 'FACTMA', 'PYBACM', 'CONFIT'];
+  const etat = m.charger();
+  res.json({ actif: m.actif(), fichier_etat: m.CHEMIN_ETAT, mtimes_actuels: m.apercu(tables), repere_memorise: etat });
+});
 
 // Aperçu budgétaire (LECTURE SEULE) — reconstruit le « Suivi de projet » d'Avantage
 // depuis la BD, pour comparaison avec l'écran avant tout écriture dans Manoeuvre.
