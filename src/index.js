@@ -272,6 +272,13 @@ app.post('/api/sdk/explorer', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// DIAGNOSTIC : lignes CONFIT brutes d'un projet (via DBF, sans passerelle) — pour valider le
+// bug de sommation des demandes de paiement.
+app.get('/api/demandes-paiement/brut/:code', auth, (req, res) => {
+  try { res.json(require('./sources/demandesPaiementDbf').lireBrut(req.params.code)); }
+  catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Recopie les demandes de paiement (CONFIT) à la demande (normalement déclenchée par le sync).
 app.post('/api/demandes-paiement/sync', auth, async (req, res) => {
   try {

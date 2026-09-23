@@ -112,4 +112,39 @@ function lireProjet(codeRaw) {
   return tout.get(code) || null;
 }
 
-module.exports = { disponible, lireParProjet, lireProjet, repertoire, resoudre };
+// DIAGNOSTIC : lignes CONFIT BRUTES d'un projet (aucune agrégation). Sert à voir combien de
+// lignes existent par division, leurs séquences (CISEQ) et types (CITYPE) — pour valider la
+// correction du bug de sommation. LECTURE SEULE, via DBF (sans passerelle).
+function lireBrut(codeRaw) {
+  const code = parseInt(String(codeRaw).replace(/^P/i, '').trim(), 10);
+  const f = dbf.trouverFichier(repertoire(), 'CONFIT');
+  if (!f) return { ok: false, raison: 'CONFIT introuvable' };
+  const meta = dbf.lireEnTete(f);
+  const c = resoudre(meta, {
+    contrat: 'CICONT', division: 'CIANUM', seq: 'CISEQ', type: 'CITYPE',
+    prix: 'CIREV', anterieur: 'CIANTMNT', cumulatif: 'CICUMMNT', montant: 'CIMNT', pct: 'CIPRC',
+  });
+  const lignes = [];
+  const parDivision = {};
+  dbf.lireTable(f, { meta, filtre: (l) => {
+    const p = projNum(l[c.contrat]); if (p !== code) return false;
+    const div = act(l[c.division]); if (!div) return false;
+    parDivision[div] = (parDivision[div] || 0) + 1;
+    lignes.push({
+      division: div,
+      seq: String(l[c.seq] == null ? '' : l[c.seq]).trim(),
+      type: String(l[c.type] == null ? '' : l[c.type]).trim(),
+      prix_contractuel: r2(num(l[c.prix])),
+      montant_anterieur: r2(num(l[c.anterieur])),
+      montant_cumulatif: r2(num(l[c.cumulatif])),
+      montant_dp: r2(num(l[c.montant])),
+      pct: num(l[c.pct]),
+    });
+    return false;
+  }});
+  lignes.sort((a, b) => a.division.localeCompare(b.division) || a.seq.localeCompare(b.seq));
+  const multi = Object.entries(parDivision).filter(([, n]) => n > 1).map(([d, n]) => ({ division: d, lignes: n }));
+  return { ok: true, projet: code, total_lignes: lignes.length, divisions_distinctes: Object.keys(parDivision).length, divisions_multi_lignes: multi, lignes };
+}
+
+module.exports = { disponible, lireParProjet, lireProjet, lireBrut, repertoire, resoudre };
