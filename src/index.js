@@ -285,6 +285,12 @@ app.get('/api/demandes-paiement/entetes/:code', auth, (req, res) => {
   catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// DIAGNOSTIC : encaissements clients (CMRECU) d'un client — via DBF, sans passerelle.
+app.get('/api/encaissements/:client', auth, (req, res) => {
+  try { res.json(require('./sources/encaissementsDbf').lireParClient(req.params.client, { actifsSeuls: req.query.tous !== 'true' ? true : false })); }
+  catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // APERÇU : DP numérotées reconstruites (CONFAC + CONFIT) — lecture seule, avant écriture.
 app.get('/api/demandes-paiement/numerotees/:code', auth, (req, res) => {
   try { res.json(require('./sources/demandesPaiementDbf').lireDPNumerotees(req.params.code)); }
