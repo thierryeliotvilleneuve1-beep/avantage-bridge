@@ -16,7 +16,15 @@ const CHAMPS_LIGNE = ['controle_budgetaire_id', 'nom_division', 'prix_contractue
 function codeNum(p) { return parseInt(String(p.code_projet || '').replace(/^P/i, '').trim(), 10); }
 function estActif(p) { return !/(termine|annule|archiv|ferm|clos|inactif)/i.test(p.statut || ''); }
 function dateISO(v) { const s = String(v || '').trim(); return s ? s.replace(/\//g, '-') : ''; }
-function statutDe(dp) { return dp.numero_facture ? 'Approuvé' : 'Brouillon'; }
+
+// Statut de la DP : Brouillon (pas encore facturée) ; sinon on regarde le solde de la facture
+// correspondante (FactureClient, synchronisée depuis FACTMA) : solde ≈ 0 → Payé, sinon Approuvé.
+function statutDe(dp, factParNum) {
+  if (!dp.numero_facture) return 'Brouillon';
+  const f = factParNum.get(String(dp.numero_facture).trim());
+  if (f && Math.abs(Number(f.solde_ouvert || 0)) < 0.01) return 'Payé';
+  return 'Approuvé';
+}
 
 async function pousserDPNumerotees(ctx, opts) {
   const dryRun = !(opts && opts.dryRun === false);
@@ -26,6 +34,9 @@ async function pousserDPNumerotees(ctx, opts) {
   const entetes = (ctx && ctx.dp_entetes) || await apiGetAll('DemandesPaiement');
   const lignes = (ctx && ctx.dp_lignes) || await apiGetAll('LignesDP');
   const divisions = (ctx && ctx.divisions) || await apiGetAll('ControleBudgetaire');
+  // Factures (FactureClient) → solde par n° de facture, pour déterminer si la DP est payée.
+  const factures = (ctx && ctx.factures) || await apiGetAll('FactureClient');
+  const factParNum = new Map(factures.filter(f => f.numero_facture).map(f => [String(f.numero_facture).trim(), f]));
 
   const res = { ok: true, dry_run: dryRun, projets: 0, dp_created: 0, dp_updated: 0, dp_unchanged: 0,
     lignes_created: 0, lignes_updated: 0, lignes_unchanged: 0, dp0_supprimes: 0, lignes_supprimees: 0, errors: 0, apercu: [] };
@@ -48,7 +59,7 @@ async function pousserDPNumerotees(ctx, opts) {
         numero_facture_avantage: dp.numero_facture || '',
         date_dp: dateISO(dp.date_demande),
         montant_total: dp.montant_total,
-        statut: statutDe(dp),
+        statut: statutDe(dp, factParNum),
         notes: 'Synchronisé depuis Avantage (CONFAC/CONFIT) — ne pas éditer.',
       };
       let dpId = exDP ? idOf(exDP) : null;
@@ -105,7 +116,7 @@ async function pousserDPNumerotees(ctx, opts) {
 
     res.projets++;
     res.apercu.push({ code_projet: projet.code_projet, nb_dp: rec.dps.length,
-      dps: rec.dps.map(d => ({ numero_dp: d.numero_dp, facture: d.numero_facture || null, statut: statutDe(d), montant_total: d.montant_total, cumulatif: d.montant_cumulatif })) });
+      dps: rec.dps.map(d => ({ numero_dp: d.numero_dp, facture: d.numero_facture || null, statut: statutDe(d, factParNum), montant_total: d.montant_total, cumulatif: d.montant_cumulatif })) });
   }
   return res;
 }

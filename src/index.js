@@ -295,11 +295,11 @@ app.get('/api/demandes-paiement/numerotees/:code', auth, (req, res) => {
 app.post('/api/demandes-paiement/numerotees/sync', auth, async (req, res) => {
   try {
     const { apiGetAll } = require('./writers/base44-writer');
-    const [projets, dp_entetes, dp_lignes, divisions] = await Promise.all([
-      apiGetAll('Projet'), apiGetAll('DemandesPaiement'), apiGetAll('LignesDP'), apiGetAll('ControleBudgetaire'),
+    const [projets, dp_entetes, dp_lignes, divisions, factures] = await Promise.all([
+      apiGetAll('Projet'), apiGetAll('DemandesPaiement'), apiGetAll('LignesDP'), apiGetAll('ControleBudgetaire'), apiGetAll('FactureClient'),
     ]);
     const dryRun = String(req.query.apply || '') !== 'true';
-    const r = await require('./services/pousseurDPNumerotees').pousserDPNumerotees({ projets, dp_entetes, dp_lignes, divisions }, { dryRun });
+    const r = await require('./services/pousseurDPNumerotees').pousserDPNumerotees({ projets, dp_entetes, dp_lignes, divisions, factures }, { dryRun });
     res.json(r);
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
