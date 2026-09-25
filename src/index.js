@@ -285,6 +285,15 @@ app.get('/api/demandes-paiement/entetes/:code', auth, (req, res) => {
   catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// DIAGNOSTIC : localise un montant exact dans les tables d'encaissement/dépôt — via DBF.
+// GET /api/diagnostic/montant/331198.33?tables=BANQUE,DEPOT
+app.get('/api/diagnostic/montant/:montant', auth, (req, res) => {
+  try {
+    const tables = req.query.tables ? String(req.query.tables).split(',').map(s => s.trim().toUpperCase()).filter(Boolean) : null;
+    res.json(require('./sources/chercheMontantDbf').chercher(req.params.montant, tables ? { tables } : {}));
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // DIAGNOSTIC : encaissements clients (CMRECU) d'un client — via DBF, sans passerelle.
 app.get('/api/encaissements/:client', auth, (req, res) => {
   try { res.json(require('./sources/encaissementsDbf').lireParClient(req.params.client, { actifsSeuls: req.query.tous !== 'true' ? true : false })); }
