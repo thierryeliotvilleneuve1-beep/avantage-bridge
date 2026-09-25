@@ -15,7 +15,7 @@ const pousseurPaiements = require('./pousseurPaiements');
 const { syncBudgetControle } = require('./syncBudgetControle');
 const alertesBudget = require('./alertesBudget');
 const snapshotBudget = require('./snapshotBudget');
-const pousseurDemandesPaiement = require('./pousseurDemandesPaiement');
+const pousseurDPNumerotees = require('./pousseurDPNumerotees');
 const moniteur = require('./moniteurFichiers');
 const notificateur = require('./notificateur');
 const { normaliserProjet } = require('../parsers/parseGrandLivre');
@@ -43,7 +43,7 @@ async function syncComplet(opts) {
       bc:     force || moniteur.aChange(etat, ['COMITE', 'TRANS', 'PYBBIL']),
       fact:   force || moniteur.aChange(etat, ['FACTMA']),
       paie:   force || moniteur.aChange(etat, ['PYBACM', 'TRANS', 'PYBBIL']),
-      dp:     force || moniteur.aChange(etat, ['CONFIT']),
+      dp:     force || moniteur.aChange(etat, ['CONFIT', 'CONFAC']),
     };
     r.gating = { actif: moniteur.actif(), force, changements: chg };
 
@@ -187,11 +187,12 @@ async function syncComplet(opts) {
     try { r.alertes_budget = await alertesBudget.verifier(ctx.divisions, ctx.projets); }
     catch (e) { console.error('[SYNC] alertes budget', e.message); }
 
-    // 11. Demandes de paiement (CONFIT) — état courant par projet actif, recopié tel quel.
+    // 11. Demandes de paiement NUMÉROTÉES (CONFAC + CONFIT) — une DP par en-tête, avec n° de
+    // facture et statut. Remplace l'ancien miroir DP-0 (supprimé par le pousseur).
     if (process.env.DP_ACTIF !== 'false') {
-      if (!chg.dp) { r.demandes_paiement = { skipped: 'CONFIT inchangée (mtime)' }; }
+      if (!chg.dp) { r.demandes_paiement = { skipped: 'CONFIT/CONFAC inchangées (mtime)' }; }
       else {
-        try { r.demandes_paiement = await pousseurDemandesPaiement.pousserToutesDemandes(ctx); console.log('[SYNC] demandes paiement', JSON.stringify(r.demandes_paiement)); }
+        try { r.demandes_paiement = await pousseurDPNumerotees.pousserDPNumerotees(ctx, { dryRun: false }); console.log('[SYNC] demandes paiement', JSON.stringify({ dp_created: r.demandes_paiement.dp_created, dp_updated: r.demandes_paiement.dp_updated, errors: r.demandes_paiement.errors })); }
         catch (e) { console.error('[SYNC] demandes paiement', e.message); }
       }
     }
@@ -214,7 +215,7 @@ async function syncComplet(opts) {
     // Gating : on n'avance les repères mtime QUE si le cycle est propre (aucune erreur). Une
     // étape en échec laisse son fichier « non vu » → elle sera retentée au prochain cycle.
     if (moniteur.actif() && totalErreurs === 0) {
-      moniteur.marquer(etat, ['TRANS', 'PYBBIL', 'CONPRE', 'CONACT', 'COMITE', 'FACTMA', 'PYBACM', 'CONFIT']);
+      moniteur.marquer(etat, ['TRANS', 'PYBBIL', 'CONPRE', 'CONACT', 'COMITE', 'FACTMA', 'PYBACM', 'CONFIT', 'CONFAC']);
       r.gating.repere_sauve = moniteur.sauver(etat);
     }
 

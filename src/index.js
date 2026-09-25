@@ -291,6 +291,19 @@ app.get('/api/demandes-paiement/numerotees/:code', auth, (req, res) => {
   catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
+// Pousse les DP NUMÉROTÉES (CONFAC+CONFIT) dans Manœuvre. DRY-RUN par défaut ; ?apply=true écrit.
+app.post('/api/demandes-paiement/numerotees/sync', auth, async (req, res) => {
+  try {
+    const { apiGetAll } = require('./writers/base44-writer');
+    const [projets, dp_entetes, dp_lignes, divisions] = await Promise.all([
+      apiGetAll('Projet'), apiGetAll('DemandesPaiement'), apiGetAll('LignesDP'), apiGetAll('ControleBudgetaire'),
+    ]);
+    const dryRun = String(req.query.apply || '') !== 'true';
+    const r = await require('./services/pousseurDPNumerotees').pousserDPNumerotees({ projets, dp_entetes, dp_lignes, divisions }, { dryRun });
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // Recopie les demandes de paiement (CONFIT) à la demande (normalement déclenchée par le sync).
 app.post('/api/demandes-paiement/sync', auth, async (req, res) => {
   try {
