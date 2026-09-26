@@ -22,11 +22,13 @@ function codeNum(p) { return parseInt(String(p.code_projet || '').replace(/^P/i,
 // "2026/07/31" → "2026-07-31" (format date attendu par Base44) ; vide reste vide.
 function dateISO(v) { const s = String(v || '').trim(); return s ? s.replace(/\//g, '-') : ''; }
 
-// Statut de paiement Manœuvre (enum) déduit du solde et de la note de crédit.
+// Statut de paiement Manœuvre (enum) déduit du solde réel (encaissements A/R) et de la retenue.
+// f.solde_ouvert et f.montant_paye viennent du rapprochement RCVACM/BANQUE (cf. lectureFactures).
 function statut(f) {
   if (f.note_credit) return 'annulé';
   if (Math.abs(f.solde_ouvert) < 0.01) return 'payé';
   if (f.retenue_total > 0 && Math.abs(f.solde_ouvert - f.retenue_total) < 0.01) return 'retenue';
+  if ((f.montant_paye || 0) > 0.01) return 'partiel';
   return 'en_attente';
 }
 

@@ -17,12 +17,18 @@ function codeNum(p) { return parseInt(String(p.code_projet || '').replace(/^P/i,
 function estActif(p) { return !/(termine|annule|archiv|ferm|clos|inactif)/i.test(p.statut || ''); }
 function dateISO(v) { const s = String(v || '').trim(); return s ? s.replace(/\//g, '-') : ''; }
 
-// Statut de la DP : Brouillon (pas encore facturée) ; sinon on regarde le solde de la facture
-// correspondante (FactureClient, synchronisée depuis FACTMA) : solde ≈ 0 → Payé, sinon Approuvé.
+// Statut de la DP à partir de la facture correspondante (FactureClient, synchronisée depuis FACTMA
+// avec rapprochement des encaissements A/R) :
+//   pas de facture           → Brouillon (DP réclamée, pas encore facturée)
+//   facture payée / retenue  → Payé   (le dû de ce cycle est encaissé ; la retenue est retenue par contrat)
+//   sinon                    → Approuvé (facturée, paiement en attente ou partiel)
 function statutDe(dp, factParNum) {
   if (!dp.numero_facture) return 'Brouillon';
   const f = factParNum.get(String(dp.numero_facture).trim());
-  if (f && Math.abs(Number(f.solde_ouvert || 0)) < 0.01) return 'Payé';
+  if (!f) return 'Approuvé';
+  const st = String(f.statut_paiement || '').trim();
+  if (st === 'payé' || st === 'retenue') return 'Payé';
+  if (Math.abs(Number(f.solde_ouvert || 0)) < 0.01) return 'Payé'; // repli si statut non renseigné
   return 'Approuvé';
 }
 
