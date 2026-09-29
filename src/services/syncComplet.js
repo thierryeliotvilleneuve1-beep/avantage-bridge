@@ -16,6 +16,7 @@ const { syncBudgetControle } = require('./syncBudgetControle');
 const alertesBudget = require('./alertesBudget');
 const snapshotBudget = require('./snapshotBudget');
 const pousseurDPNumerotees = require('./pousseurDPNumerotees');
+const bcVersAvantage = require('./bcVersAvantage');
 const moniteur = require('./moniteurFichiers');
 const notificateur = require('./notificateur');
 const { normaliserProjet } = require('../parsers/parseGrandLivre');
@@ -195,6 +196,16 @@ async function syncComplet(opts) {
         try { r.demandes_paiement = await pousseurDPNumerotees.pousserDPNumerotees(ctx, { dryRun: false }); console.log('[SYNC] demandes paiement', JSON.stringify({ dp_created: r.demandes_paiement.dp_created, dp_updated: r.demandes_paiement.dp_updated, errors: r.demandes_paiement.errors })); }
         catch (e) { console.error('[SYNC] demandes paiement', e.message); }
       }
+    }
+
+    // 12. Réconciliation BC Manœuvre → Avantage (flux inverse, Voie A). Confirme les BC validés
+    // saisis dans Avantage (lecture COMMAN via SDK, écriture du n° côté Manœuvre) et alerte sur
+    // les écarts / retards de saisie. Auto-limité : aucune lecture SDK s'il n'y a aucun BC à saisir.
+    if (process.env.BC_REVERSE_ACTIF !== 'false' && bcVersAvantage.actif()) {
+      try {
+        r.bc_reconciliation = await bcVersAvantage.reconcilier(ctx, { dryRun: false });
+        console.log('[SYNC] BC→Avantage', JSON.stringify({ a_saisir: r.bc_reconciliation.a_saisir, confirmes: r.bc_reconciliation.confirmes, ecarts: r.bc_reconciliation.ecarts, en_retard: r.bc_reconciliation.en_retard }));
+      } catch (e) { console.error('[SYNC] BC→Avantage', e.message); }
     }
 
     // 10. Photo hebdomadaire du budget (WIP, récupération, tendance). Idempotent : une seule

@@ -97,4 +97,40 @@ router.post('/sync-bc/:code', async (req, res) => {
   res.json({ ok: true, projet: code, bcs: bcsAvantage.length, created, updated, errors });
 });
 
+// ── FLUX INVERSE : BC Manœuvre → Avantage (Voie A, semi-automatique) ─────────
+const bcVersAvantage = require('../services/bcVersAvantage');
+
+// Liste des BC validés en attente de saisie dans Avantage (JSON).
+router.get('/a-saisir', async (req, res) => {
+  try { res.json(await bcVersAvantage.listerASaisir()); }
+  catch (e) { res.status(500).json({ ok: false, erreur: e.message }); }
+});
+
+// Fiches de saisie imprimables (HTML) — toutes les BC en attente. Ouvrir dans un navigateur
+// avec ?key=… puis imprimer. Une fiche = une commande à saisir dans Avantage.
+router.get('/fiches', async (req, res) => {
+  try {
+    const { bcs } = await bcVersAvantage.listerASaisir();
+    res.set('Content-Type', 'text/html; charset=utf-8').send(bcVersAvantage.fichesHTML(bcs));
+  } catch (e) { res.status(500).json({ ok: false, erreur: e.message }); }
+});
+
+// Fiche de saisie d'UN seul BC (par id Manœuvre), en HTML.
+router.get('/fiche/:id', async (req, res) => {
+  try {
+    const { bcs } = await bcVersAvantage.listerASaisir();
+    const b = bcs.find(x => x.id === req.params.id);
+    if (!b) return res.status(404).json({ ok: false, erreur: 'BC introuvable ou déjà saisi/confirmé' });
+    res.set('Content-Type', 'text/html; charset=utf-8').send(bcVersAvantage.fichesHTML([b]));
+  } catch (e) { res.status(500).json({ ok: false, erreur: e.message }); }
+});
+
+// Réconciliation BC Manœuvre ↔ COMMAN Avantage. Dry-run par défaut ; ?apply=true pour écrire
+// le n° Avantage + « Confirmé Avantage » dans Manœuvre. Alerte Teams sur écarts/retards.
+router.post('/reconcilier', async (req, res) => {
+  const apply = req.query.apply === 'true' || req.query.apply === '1';
+  try { res.json(await bcVersAvantage.reconcilier(null, { dryRun: !apply })); }
+  catch (e) { res.status(500).json({ ok: false, erreur: e.message }); }
+});
+
 module.exports = router;
